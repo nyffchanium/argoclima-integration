@@ -1,9 +1,10 @@
+from typing import List
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO, PLATFORM_CLIMATE
 
 
 class DeviceType:
     def __init__(
-        self, name: str, port: int, update_interval: int, platforms: list[str]
+        self, name: str, port: int, update_interval: int, platforms: List[str]
     ) -> None:
         self._name = name
         self._port = port
@@ -23,7 +24,7 @@ class DeviceType:
         return self._update_interval
 
     @property
-    def platforms(self) -> list[str]:
+    def platforms(self) -> List[str]:
         return self._platforms
 
     def __str__(self) -> str:

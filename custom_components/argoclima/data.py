@@ -1,4 +1,5 @@
 from enum import IntEnum, IntFlag
+from typing import List
 
 DATA_TEMP_MIN = 10
 DATA_TEMP_MAX = 32
@@ -137,7 +138,7 @@ class ConstrainedDataValue(DataValue):
         self,
         update_index: int,
         response_index: int,
-        allowed_values: list[int],
+        allowed_values: List[int],
         type: ValueType = ValueType.READ_WRITE,
     ) -> None:
         super().__init__(update_index, response_index, type)
@@ -201,7 +202,7 @@ class ArgoData:
         self._eco_limit = RangedDataValue(25, 22, 30, 99)
         self._unit = DataValue(26, 24)
         self._firmware_version = DataValue(None, 23, ValueType.READ_ONLY)
-        self._values: list[DataValue] = [
+        self._values: List[DataValue] = [
             self._target_temp,
             self._temp,
             self._operating,
