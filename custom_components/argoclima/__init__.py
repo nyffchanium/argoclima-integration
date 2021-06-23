@@ -33,11 +33,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass.data.setdefault(DOMAIN, {})
         _LOGGER.info(STARTUP_MESSAGE)
 
-    type: DeviceType = DeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
-    host: str = f"{entry.data.get(CONF_HOST)}:{type.port}"
+    type = DeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
+    host: str = entry.data.get(CONF_HOST)
 
     session = async_get_clientsession(hass)
-    client = ArgoApiClient(host, session)
+    client = ArgoApiClient(host, type.port, session)
 
     coordinator = ArgoDataUpdateCoordinator(hass, client, type.update_interval)
     await coordinator.async_refresh()

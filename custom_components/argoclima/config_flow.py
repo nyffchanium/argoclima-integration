@@ -1,4 +1,5 @@
 """Adds config flow for Blueprint."""
+from custom_components.argoclima.device_type import DeviceType
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -33,15 +34,17 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._errors = {}
 
         if user_input is not None:
-            result = await self._test_host(
-                user_input[CONF_HOST],
-            )
-            if result:
-                return self.async_create_entry(
-                    title=user_input[CONF_NAME], data=user_input
-                )
+            type = DeviceType.from_name(user_input[CONF_DEVICE_TYPE])
+            if type is not None:
+                hostOk = await self._test_host(user_input[CONF_HOST], type.port)
+                if hostOk:
+                    return self.async_create_entry(
+                        title=user_input[CONF_NAME], data=user_input
+                    )
+                else:
+                    self._errors["base"] = "host"
             else:
-                self._errors["base"] = "host"
+                self._errors["base"] = "invalid_device_type"
 
             return await self._show_config_form(user_input)
 
@@ -68,13 +71,13 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=self._errors,
         )
 
-    async def _test_host(self, host):
-        """Return true if credentials is valid."""
+    async def _test_host(self, host: str, port: int):
+        """Return true if host seems to be a supported device."""
         try:
             session = async_create_clientsession(self.hass)
-            client = ArgoApiClient(host, session)
-            await client.async_call_api()
-            return True
+            client = ArgoApiClient(host, port, session)
+            result = await client.async_call_api()
+            return result is not None
         except Exception:  # pylint: disable=broad-except
             pass
         return False

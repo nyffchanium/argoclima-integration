@@ -37,4 +37,4 @@ class DeviceType:
                 ARGO_DEVICE_ULISSE_ECO, 1001, 10, [PLATFORM_CLIMATE]
             )
         }
-        return map[name]
+        return map[name] if name in map else None

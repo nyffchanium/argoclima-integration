@@ -105,7 +105,7 @@ class DataValue:
         self._changed = False
 
     def as_string(self) -> str:
-        return self._value
+        return str(self._value)
 
     def update(self, value: str) -> None:
         self._value = int(value)
@@ -241,12 +241,23 @@ class ArgoData:
     def parse_response_query(cls, query: str):
         instance = cls()
         values = query.split(",")
-        for i in range(len(values)):
-            for val in instance._values:
-                if val.response_index is i:
-                    val.update(values[i])
-                    val.reset_changed_flag()
-                    break
+
+        if len(values) != 39:
+            raise InvalidResponseFormatError
+
+        for val in instance._values:
+            if val.response_index is not None:
+                value = values[val.response_index]
+
+                if value == "N":
+                    continue
+
+                if not value.isdecimal():
+                    raise InvalidResponseFormatError
+
+                val.update(value)
+                val.reset_changed_flag()
+
         return instance
 
     @property
@@ -374,3 +385,7 @@ class ArgoData:
     @property
     def firmware_version(self) -> int:
         self._firmware_version.value
+
+
+class InvalidResponseFormatError(Exception):
+    """The response does not have a known Argoclima format."""
