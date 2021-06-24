@@ -4,5 +4,5 @@
     "domains": [
         "climate"
     ],
-    "homeassistant": "0.118.0"
+    "iot_class": "Local Polling"
 }

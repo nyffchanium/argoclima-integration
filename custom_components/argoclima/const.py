@@ -1,6 +1,6 @@
 NAME = "Argoclima"
 VERSION = "0.0.1"
-ISSUE_URL = "https://github.com/Nyffchanium/argoclima-integration/issues"
+ISSUE_URL = "https://github.com/nyffchanium/argoclima-integration/issues"
 
 DOMAIN = "argoclima"
 DOMAIN_DATA = f"{DOMAIN}_data"

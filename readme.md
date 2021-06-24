@@ -45,11 +45,11 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ***
 
-[argoclima]: https://github.com/Nyffchanium/argoclima-integration
-[buymecoffee]: https://www.buymeacoffee.com/Nyffchanium
+[argoclima]: https://github.com/nyffchanium/argoclima-integration
+[buymecoffee]: https://www.buymeacoffee.com/nyffchanium
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
-[commits-shield]: https://img.shields.io/github/commit-activity/y/Nyffchanium/argoclima-integration.svg?style=for-the-badge
-[commits]: https://github.com/Nyffchanium/argoclima-integration/commits/master
+[commits-shield]: https://img.shields.io/github/commit-activity/y/nyffchanium/argoclima-integration.svg?style=for-the-badge
+[commits]: https://github.com/nyffchanium/argoclima-integration/commits/master
 [hacs]: https://hacs.xyz
 [hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
 [discord]: https://discord.gg/Qa5fW2R
@@ -57,9 +57,9 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 [exampleimg]: example.png
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
 [forum]: https://community.home-assistant.io/
-[license]: https://github.com/Nyffchanium/argoclima-integration/blob/main/LICENSE
-[license-shield]: https://img.shields.io/github/license/Nyffchanium/argoclima-integration.svg?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/badge/maintainer-Stefan%20Nyffenegger%20%40Nyffchanium-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/Nyffchanium/argoclima-integration.svg?style=for-the-badge
-[releases]: https://github.com/Nyffchanium/argoclima-integration/releases
-[user_profile]: https://github.com/Nyffchanium
+[license]: https://github.com/nyffchanium/argoclima-integration/blob/main/LICENSE
+[license-shield]: https://img.shields.io/github/license/nyffchanium/argoclima-integration.svg?style=for-the-badge
+[maintenance-shield]: https://img.shields.io/badge/maintainer-Stefan%20Nyffenegger%20%40nyffchanium-blue.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/release/nyffchanium/argoclima-integration.svg?style=for-the-badge
+[releases]: https://github.com/nyffchanium/argoclima-integration/releases
+[user_profile]: https://github.com/nyffchanium
