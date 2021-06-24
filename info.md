@@ -9,19 +9,35 @@
 [![Discord][discord-shield]][discord]
 [![Community Forum][forum-shield]][forum]
 
-## Supported devices
+## Supported devices and features
 
 At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel free to get in touch or contribute.
 
-| Device                 | Notes                              |
-| ---------------------- | ---------------------------------- |
-| Ulisse 13 DCI Eco WiFi | basic functionality is implemented |
+| Feature / Device             | Ulisse 13 DCI Eco WiFi |
+| ---------------------------- | ---------------------- |
+| on / off                     | `climate` operation    |
+| operation mode               | `climate` operation    |
+| eco mode                     | `climate` preset       |
+| turbo mode                   | `climate` preset       |
+| night mode                   | `climate` preset       |
+| current temperature          | `climate`              |
+| set target temperature       | `climate`              |
+| set fan speed                | `climate` fan mode     |
+| set flap mode                | -                      |
+| set filter mode              | -                      |
+| set timer mode               | x                      |
+| timer configuration          | x                      |
+| set current time and weekday | x                      |
+| device lights on / off       | x                      |
+| measurement unit             | x                      |
+| eco mode power limit         | x                      |
+| firmware version             | x                      |
+| firmware version             | x                      |
+| reset device                 | x                      |
 
-**This component will set up the following platforms.**
-
-| Platform  | Description                      |
-| --------- | -------------------------------- |
-| `climate` | Control of the Argoclima device. |
+[`text`] _platform the features is represented by in HA_\
+[-] _not supported by the device_\
+[x] _not implemented_
 
 {% if not installed %}
 
