@@ -99,7 +99,7 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
 
     @property
     def preset_modes(self):
-        return [PRESET_ECO, PRESET_BOOST, PRESET_SLEEP]
+        return [PRESET_NONE, PRESET_ECO, PRESET_BOOST, PRESET_SLEEP]
 
     @property
     def fan_mode(self):
@@ -138,6 +138,7 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
             }
             data.mode = map[hvac_mode]
         await self.coordinator.api.async_call_api(data)
+        await self.coordinator.async_request_refresh()
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new target preset mode."""
@@ -147,6 +148,7 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
         data.turbo = preset_mode == PRESET_BOOST
         data.night = preset_mode == PRESET_SLEEP
         await self.coordinator.api.async_call_api(data)
+        await self.coordinator.async_request_refresh()
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
@@ -162,6 +164,7 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
         }
         data.fan = map[fan_mode]
         await self.coordinator.api.async_call_api(data)
+        await self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -169,3 +172,4 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
             data = ArgoData()
             data.target_temp = kwargs["temperature"]
             await self.coordinator.api.async_call_api(data)
+            await self.coordinator.async_request_refresh()
