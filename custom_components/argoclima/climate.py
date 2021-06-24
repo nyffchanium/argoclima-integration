@@ -129,7 +129,7 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         data = ArgoData()
-        if hvac_mode is HVAC_MODE_OFF:
+        if hvac_mode == HVAC_MODE_OFF:
             data.operating = False
         else:
             data.operating = True
@@ -146,9 +146,9 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
         """Set new target preset mode."""
         data = ArgoData()
         # TODO looks like all modes can be active simultaneously
-        data.eco = preset_mode is PRESET_ECO
-        data.turbo = preset_mode is PRESET_BOOST
-        data.night = preset_mode is PRESET_SLEEP
+        data.eco = preset_mode == PRESET_ECO
+        data.turbo = preset_mode == PRESET_BOOST
+        data.night = preset_mode == PRESET_SLEEP
         await self.coordinator.api.async_call_api(data)
 
     async def async_set_fan_mode(self, fan_mode):

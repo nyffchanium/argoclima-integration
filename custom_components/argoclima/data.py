@@ -89,15 +89,15 @@ class DataValue:
 
     @property
     def value(self) -> int:
-        if self._type is ValueType.WRITE_ONLY:
+        if self._type == ValueType.WRITE_ONLY:
             raise "can't get writeonly value"
         return self._value
 
     @value.setter
     def value(self, value: int):
-        if self._type is ValueType.READ_ONLY:
+        if self._type == ValueType.READ_ONLY:
             raise "can't set readonly value"
-        if self._value is not value:
+        if self._value != value:
             self._changed = True
             self._value = value
 
@@ -105,7 +105,7 @@ class DataValue:
         self._changed = False
 
     def as_string(self) -> str:
-        return str(self._value)
+        return str(int(self._value))
 
     def update(self, value: str) -> None:
         self._value = int(value)
@@ -230,7 +230,7 @@ class ArgoData:
         for i in range(36):
             out = "N"
             for val in self._values:
-                if val.update_index is i and val.changed:
+                if val.update_index == i and val.changed:
                     out = val.as_string()
                     val.reset_changed_flag()
                     break
