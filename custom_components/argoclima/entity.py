@@ -1,12 +1,15 @@
+import hashlib
+import uuid
+
+from custom_components.argoclima import ArgoDataUpdateCoordinator
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.device_type import DeviceType
 from homeassistant.config_entries import ConfigEntry
-from custom_components.argoclima import ArgoDataUpdateCoordinator
-import hashlib
-import uuid
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_NAME, DOMAIN, MANUFACTURER
+from .const import CONF_NAME
+from .const import DOMAIN
+from .const import MANUFACTURER
 
 
 class ArgoEntity(CoordinatorEntity):

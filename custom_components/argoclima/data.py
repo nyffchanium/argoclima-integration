@@ -1,4 +1,5 @@
-from enum import IntEnum, IntFlag
+from enum import IntEnum
+from enum import IntFlag
 from typing import List
 
 DATA_TEMP_MIN = 10
@@ -147,7 +148,7 @@ class ConstrainedDataValue(DataValue):
     @DataValue.value.setter
     def value(self, value: int):
         if value not in self._allowed_values:
-            raise f"value not allowed"
+            raise "value not allowed"
         super(ConstrainedDataValue, type(self)).value.fset(self, value)
 
 

@@ -1,19 +1,17 @@
 """Adds config flow for Blueprint."""
+import voluptuous as vol
 from custom_components.argoclima.device_type import DeviceType
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
-import voluptuous as vol
 
 from .api import ArgoApiClient
-from .const import (
-    ARGO_DEVICES,
-    ARGO_DEVICE_ULISSE_ECO,
-    CONF_DEVICE_TYPE,
-    CONF_HOST,
-    CONF_NAME,
-    DOMAIN,
-)
+from .const import ARGO_DEVICE_ULISSE_ECO
+from .const import ARGO_DEVICES
+from .const import CONF_DEVICE_TYPE
+from .const import CONF_HOST
+from .const import CONF_NAME
+from .const import DOMAIN
 
 
 class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):

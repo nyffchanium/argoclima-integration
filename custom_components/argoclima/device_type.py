@@ -1,5 +1,7 @@
 from typing import List
-from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO, PLATFORM_CLIMATE
+
+from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
+from custom_components.argoclima.const import PLATFORM_CLIMATE
 
 
 class DeviceType:

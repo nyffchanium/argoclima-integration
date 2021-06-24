@@ -1,9 +1,10 @@
-from custom_components.argoclima.data import ArgoData
-import logging
 import asyncio
+import logging
 import socket
+
 import aiohttp
 import async_timeout
+from custom_components.argoclima.data import ArgoData
 
 TIMEOUT = 10
 
