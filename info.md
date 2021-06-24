@@ -10,16 +10,17 @@
 [![Community Forum][forum-shield]][forum]
 
 ## Supported devices
+At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel free to get in touch or contribute.
 
-Device | Notes
--- | --
-Ulisse 13 DCI Eco WiFi | basic functionality is implemented
+| Device                 | Notes                              |
+| ---------------------- | ---------------------------------- |
+| Ulisse 13 DCI Eco WiFi | basic functionality is implemented |
 
 **This component will set up the following platforms.**
 
-Platform | Description
--- | --
-`climate` | Control of the Argoclima device.
+| Platform  | Description                      |
+| --------- | -------------------------------- |
+| `climate` | Control of the Argoclima device. |
 
 {% if not installed %}
 ## Installation
@@ -29,10 +30,16 @@ Platform | Description
 
 {% endif %}
 
+## Adding your device to Home Assistant
 
-## Configuration is done in the UI
+At the moment, the integration will communicate with the device locally. Cloud based communication is not supported.
 
-<!---->
+### Set up WiFi
+Follow the instructions provided with the device to connect it to your network. Once that is done, I highly recommend assigning it a static IP via router configuration. The integration is IP based and can not identify the device by any other means.
+
+### Configuration
+Select your device type, give it a name and enter the IP. The IP can be changed later.\
+![configuration](https://raw.githubusercontent.com/nyffchanium/argoclima-integration/master/config.png)
 
 ***
 
