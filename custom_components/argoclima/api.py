@@ -5,6 +5,7 @@ import socket
 import aiohttp
 import async_timeout
 from custom_components.argoclima.data import ArgoData
+from custom_components.argoclima.device_type import ArgoDeviceType
 
 TIMEOUT = 10
 
@@ -15,22 +16,25 @@ HEADERS = {"Content-type": "text/html"}
 
 
 class ArgoApiClient:
-    def __init__(self, host: str, port: int, session: aiohttp.ClientSession) -> None:
+    def __init__(
+        self, type: ArgoDeviceType, host: str, session: aiohttp.ClientSession
+    ) -> None:
+        self._type = type
         self._host = host
-        self._port = port
+        self._port = type.port
         self._session = session
 
     async def async_call_api(self, data: ArgoData = None) -> ArgoData:
         has_data = data is not None
         if data is None:
-            data = ArgoData()
+            data = ArgoData(self._type)
 
         url = f"http://{self._host}:{self._port}/?HMI={data.to_update_query()}&UPD={1 if has_data else 0}"
 
         try:
             async with async_timeout.timeout(TIMEOUT, loop=asyncio.get_event_loop()):
                 response = await self._session.get(url, headers=HEADERS)
-                return ArgoData.parse_response_query(await response.text())
+                return ArgoData.parse_response_query(self._type, await response.text())
 
         except asyncio.TimeoutError as exception:
             _LOGGER.error(

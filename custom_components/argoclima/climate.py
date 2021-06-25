@@ -1,18 +1,8 @@
 from custom_components.argoclima.data import ArgoData
-from custom_components.argoclima.data import DATA_TEMP_MAX
-from custom_components.argoclima.data import DATA_TEMP_MIN
-from custom_components.argoclima.data import FanSpeed
-from custom_components.argoclima.data import OperationMode
-from custom_components.argoclima.data import Unit
+from custom_components.argoclima.data import ArgoFanSpeed
+from custom_components.argoclima.data import ArgoOperationMode
+from custom_components.argoclima.device_type import InvalidOperationError
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import FAN_AUTO
-from homeassistant.components.climate.const import FAN_HIGH
-from homeassistant.components.climate.const import FAN_LOW
-from homeassistant.components.climate.const import FAN_MEDIUM
-from homeassistant.components.climate.const import HVAC_MODE_AUTO
-from homeassistant.components.climate.const import HVAC_MODE_COOL
-from homeassistant.components.climate.const import HVAC_MODE_DRY
-from homeassistant.components.climate.const import HVAC_MODE_FAN_ONLY
 from homeassistant.components.climate.const import HVAC_MODE_OFF
 from homeassistant.components.climate.const import PRESET_BOOST
 from homeassistant.components.climate.const import PRESET_ECO
@@ -22,8 +12,6 @@ from homeassistant.components.climate.const import SUPPORT_FAN_MODE
 from homeassistant.components.climate.const import SUPPORT_PRESET_MODE
 from homeassistant.components.climate.const import SUPPORT_TARGET_TEMPERATURE
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import TEMP_CELSIUS
-from homeassistant.const import TEMP_FAHRENHEIT
 
 from .const import (
     DOMAIN,
@@ -43,52 +31,55 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
 
     @property
     def temperature_unit(self):
-        return (
-            TEMP_CELSIUS
-            if self.coordinator.data.unit == Unit.CELCIUS
-            else TEMP_FAHRENHEIT
-        )
+        if not self._type.current_temperature:
+            raise InvalidOperationError
+        return self.coordinator.data.unit.to_ha_unit()
 
     @property
     def current_temperature(self):
+        if not self._type.current_temperature:
+            raise InvalidOperationError
         return self.coordinator.data.temp
 
     @property
     def target_temperature(self):
+        if not self._type.target_temperature:
+            raise InvalidOperationError
         return self.coordinator.data.target_temp
 
     @property
     def max_temp(self):
-        return DATA_TEMP_MAX
+        if not self._type.target_temperature:
+            raise InvalidOperationError
+        return self._type.target_temperature_max
 
     @property
     def min_temp(self):
-        return DATA_TEMP_MIN
+        if not self._type.target_temperature:
+            raise InvalidOperationError
+        return self._type.target_temperature_min
 
     @property
     def hvac_mode(self):
+        if not self._type.operation_mode:
+            raise InvalidOperationError
         if not self.coordinator.data.operating:
             return HVAC_MODE_OFF
-        map = {
-            OperationMode.COOL: HVAC_MODE_COOL,
-            OperationMode.DRY: HVAC_MODE_DRY,
-            OperationMode.FAN: HVAC_MODE_FAN_ONLY,
-            OperationMode.AUTO: HVAC_MODE_AUTO,
-        }
-        return map[self.coordinator.data.mode]
+        return self.coordinator.data.mode.to_hvac_mode()
 
     @property
     def hvac_modes(self):
-        return [
-            HVAC_MODE_OFF,
-            HVAC_MODE_COOL,
-            HVAC_MODE_DRY,
-            HVAC_MODE_FAN_ONLY,
-            HVAC_MODE_AUTO,
-        ]
+        if not self._type.operation_mode:
+            raise InvalidOperationError
+        modes = [HVAC_MODE_OFF]
+        for mode in self._type.operation_modes:
+            modes.append(mode.to_hvac_mode())
+        return modes
 
     @property
     def preset_mode(self):
+        if not self._type.preset:
+            raise InvalidOperationError
         if self.coordinator.data.eco:
             return PRESET_ECO
         if self.coordinator.data.turbo:
@@ -99,50 +90,61 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
 
     @property
     def preset_modes(self):
-        return [PRESET_NONE, PRESET_ECO, PRESET_BOOST, PRESET_SLEEP]
+        if not self._type.preset:
+            raise InvalidOperationError
+        modes = [PRESET_NONE]
+        if self._type.eco_mode:
+            modes.append(PRESET_ECO)
+        if self._type.turbo_mode:
+            modes.append(PRESET_BOOST)
+        if self._type.night_mode:
+            modes.append(PRESET_SLEEP)
+        return modes
 
     @property
     def fan_mode(self):
-        map = {
-            None: None,
-            FanSpeed.AUTO: FAN_AUTO,
-            FanSpeed.LOWEST: "lowest",
-            FanSpeed.LOW: FAN_LOW,
-            FanSpeed.MEDIUM: FAN_MEDIUM,
-            FanSpeed.HIGH: FAN_HIGH,
-            FanSpeed.HIGHER: "higher",
-            FanSpeed.HIGHEST: "highest",
-        }
-        return map[self.coordinator.data.fan]
+        if not self._type.fan_speed:
+            raise InvalidOperationError
+        return self.coordinator.data.fan.to_ha_string()
 
     @property
     def fan_modes(self):
-        return [FAN_AUTO, "lowest", FAN_LOW, FAN_MEDIUM, FAN_HIGH, "higher", "highest"]
+        if not self._type.fan_speed:
+            raise InvalidOperationError
+        modes = []
+        for speed in self._type.fan_speeds:
+            modes.append(speed.to_ha_string())
+        return modes
 
     @property
     def supported_features(self):
-        return SUPPORT_TARGET_TEMPERATURE | SUPPORT_FAN_MODE | SUPPORT_PRESET_MODE
+        features = 0
+        if self._type.target_temperature:
+            features |= SUPPORT_TARGET_TEMPERATURE
+        if self._type.fan_speed:
+            features |= SUPPORT_FAN_MODE
+        if self._type.preset:
+            features |= SUPPORT_PRESET_MODE
+        return features
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
-        data = ArgoData()
+        if not self._type.operation_mode:
+            raise InvalidOperationError
+        data = ArgoData(self._type)
         if hvac_mode == HVAC_MODE_OFF:
             data.operating = False
         else:
             data.operating = True
-            map = {
-                HVAC_MODE_COOL: OperationMode.COOL,
-                HVAC_MODE_DRY: OperationMode.DRY,
-                HVAC_MODE_FAN_ONLY: OperationMode.FAN,
-                HVAC_MODE_AUTO: OperationMode.AUTO,
-            }
-            data.mode = map[hvac_mode]
+            data.mode = ArgoOperationMode.from_hvac_mode(hvac_mode)
         await self.coordinator.api.async_call_api(data)
         await self.coordinator.async_request_refresh()
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new target preset mode."""
-        data = ArgoData()
+        if not self._type.preset:
+            raise InvalidOperationError
+        data = ArgoData(self._type)
         # TODO looks like all modes can be active simultaneously
         data.eco = preset_mode == PRESET_ECO
         data.turbo = preset_mode == PRESET_BOOST
@@ -152,24 +154,19 @@ class UlisseEntityClimate(ArgoEntity, ClimateEntity):
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
-        data = ArgoData()
-        map = {
-            FAN_AUTO: FanSpeed.AUTO,
-            "lowest": FanSpeed.LOWEST,
-            FAN_LOW: FanSpeed.LOW,
-            FAN_MEDIUM: FanSpeed.MEDIUM,
-            FAN_HIGH: FanSpeed.HIGH,
-            "higher": FanSpeed.HIGHER,
-            "highest": FanSpeed.HIGHEST,
-        }
-        data.fan = map[fan_mode]
+        if not self._type.fan_speed:
+            raise InvalidOperationError
+        data = ArgoData(self._type)
+        data.fan = ArgoFanSpeed.from_ha_string(fan_mode)
         await self.coordinator.api.async_call_api(data)
         await self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
+        if not self._type.target_temperature:
+            raise InvalidOperationError
         if "temperature" in kwargs:
-            data = ArgoData()
+            data = ArgoData(self._type)
             data.target_temp = kwargs["temperature"]
             await self.coordinator.api.async_call_api(data)
             await self.coordinator.async_request_refresh()

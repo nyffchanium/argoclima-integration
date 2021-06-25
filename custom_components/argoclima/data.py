@@ -1,69 +1,20 @@
-from enum import IntEnum
-from enum import IntFlag
 from typing import List
 
-DATA_TEMP_MIN = 10
-DATA_TEMP_MAX = 32
+from custom_components.argoclima.device_type import ArgoDeviceType
+from custom_components.argoclima.types import ArgoFanSpeed
+from custom_components.argoclima.types import ArgoOperationMode
+from custom_components.argoclima.types import ArgoTimerType
+from custom_components.argoclima.types import ArgoTimerWeekday
+from custom_components.argoclima.types import ArgoUnit
+from custom_components.argoclima.types import ArgoWeekday
+from custom_components.argoclima.types import ValueType
 
 
-class ValueType(IntEnum):
-    READ_ONLY = 0
-    WRITE_ONLY = 1
-    READ_WRITE = 2
+class InvalidResponseFormatError(Exception):
+    """The response does not have a known Argoclima format"""
 
 
-class OperationMode(IntEnum):
-    COOL = 1
-    DRY = 2
-    # HEAT = 3
-    FAN = 4
-    AUTO = 5
-
-
-class FanSpeed(IntEnum):
-    AUTO = 0
-    LOWEST = 1
-    LOW = 2
-    MEDIUM = 3
-    HIGH = 4
-    HIGHER = 5
-    HIGHEST = 6
-
-
-class TimerType(IntEnum):
-    NO_TIMER = 0
-    DELAY_ON_OFF = 1
-    PROFILE_1 = 2
-    PROFILE_2 = 3
-    PROFILE_3 = 4
-
-
-class Weekday(IntEnum):
-    SUNDAY = 0
-    MONDAY = 1
-    TUESDAY = 2
-    WEDNESDAY = 3
-    THURSAY = 4
-    FRIDAY = 5
-    SATURDAY = 6
-
-
-class TimerWeekday(IntFlag):
-    SUNDAY = 1
-    MONDAY = 2
-    TUESDAY = 4
-    WEDNESDAY = 8
-    THURSAY = 16
-    FRIDAY = 32
-    SATURDAY = 64
-
-
-class Unit(IntEnum):
-    CELCIUS = 0
-    FARENHEIT = 1
-
-
-class DataValue:
+class ArgoDataValue:
     def __init__(
         self,
         update_index: int,
@@ -112,7 +63,7 @@ class DataValue:
         self._value = int(value)
 
 
-class RangedDataValue(DataValue):
+class ArgoRangedDataValue(ArgoDataValue):
     def __init__(
         self,
         update_index: int,
@@ -125,16 +76,16 @@ class RangedDataValue(DataValue):
         self._min = min
         self._max = max
 
-    @DataValue.value.setter
+    @ArgoDataValue.value.setter
     def value(self, value: int):
         if value < self._min:
             raise f"value can't be less than {self._min}"
         elif value > self._max:
             raise f"value can't be greater than {self._max}"
-        super(RangedDataValue, type(self)).value.fset(self, value)
+        super(ArgoRangedDataValue, type(self)).value.fset(self, value)
 
 
-class ConstrainedDataValue(DataValue):
+class ArgoConstrainedDataValue(ArgoDataValue):
     def __init__(
         self,
         update_index: int,
@@ -145,14 +96,14 @@ class ConstrainedDataValue(DataValue):
         super().__init__(update_index, response_index, type)
         self._allowed_values = allowed_values
 
-    @DataValue.value.setter
+    @ArgoDataValue.value.setter
     def value(self, value: int):
         if value not in self._allowed_values:
             raise "value not allowed"
-        super(ConstrainedDataValue, type(self)).value.fset(self, value)
+        super(ArgoConstrainedDataValue, type(self)).value.fset(self, value)
 
 
-class BooleanDataValue(DataValue):
+class ArgoBooleanDataValue(ArgoDataValue):
     def __init__(
         self,
         update_index: int,
@@ -167,43 +118,44 @@ class BooleanDataValue(DataValue):
 
     @value.setter
     def value(self, value: bool):
-        super(BooleanDataValue, type(self)).value.fset(self, 1 if value else 0)
+        super(ArgoBooleanDataValue, type(self)).value.fset(self, 1 if value else 0)
 
 
 class ArgoData:
-    def __init__(self) -> None:
-        self._target_temp = RangedDataValue(
-            0, 0, DATA_TEMP_MIN * 10, DATA_TEMP_MAX * 10
+    def __init__(self, type: ArgoDeviceType) -> None:
+        self._type = type
+        self._target_temp = ArgoRangedDataValue(
+            0, 0, type.target_temperature_min * 10, type.target_temperature_max * 10
         )
-        self._temp = DataValue(None, 1, ValueType.READ_ONLY)
-        self._operating = BooleanDataValue(2, 2)
-        self._mode = ConstrainedDataValue(3, 3, list(map(int, OperationMode)))
-        self._fan = ConstrainedDataValue(4, 4, list(map(int, FanSpeed)))
+        self._temp = ArgoDataValue(None, 1, ValueType.READ_ONLY)
+        self._operating = ArgoBooleanDataValue(2, 2)
+        self._mode = ArgoConstrainedDataValue(3, 3, list(map(int, ArgoOperationMode)))
+        self._fan = ArgoConstrainedDataValue(4, 4, list(map(int, ArgoFanSpeed)))
         # self._flap = RangedDataValue(5, 5, 0, 7)
-        self._target_remote = BooleanDataValue(6, 6)
+        self._target_remote = ArgoBooleanDataValue(6, 6)
         # self._filter = BooleanDataValue(8, 8)
-        self._eco = BooleanDataValue(8, 8)
-        self._turbo = BooleanDataValue(9, 9)
-        self._night = BooleanDataValue(10, 10)
-        self._light = BooleanDataValue(11, 11)
-        self._timer = ConstrainedDataValue(12, 12, list(map(int, TimerType)))
-        self._current_weekday = ConstrainedDataValue(
-            18, None, list(map(int, Weekday)), ValueType.WRITE_ONLY
+        self._eco = ArgoBooleanDataValue(8, 8)
+        self._turbo = ArgoBooleanDataValue(9, 9)
+        self._night = ArgoBooleanDataValue(10, 10)
+        self._light = ArgoBooleanDataValue(11, 11)
+        self._timer = ArgoConstrainedDataValue(12, 12, list(map(int, ArgoTimerType)))
+        self._current_weekday = ArgoConstrainedDataValue(
+            18, None, list(map(int, ArgoWeekday)), ValueType.WRITE_ONLY
         )
-        self._timer_weekdays = ConstrainedDataValue(
-            19, None, list(map(int, TimerWeekday)), ValueType.WRITE_ONLY
+        self._timer_weekdays = ArgoConstrainedDataValue(
+            19, None, list(map(int, ArgoTimerWeekday)), ValueType.WRITE_ONLY
         )
-        self._time = RangedDataValue(20, None, 0, 1439, ValueType.WRITE_ONLY)
-        self._delaytimer_duration = RangedDataValue(
+        self._time = ArgoRangedDataValue(20, None, 0, 1439, ValueType.WRITE_ONLY)
+        self._delaytimer_duration = ArgoRangedDataValue(
             21, None, 0, 1439, ValueType.WRITE_ONLY
         )
-        self._timer_on = RangedDataValue(22, None, 0, 1439, ValueType.WRITE_ONLY)
-        self._timer_off = RangedDataValue(23, None, 0, 1439, ValueType.WRITE_ONLY)
-        # self._reset = RangedDataValue(24, None, 0, 3, ValueType.WRITE_ONLY)
-        self._eco_limit = RangedDataValue(25, 22, 30, 99)
-        self._unit = DataValue(26, 24)
-        self._firmware_version = DataValue(None, 23, ValueType.READ_ONLY)
-        self._values: List[DataValue] = [
+        self._timer_on = ArgoRangedDataValue(22, None, 0, 1439, ValueType.WRITE_ONLY)
+        self._timer_off = ArgoRangedDataValue(23, None, 0, 1439, ValueType.WRITE_ONLY)
+        self._reset = ArgoRangedDataValue(24, None, 0, 3, ValueType.WRITE_ONLY)
+        self._eco_limit = ArgoRangedDataValue(25, 22, 30, 99)
+        self._unit = ArgoDataValue(26, 24)
+        self._firmware_version = ArgoDataValue(None, 23, ValueType.READ_ONLY)
+        self._values: List[ArgoDataValue] = [
             self._target_temp,
             self._temp,
             self._operating,
@@ -239,8 +191,8 @@ class ArgoData:
         return ",".join(values)
 
     @classmethod
-    def parse_response_query(cls, query: str):
-        instance = cls()
+    def parse_response_query(cls, type: ArgoDeviceType, query: str):
+        instance = cls(type)
         values = query.split(",")
 
         if len(values) != 39:
@@ -286,19 +238,19 @@ class ArgoData:
         self._operating.value = value
 
     @property
-    def mode(self) -> OperationMode:
-        return self._mode.value
+    def mode(self) -> ArgoOperationMode:
+        return ArgoOperationMode(self._mode.value)
 
     @mode.setter
-    def mode(self, value: OperationMode):
+    def mode(self, value: ArgoOperationMode):
         self._mode.value = value
 
     @property
-    def fan(self) -> FanSpeed:
-        return self._fan.value
+    def fan(self) -> ArgoFanSpeed:
+        return ArgoFanSpeed(self._fan.value)
 
     @fan.setter
-    def fan(self, value: FanSpeed):
+    def fan(self, value: ArgoFanSpeed):
         self._fan.value = value
 
     @property
@@ -342,17 +294,17 @@ class ArgoData:
         self._light.value = value
 
     @property
-    def timer(self) -> TimerType:
-        return self._timer.value
+    def timer(self) -> ArgoTimerType:
+        return ArgoTimerType(self._timer.value)
 
     @timer.setter
-    def timer(self, value: TimerType):
+    def timer(self, value: ArgoTimerType):
         self._timer.value = value
 
-    def set_current_weekday(self, value: Weekday):
+    def set_current_weekday(self, value: ArgoWeekday):
         self._current_weekday.value = value
 
-    def set_timer_weekdays(self, value: TimerWeekday):
+    def set_timer_weekdays(self, value: ArgoTimerWeekday):
         self._timer_weekdays.value = value
 
     def set_time(self, hours: int, minutes: int):
@@ -376,17 +328,13 @@ class ArgoData:
         self._eco_limit.value = value
 
     @property
-    def unit(self) -> Unit:
-        return self._unit.value
+    def unit(self) -> ArgoUnit:
+        return ArgoUnit(self._unit.value)
 
     @unit.setter
-    def unit(self, value: Unit):
+    def unit(self, value: ArgoUnit):
         self._unit.value = value
 
     @property
     def firmware_version(self) -> int:
         self._firmware_version.value
-
-
-class InvalidResponseFormatError(Exception):
-    """The response does not have a known Argoclima format."""

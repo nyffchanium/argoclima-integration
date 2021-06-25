@@ -3,7 +3,7 @@ import logging
 from datetime import timedelta
 
 from custom_components.argoclima.data import ArgoData
-from custom_components.argoclima.device_type import DeviceType
+from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config
 from homeassistant.core import HomeAssistant
@@ -32,11 +32,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass.data.setdefault(DOMAIN, {})
         _LOGGER.info(STARTUP_MESSAGE)
 
-    type = DeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
+    type = ArgoDeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
     host: str = entry.data.get(CONF_HOST)
 
     session = async_get_clientsession(hass)
-    client = ArgoApiClient(host, type.port, session)
+    client = ArgoApiClient(type, host, session)
 
     coordinator = ArgoDataUpdateCoordinator(hass, client, type.update_interval)
     await coordinator.async_refresh()
@@ -84,7 +84,7 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator):
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    type: DeviceType = DeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
+    type: ArgoDeviceType = ArgoDeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
     unloaded = all(
         await asyncio.gather(
             *[

@@ -3,7 +3,7 @@ import uuid
 
 from custom_components.argoclima import ArgoDataUpdateCoordinator
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
-from custom_components.argoclima.device_type import DeviceType
+from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -22,7 +22,7 @@ class ArgoEntity(CoordinatorEntity):
         entry: ConfigEntry,
     ):
         super().__init__(coordinator)
-        self._type = DeviceType.from_name(entry.data[CONF_DEVICE_TYPE])
+        self._type = ArgoDeviceType.from_name(entry.data[CONF_DEVICE_TYPE])
         self._entity_name = entity_name
         self._entry = entry
 
