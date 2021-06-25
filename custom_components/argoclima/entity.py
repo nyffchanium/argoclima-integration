@@ -7,7 +7,6 @@ from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_NAME
 from .const import DOMAIN
 from .const import MANUFACTURER
 
@@ -35,13 +34,13 @@ class ArgoEntity(CoordinatorEntity):
 
     @property
     def name(self):
-        return f"{self._entry.data[CONF_NAME]} {self._entity_name}"
+        return f"{self._entry.title} {self._entity_name}"
 
     @property
     def device_info(self):
         return {
             "identifiers": {(DOMAIN, self.unique_id)},
-            "name": self._entry.data[CONF_NAME],
+            "name": self._entry.title,
             "model": self._type.name,
             "sw_version": self.coordinator.data.firmware_version,
             "manufacturer": MANUFACTURER,
