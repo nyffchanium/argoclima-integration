@@ -1,0 +1,32 @@
+{
+  "config": {
+    "error": {
+      "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "device": "Gerätetyp",
+          "host": "IP oder Hostname des Geräts",
+          "name": "Gib dem Gerät einen Namen"
+        },
+        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: https://github.com/nyffchanium/argoclima-integration",
+        "title": "Argoclima"
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "host": "IP oder Hostname des Geräts",
+          "name": "Gib dem Gerät einen Namen"
+        },
+        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: https://github.com/nyffchanium/argoclima-integration"
+      }
+    }
+  }
+}

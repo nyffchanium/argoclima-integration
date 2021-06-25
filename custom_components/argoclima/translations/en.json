@@ -1,32 +1,32 @@
 {
   "config": {
-    "step": {
-      "user": {
-        "title": "Argoclima",
-        "description": "If you need help with the configuration have a look here: https://github.com/nyffchanium/argoclima-integration",
-        "data": {
-          "device": "Device type",
-          "name": "Give the device a name",
-          "host": "IP or hostname of the device"
-        }
-      }
-    },
     "error": {
       "host": "Could not reach host or host is not a supported device."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "device": "Device type",
+          "host": "IP or hostname of the device",
+          "name": "Give the device a name"
+        },
+        "description": "If you need help with the configuration have a look here: https://github.com/nyffchanium/argoclima-integration",
+        "title": "Argoclima"
+      }
     }
   },
   "options": {
-    "step": {
-      "user": {
-        "description": "If you need help with the configuration have a look here: https://github.com/nyffchanium/argoclima-integration",
-        "data": {
-          "name": "Give the device a name",
-          "host": "IP or hostname of the device"
-        }
-      }
-    },
     "error": {
       "host": "Could not reach host or host is not a supported device."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "host": "IP or hostname of the device",
+          "name": "Give the device a name"
+        },
+        "description": "If you need help with the configuration have a look here: https://github.com/nyffchanium/argoclima-integration"
+      }
     }
   }
 }
