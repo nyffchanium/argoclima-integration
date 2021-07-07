@@ -39,7 +39,7 @@ class ArgoEntity(CoordinatorEntity):
     @property
     def device_info(self):
         return {
-            "identifiers": {(DOMAIN, self.unique_id)},
+            "identifiers": {(DOMAIN, self._entry.entry_id)},
             "name": self._entry.title,
             "model": self._type.name,
             "sw_version": self.coordinator.data.firmware_version,

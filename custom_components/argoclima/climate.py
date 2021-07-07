@@ -1,7 +1,11 @@
+from typing import Callable
+from typing import List
+
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.data import ArgoFanSpeed
 from custom_components.argoclima.data import ArgoOperationMode
 from custom_components.argoclima.device_type import InvalidOperationError
+from custom_components.argoclima.types import ArgoUnit
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import HVAC_MODE_OFF
 from homeassistant.components.climate.const import PRESET_BOOST
@@ -12,6 +16,7 @@ from homeassistant.components.climate.const import SUPPORT_FAN_MODE
 from homeassistant.components.climate.const import SUPPORT_PRESET_MODE
 from homeassistant.components.climate.const import SUPPORT_TARGET_TEMPERATURE
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 from .const import (
     DOMAIN,
@@ -19,21 +24,25 @@ from .const import (
 from .entity import ArgoEntity
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_devices: Callable[[List[ClimateEntity]], None],
+):
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices([UlisseEntityClimate(coordinator, entry)])
+    async_add_devices([ArgoEntityClimate(coordinator, entry)])
 
 
-class UlisseEntityClimate(ArgoEntity, ClimateEntity):
+class ArgoEntityClimate(ArgoEntity, ClimateEntity):
     def __init__(self, coordinator, entry: ConfigEntry):
-        ArgoEntity.__init__(self, "climate", coordinator, entry)
+        ArgoEntity.__init__(self, "Climate", coordinator, entry)
         ClimateEntity.__init__(self)
 
     @property
     def temperature_unit(self):
         if not self._type.current_temperature:
             raise InvalidOperationError
-        return self.coordinator.data.unit.to_ha_unit()
+        return ArgoUnit.CELCIUS.to_ha_unit()
 
     @property
     def current_temperature(self):

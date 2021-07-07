@@ -2,6 +2,7 @@ from typing import List
 
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import PLATFORM_CLIMATE
+from custom_components.argoclima.const import PLATFORM_SELECT
 from custom_components.argoclima.types import ArgoFanSpeed
 from custom_components.argoclima.types import ArgoFlapMode
 from custom_components.argoclima.types import ArgoOperationMode
@@ -155,6 +156,8 @@ class ArgoDeviceType:
         list = []
         if self._on_off:
             list.append(PLATFORM_CLIMATE)
+        if self._unit:
+            list.append(PLATFORM_SELECT)
         return list
 
     def __str__(self) -> str:
@@ -178,6 +181,7 @@ class ArgoDeviceType:
             .eco_mode()
             .turbo_mode()
             .night_mode()
+            .unit()
             .current_temperature()
             .target_temperature(10, 32)
             .fan_speeds(

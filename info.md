@@ -29,7 +29,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 | timer configuration          | x                      |
 | set current time and weekday | x                      |
 | device lights on / off       | x                      |
-| measurement unit             | x                      |
+| display unit \*              | `select`               |
 | eco mode power limit         | x                      |
 | firmware version             | x                      |
 | firmware version             | x                      |
@@ -38,6 +38,8 @@ At the moment, only the device I own is supported. There is a good chance that o
 [`text`] _platform the features is represented by in HA_\
 [-] _not supported by the device_\
 [x] _not implemented_
+
+\* this only affects the value displayed on the device and the webinterface
 
 {% if not installed %}
 
