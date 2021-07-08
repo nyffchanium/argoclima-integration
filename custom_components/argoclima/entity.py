@@ -19,11 +19,13 @@ class ArgoEntity(CoordinatorEntity):
         entity_name: str,
         coordinator: ArgoDataUpdateCoordinator,
         entry: ConfigEntry,
+        device_class: str = None,
     ):
         super().__init__(coordinator)
         self._type = ArgoDeviceType.from_name(entry.data[CONF_DEVICE_TYPE])
         self._entity_name = entity_name
         self._entry = entry
+        self._device_class = device_class
 
     @property
     def unique_id(self) -> str:
@@ -35,6 +37,11 @@ class ArgoEntity(CoordinatorEntity):
     @property
     def name(self):
         return f"{self._entry.title} {self._entity_name}"
+
+    @property
+    def device_class(self) -> str:
+        """Return the class of this device, from component DEVICE_CLASSES."""
+        return self._device_class
 
     @property
     def device_info(self):

@@ -3,6 +3,7 @@ from typing import Any
 from typing import Dict
 
 import voluptuous as vol
+from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -24,7 +25,7 @@ async def async_test_host(hass: HomeAssistant, type: ArgoDeviceType, host: str):
     try:
         session = async_create_clientsession(hass)
         client = ArgoApiClient(type, host, session)
-        result = await client.async_call_api()
+        result = await client.async_sync_data(ArgoData(type))
         return result is not None
     except Exception:  # pylint: disable=broad-except
         pass

@@ -156,7 +156,7 @@ class ArgoDeviceType:
         list = []
         if self._on_off:
             list.append(PLATFORM_CLIMATE)
-        if self._unit:
+        if self._unit or self._timer:
             list.append(PLATFORM_SELECT)
         return list
 
@@ -193,6 +193,15 @@ class ArgoDeviceType:
                     ArgoFanSpeed.HIGH,
                     ArgoFanSpeed.HIGHER,
                     ArgoFanSpeed.HIGHEST,
+                ]
+            )
+            .timers(
+                [
+                    ArgoTimerType.NO_TIMER,
+                    ArgoTimerType.DELAY_ON_OFF,
+                    ArgoTimerType.PROFILE_1,
+                    ArgoTimerType.PROFILE_2,
+                    ArgoTimerType.PROFILE_3,
                 ]
             )
             .build()

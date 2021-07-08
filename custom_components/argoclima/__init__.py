@@ -38,7 +38,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     session = async_get_clientsession(hass)
     client = ArgoApiClient(type, host, session)
 
-    coordinator = ArgoDataUpdateCoordinator(hass, client, type.update_interval)
+    coordinator = ArgoDataUpdateCoordinator(hass, client, type)
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
@@ -56,27 +56,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     return True
 
 
-class ArgoDataUpdateCoordinator(DataUpdateCoordinator):
-    data: ArgoData
-
+class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
     def __init__(
-        self, hass: HomeAssistant, client: ArgoApiClient, update_interval_seconds: int
+        self, hass: HomeAssistant, client: ArgoApiClient, type: ArgoDeviceType
     ) -> None:
         """Initialize."""
-        self.api = client
-        self.platforms = []
-
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=update_interval_seconds),
+            update_interval=timedelta(seconds=type.update_interval),
+            update_method=self._async_update,
         )
 
-    async def _async_update_data(self):
+        self._api = client
+        self.platforms = []
+        self.data = ArgoData(type)
+
+    async def _async_update(self) -> ArgoData:
         """Update data via library."""
         try:
-            return await self.api.async_call_api(None)
+            return await self._api.async_sync_data(self.data)
         except Exception as exception:
             raise UpdateFailed() from exception
 

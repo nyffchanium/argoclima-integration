@@ -1,6 +1,10 @@
+![Project Status][project-status-shield]
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
-[![License][license-shield]][license]
+[![License][license-shield]](LICENSE)
+
+[![pre-commit][pre-commit-shield]][pre-commit]
+[![Black][black-shield]][black]
 
 [![hacs][hacsbadge]][hacs]
 [![Project Maintenance][maintenance-shield]][user_profile]
@@ -25,7 +29,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 | set fan speed                | `climate` fan mode     |
 | set flap mode                | -                      |
 | set filter mode              | -                      |
-| set timer mode               | x                      |
+| set active timer             | `select`               |
 | timer configuration          | x                      |
 | set current time and weekday | x                      |
 | device lights on / off       | x                      |
@@ -63,6 +67,11 @@ Follow the instructions provided with the device to connect it to your network. 
 Select your device type, give it a name and enter the IP. The IP can be changed later.\
 ![configuration](https://raw.githubusercontent.com/nyffchanium/argoclima-integration/master/config.png)
 
+## Known Problems
+
+If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
+Because of this, you sould not use the official wep app in addition to this integration.
+
 ## Credits
 
 This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter](https://github.com/oncleben31/cookiecutter-homeassistant-custom-component) template.
@@ -72,6 +81,9 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 ---
 
 [argoclima]: https://github.com/nyffchanium/argoclima-integration
+[black]: https://github.com/psf/black
+[black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
+[project-status-shield]: https://img.shields.io/badge/project%20status-experimental-red.svg?style=for-the-badge
 [buymecoffee]: https://www.buymeacoffee.com/nyffchanium
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
 [commits-shield]: https://img.shields.io/github/commit-activity/y/nyffchanium/argoclima-integration.svg?style=for-the-badge
@@ -85,6 +97,8 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [forum]: https://community.home-assistant.io/
 [license]: https://github.com/nyffchanium/argoclima-integration/blob/master/LICENSE
 [license-shield]: https://img.shields.io/github/license/nyffchanium/argoclima-integration.svg?style=for-the-badge
+[pre-commit]: https://github.com/pre-commit/pre-commit
+[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-%40nyffchanium-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/nyffchanium/argoclima-integration.svg?style=for-the-badge
 [releases]: https://github.com/nyffchanium/argoclima-integration/releases

@@ -1,0 +1,11 @@
+{
+  "state": {
+    "_": {
+      "no_timer": "Keiner",
+      "delay_on_off": "Verzögert Ein/Aus",
+      "profile_1": "Profil 1",
+      "profile_2": "Profil 2",
+      "profile_3": "Profil 3"
+    }
+  }
+}

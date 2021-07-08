@@ -1,5 +1,6 @@
 from typing import List
 
+from custom_components.argoclima.const import API_UPDATE_ATTEMPTS
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.types import ArgoFanSpeed
 from custom_components.argoclima.types import ArgoOperationMode
@@ -25,7 +26,10 @@ class ArgoDataValue:
         self._update_index = update_index
         self._response_index = response_index
         self._value: int = None
-        self._changed = False
+        self._pending_change = False
+        self._requested_value: int = None
+        self._change_try_counter_enabled = False
+        self._change_try_count = 0
 
     @property
     def update_index(self) -> int:
@@ -36,31 +40,48 @@ class ArgoDataValue:
         return self._response_index
 
     @property
-    def changed(self) -> bool:
-        return self._changed
+    def pending_change(self) -> bool:
+        return self._pending_change
 
     @property
     def value(self) -> int:
+        """The current value, or if a change was requested and
+        not yet successful or cancelled, the requested value."""
         if self._type == ValueType.WRITE_ONLY:
             raise "can't get writeonly value"
-        return self._value
+        return self._requested_value if self._pending_change else self._value
 
-    @value.setter
-    def value(self, value: int):
+    def request_value(self, value: int) -> None:
+        """request a change"""
         if self._type == ValueType.READ_ONLY:
             raise "can't set readonly value"
         if self._value != value:
-            self._changed = True
-            self._value = value
+            self._requested_value = value
+            self._pending_change = True
 
-    def reset_changed_flag(self):
-        self._changed = False
-
-    def as_string(self) -> str:
-        return str(int(self._value))
+    def requested_value_as_string(self) -> str:
+        return str(int(self._requested_value))
 
     def update(self, value: str) -> None:
+        """update the actual value"""
         self._value = int(value)
+        if self._pending_change and self._requested_value == self._value:
+            self._pending_change = False
+            self._change_try_counter_enabled = False
+
+    def enable_change_watcher(self) -> None:
+        """Start counting failed update attempts if not started already."""
+        if not self._change_try_counter_enabled:
+            self._change_try_count = 0
+            self._change_try_counter_enabled = True
+
+    def notify_unsuccessful_change(self) -> None:
+        if self._change_try_counter_enabled:
+            self._change_try_count += 1
+            # Abort after x failed attempts.
+            if self._change_try_count == API_UPDATE_ATTEMPTS:
+                self._pending_change = False
+                self._change_try_counter_enabled = False
 
 
 class ArgoRangedDataValue(ArgoDataValue):
@@ -76,13 +97,12 @@ class ArgoRangedDataValue(ArgoDataValue):
         self._min = min
         self._max = max
 
-    @ArgoDataValue.value.setter
-    def value(self, value: int):
+    def request_value(self, value: int) -> None:
         if value < self._min:
             raise f"value can't be less than {self._min}"
         elif value > self._max:
             raise f"value can't be greater than {self._max}"
-        super(ArgoRangedDataValue, type(self)).value.fset(self, value)
+        return super().request_value(value)
 
 
 class ArgoConstrainedDataValue(ArgoDataValue):
@@ -96,11 +116,10 @@ class ArgoConstrainedDataValue(ArgoDataValue):
         super().__init__(update_index, response_index, type)
         self._allowed_values = allowed_values
 
-    @ArgoDataValue.value.setter
-    def value(self, value: int):
+    def request_value(self, value: int) -> None:
         if value not in self._allowed_values:
             raise "value not allowed"
-        super(ArgoConstrainedDataValue, type(self)).value.fset(self, value)
+        return super().request_value(value)
 
 
 class ArgoBooleanDataValue(ArgoDataValue):
@@ -116,9 +135,8 @@ class ArgoBooleanDataValue(ArgoDataValue):
     def value(self) -> bool:
         return super().value == 1
 
-    @value.setter
-    def value(self, value: bool):
-        super(ArgoBooleanDataValue, type(self)).value.fset(self, 1 if value else 0)
+    def request_value(self, value: int) -> None:
+        return super().request_value(1 if value else 0)
 
 
 class ArgoData:
@@ -178,27 +196,25 @@ class ArgoData:
             self._firmware_version,
         ]
 
-    def to_update_query(self) -> str:
+    def to_parameter_string(self) -> str:
         values = []
         for i in range(36):
             out = "N"
             for val in self._values:
-                if val.update_index == i and val.changed:
-                    out = val.as_string()
-                    val.reset_changed_flag()
+                if val.update_index == i and val.pending_change:
+                    out = val.requested_value_as_string()
+                    val.enable_change_watcher()
                     break
             values.append(str(out))
         return ",".join(values)
 
-    @classmethod
-    def parse_response_query(cls, type: ArgoDeviceType, query: str):
-        instance = cls(type)
+    def parse_response_parameter_string(self, query: str) -> None:
         values = query.split(",")
 
         if len(values) != 39:
             raise InvalidResponseFormatError
 
-        for val in instance._values:
+        for val in self._values:
             if val.response_index is not None:
                 value = values[val.response_index]
 
@@ -209,9 +225,16 @@ class ArgoData:
                     raise InvalidResponseFormatError
 
                 val.update(value)
-                val.reset_changed_flag()
 
-        return instance
+                # If a requested change not (yet) accepted, we remember that.
+                if val.pending_change:
+                    val.notify_unsuccessful_change()
+
+    def is_update_pending(self) -> bool:
+        for val in self._values:
+            if val.pending_change:
+                return True
+        return False
 
     @property
     def target_temp(self) -> float:
@@ -223,7 +246,7 @@ class ArgoData:
 
     @target_temp.setter
     def target_temp(self, value: int):
-        self._target_temp.value = (int)(value * 10)
+        self._target_temp.request_value((int)(value * 10))
 
     @property
     def temp(self) -> float:
@@ -235,7 +258,7 @@ class ArgoData:
 
     @operating.setter
     def operating(self, value: bool):
-        self._operating.value = value
+        self._operating.request_value(value)
 
     @property
     def mode(self) -> ArgoOperationMode:
@@ -243,7 +266,7 @@ class ArgoData:
 
     @mode.setter
     def mode(self, value: ArgoOperationMode):
-        self._mode.value = value
+        self._mode.request_value(value)
 
     @property
     def fan(self) -> ArgoFanSpeed:
@@ -251,7 +274,7 @@ class ArgoData:
 
     @fan.setter
     def fan(self, value: ArgoFanSpeed):
-        self._fan.value = value
+        self._fan.request_value(value)
 
     @property
     def target_remote(self) -> bool:
@@ -259,7 +282,7 @@ class ArgoData:
 
     @target_remote.setter
     def target_remote(self, value: bool):
-        self._target_remote.value = value
+        self._target_remote.request_value(value)
 
     @property
     def eco(self) -> bool:
@@ -267,7 +290,7 @@ class ArgoData:
 
     @eco.setter
     def eco(self, value: bool):
-        self._eco.value = value
+        self._eco.request_value(value)
 
     @property
     def turbo(self) -> bool:
@@ -275,7 +298,7 @@ class ArgoData:
 
     @turbo.setter
     def turbo(self, value: bool):
-        self._turbo.value = value
+        self._turbo.request_value(value)
 
     @property
     def night(self) -> bool:
@@ -283,7 +306,7 @@ class ArgoData:
 
     @night.setter
     def night(self, value: bool):
-        self._night.value = value
+        self._night.request_value(value)
 
     @property
     def light(self) -> bool:
@@ -291,7 +314,7 @@ class ArgoData:
 
     @light.setter
     def light(self, value: bool):
-        self._light.value = value
+        self._light.request_value(value)
 
     @property
     def timer(self) -> ArgoTimerType:
@@ -299,7 +322,7 @@ class ArgoData:
 
     @timer.setter
     def timer(self, value: ArgoTimerType):
-        self._timer.value = value
+        self._timer.request_value(value)
 
     def set_current_weekday(self, value: ArgoWeekday):
         self._current_weekday.value = value
@@ -325,7 +348,7 @@ class ArgoData:
 
     @eco_limit.setter
     def eco_limit(self, value: int):
-        self._eco_limit.value = value
+        self._eco_limit.request_value(value)
 
     @property
     def unit(self) -> ArgoUnit:
@@ -333,7 +356,7 @@ class ArgoData:
 
     @unit.setter
     def unit(self, value: ArgoUnit):
-        self._unit.value = value
+        self._unit.request_value(value)
 
     @property
     def firmware_version(self) -> int:

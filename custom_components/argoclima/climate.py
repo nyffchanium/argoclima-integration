@@ -1,7 +1,6 @@
 from typing import Callable
 from typing import List
 
-from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.data import ArgoFanSpeed
 from custom_components.argoclima.data import ArgoOperationMode
 from custom_components.argoclima.device_type import InvalidOperationError
@@ -140,34 +139,30 @@ class ArgoEntityClimate(ArgoEntity, ClimateEntity):
         """Set new target hvac mode."""
         if not self._type.operation_mode:
             raise InvalidOperationError
-        data = ArgoData(self._type)
+        data = self.coordinator.data
         if hvac_mode == HVAC_MODE_OFF:
             data.operating = False
         else:
             data.operating = True
             data.mode = ArgoOperationMode.from_hvac_mode(hvac_mode)
-        await self.coordinator.api.async_call_api(data)
         await self.coordinator.async_request_refresh()
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new target preset mode."""
         if not self._type.preset:
             raise InvalidOperationError
-        data = ArgoData(self._type)
+        data = self.coordinator.data
         # TODO looks like all modes can be active simultaneously
         data.eco = preset_mode == PRESET_ECO
         data.turbo = preset_mode == PRESET_BOOST
         data.night = preset_mode == PRESET_SLEEP
-        await self.coordinator.api.async_call_api(data)
         await self.coordinator.async_request_refresh()
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
         if not self._type.fan_speed:
             raise InvalidOperationError
-        data = ArgoData(self._type)
-        data.fan = ArgoFanSpeed.from_ha_string(fan_mode)
-        await self.coordinator.api.async_call_api(data)
+        self.coordinator.data.fan = ArgoFanSpeed.from_ha_string(fan_mode)
         await self.coordinator.async_request_refresh()
 
     async def async_set_temperature(self, **kwargs):
@@ -175,7 +170,5 @@ class ArgoEntityClimate(ArgoEntity, ClimateEntity):
         if not self._type.target_temperature:
             raise InvalidOperationError
         if "temperature" in kwargs:
-            data = ArgoData(self._type)
-            data.target_temp = kwargs["temperature"]
-            await self.coordinator.api.async_call_api(data)
+            self.coordinator.data.target_temp = kwargs["temperature"]
             await self.coordinator.async_request_refresh()

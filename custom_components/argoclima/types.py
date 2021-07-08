@@ -139,6 +139,9 @@ class ArgoTimerType(IntEnum):
     PROFILE_2 = 3
     PROFILE_3 = 4
 
+    def __str__(self) -> str:
+        return self.name.lower()
+
 
 class ArgoWeekday(IntEnum):
     SUNDAY = 0
@@ -149,6 +152,9 @@ class ArgoWeekday(IntEnum):
     FRIDAY = 5
     SATURDAY = 6
 
+    def __str__(self) -> str:
+        return self.name.lower()
+
 
 class ArgoTimerWeekday(IntFlag):
     SUNDAY = 1
@@ -158,3 +164,6 @@ class ArgoTimerWeekday(IntFlag):
     THURSAY = 16
     FRIDAY = 32
     SATURDAY = 64
+
+    def __str__(self) -> str:
+        return self.name.lower()

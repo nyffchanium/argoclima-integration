@@ -1,0 +1,11 @@
+{
+  "state": {
+    "_": {
+      "no_timer": "None",
+      "delay_on_off": "Delayed On/Off",
+      "profile_1": "Profile 1",
+      "profile_2": "Profile 2",
+      "profile_3": "Profile 3"
+    }
+  }
+}

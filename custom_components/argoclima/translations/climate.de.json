@@ -1,0 +1,12 @@
+{
+  "state": {
+    "_": {
+      "lowest": "niedrigste",
+      "low": "niedrig",
+      "medium": "mittel",
+      "high": "hoch",
+      "higher": "höher",
+      "highest": "höchste"
+    }
+  }
+}

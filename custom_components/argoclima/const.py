@@ -18,7 +18,7 @@ CONF_HOST = "host"
 # Internal stuff
 ARGO_DEVICE_ULISSE_ECO = "Ulisse 13 DCI Eco WiFi"
 ARGO_DEVICES = [ARGO_DEVICE_ULISSE_ECO]
-
+API_UPDATE_ATTEMPTS = 3
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------

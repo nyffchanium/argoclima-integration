@@ -1,9 +1,9 @@
 from typing import Callable
 from typing import List
 
-from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.device_type import InvalidOperationError
+from custom_components.argoclima.types import ArgoTimerType
 from custom_components.argoclima.types import ArgoUnit
 from homeassistant.components.select import (
     SelectEntity,
@@ -25,8 +25,11 @@ async def async_setup_entry(
 
     entities = []
     type = ArgoDeviceType.from_name(entry.data[CONF_DEVICE_TYPE])
+
     if type.unit:
         entities.append(ArgoUnitSelect(coordinator, entry))
+    if type.timer:
+        entities.append(ArgoTimerSelect(coordinator, entry))
 
     async_add_devices(entities)
 
@@ -54,7 +57,32 @@ class ArgoUnitSelect(ArgoEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         if not self._type.unit:
             raise InvalidOperationError
-        data = ArgoData(self._type)
-        data.unit = ArgoUnit.from_ha_unit(option)
-        await self.coordinator.api.async_call_api(data)
+        self.coordinator.data.unit = ArgoUnit.from_ha_unit(option)
+        await self.coordinator.async_request_refresh()
+
+
+class ArgoTimerSelect(ArgoEntity, SelectEntity):
+    def __init__(self, coordinator, entry: ConfigEntry):
+        ArgoEntity.__init__(self, "Active Timer", coordinator, entry)
+        SelectEntity.__init__(self)
+
+    @property
+    def current_option(self) -> str:
+        if not self._type.timer:
+            raise InvalidOperationError
+        return self.coordinator.data.timer.__str__()
+
+    @property
+    def options(self) -> List[str]:
+        if not self._type.timer:
+            raise InvalidOperationError
+        list = []
+        for type in self._type.timers:
+            list.append(type.__str__())
+        return list
+
+    async def async_select_option(self, option: str) -> None:
+        if not self._type.timer:
+            raise InvalidOperationError
+        self.coordinator.data.timer = ArgoTimerType[option.upper()]
         await self.coordinator.async_request_refresh()
