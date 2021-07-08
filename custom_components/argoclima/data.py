@@ -48,13 +48,13 @@ class ArgoDataValue:
         """The current value, or if a change was requested and
         not yet successful or cancelled, the requested value."""
         if self._type == ValueType.WRITE_ONLY:
-            raise "can't get writeonly value"
+            raise Exception("can't get writeonly value")
         return self._requested_value if self._pending_change else self._value
 
     def request_value(self, value: int) -> None:
         """request a change"""
         if self._type == ValueType.READ_ONLY:
-            raise "can't set readonly value"
+            raise Exception("can't set readonly value")
         if self._value != value:
             self._requested_value = value
             self._pending_change = True
@@ -99,9 +99,9 @@ class ArgoRangedDataValue(ArgoDataValue):
 
     def request_value(self, value: int) -> None:
         if value < self._min:
-            raise f"value can't be less than {self._min}"
+            raise Exception(f"value can't be less than {self._min}")
         elif value > self._max:
-            raise f"value can't be greater than {self._max}"
+            raise Exception(f"value can't be greater than {self._max}")
         return super().request_value(value)
 
 
@@ -118,7 +118,7 @@ class ArgoConstrainedDataValue(ArgoDataValue):
 
     def request_value(self, value: int) -> None:
         if value not in self._allowed_values:
-            raise "value not allowed"
+            raise Exception("value not allowed")
         return super().request_value(value)
 
 
@@ -170,7 +170,9 @@ class ArgoData:
         self._timer_on = ArgoRangedDataValue(22, None, 0, 1439, ValueType.WRITE_ONLY)
         self._timer_off = ArgoRangedDataValue(23, None, 0, 1439, ValueType.WRITE_ONLY)
         self._reset = ArgoRangedDataValue(24, None, 0, 3, ValueType.WRITE_ONLY)
-        self._eco_limit = ArgoRangedDataValue(25, 22, 30, 99)
+        self._eco_limit = ArgoRangedDataValue(
+            25, 22, type.eco_limit_min, type.eco_limit_max
+        )
         self._unit = ArgoDataValue(26, 24)
         self._firmware_version = ArgoDataValue(None, 23, ValueType.READ_ONLY)
         self._values: List[ArgoDataValue] = [
@@ -212,7 +214,7 @@ class ArgoData:
         values = query.split(",")
 
         if len(values) != 39:
-            raise InvalidResponseFormatError
+            raise InvalidResponseFormatError()
 
         for val in self._values:
             if val.response_index is not None:
@@ -222,7 +224,7 @@ class ArgoData:
                     continue
 
                 if not value.isdecimal():
-                    raise InvalidResponseFormatError
+                    raise InvalidResponseFormatError()
 
                 val.update(value)
 

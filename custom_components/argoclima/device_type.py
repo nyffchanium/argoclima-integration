@@ -7,6 +7,7 @@ from custom_components.argoclima.types import ArgoOperationMode
 from custom_components.argoclima.types import ArgoTimerType
 from homeassistant.components.climate.const import DOMAIN as ENTITY_DOMAIN_CLIMATE
 from homeassistant.components.light import DOMAIN as ENTITY_DOMAIN_LIGHT
+from homeassistant.components.number import DOMAIN as ENTITY_DOMAIN_NUMBER
 from homeassistant.components.select.const import DOMAIN as ENTITY_DOMAIN_SELECT
 
 
@@ -41,6 +42,8 @@ class ArgoDeviceType:
         self._device_lights = False
         self._unit = False
         self._eco_limit = False
+        self._eco_limit_min: float = None
+        self._eco_limit_max: float = None
         self._firmware = False
         self._reset = False
 
@@ -145,6 +148,14 @@ class ArgoDeviceType:
         return self._eco_limit
 
     @property
+    def eco_limit_min(self) -> float:
+        return self._eco_limit_min
+
+    @property
+    def eco_limit_max(self) -> float:
+        return self._eco_limit_max
+
+    @property
     def firmware(self) -> bool:
         return self._firmware
 
@@ -159,6 +170,8 @@ class ArgoDeviceType:
             list.append(ENTITY_DOMAIN_CLIMATE)
         if self._device_lights:
             list.append(ENTITY_DOMAIN_LIGHT)
+        if self._eco_limit:
+            list.append(ENTITY_DOMAIN_NUMBER)
         if self._unit or self._timer:
             list.append(ENTITY_DOMAIN_SELECT)
         return list
@@ -188,6 +201,7 @@ class ArgoDeviceType:
             .current_temperature()
             .target_temperature(10, 32)
             .device_lights()
+            .eco_limit(30, 99)
             .fan_speeds(
                 [
                     ArgoFanSpeed.AUTO,
@@ -287,8 +301,10 @@ class ArgoDeviceTypeBuilder:
         self._deviceType._unit = True
         return self
 
-    def eco_limit(self) -> "ArgoDeviceTypeBuilder":
+    def eco_limit(self, min: float, max: float) -> "ArgoDeviceTypeBuilder":
         self._deviceType._eco_limit = True
+        self._deviceType._eco_limit_min = min
+        self._deviceType._eco_limit_max = max
         return self
 
     def firmware(self) -> "ArgoDeviceTypeBuilder":

@@ -34,7 +34,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 | set current time and weekday | x                      |
 | device lights on / off       | `light`                |
 | display unit \*              | `select`               |
-| eco mode power limit         | x                      |
+| eco mode power limit         | `number`               |
 | firmware version             | x                      |
 | reset device                 | x                      |
 
