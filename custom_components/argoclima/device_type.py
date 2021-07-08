@@ -1,12 +1,12 @@
 from typing import List
 
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
-from custom_components.argoclima.const import PLATFORM_CLIMATE
-from custom_components.argoclima.const import PLATFORM_SELECT
 from custom_components.argoclima.types import ArgoFanSpeed
 from custom_components.argoclima.types import ArgoFlapMode
 from custom_components.argoclima.types import ArgoOperationMode
 from custom_components.argoclima.types import ArgoTimerType
+from homeassistant.components.climate.const import DOMAIN as ENTITY_DOMAIN_CLIMATE
+from homeassistant.components.select.const import DOMAIN as ENTITY_DOMAIN_SELECT
 
 
 class InvalidOperationError(Exception):
@@ -155,9 +155,9 @@ class ArgoDeviceType:
     def platforms(self) -> List[str]:
         list = []
         if self._on_off:
-            list.append(PLATFORM_CLIMATE)
+            list.append(ENTITY_DOMAIN_CLIMATE)
         if self._unit or self._timer:
-            list.append(PLATFORM_SELECT)
+            list.append(ENTITY_DOMAIN_SELECT)
         return list
 
     def __str__(self) -> str:

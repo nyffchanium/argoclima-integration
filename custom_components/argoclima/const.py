@@ -6,10 +6,6 @@ DOMAIN = "argoclima"
 DOMAIN_DATA = f"{DOMAIN}_data"
 MANUFACTURER = "Argoclima S.p.A."
 
-# Platforms
-PLATFORM_CLIMATE = "climate"
-PLATFORM_SELECT = "select"
-
 # Configuration and options
 CONF_DEVICE_TYPE = "device"
 CONF_NAME = "name"
