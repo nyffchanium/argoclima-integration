@@ -32,10 +32,9 @@ At the moment, only the device I own is supported. There is a good chance that o
 | set active timer             | `select`               |
 | timer configuration          | x                      |
 | set current time and weekday | x                      |
-| device lights on / off       | x                      |
+| device lights on / off       | `light`                |
 | display unit \*              | `select`               |
 | eco mode power limit         | x                      |
-| firmware version             | x                      |
 | firmware version             | x                      |
 | reset device                 | x                      |
 

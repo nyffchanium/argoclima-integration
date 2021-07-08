@@ -6,6 +6,7 @@ from custom_components.argoclima.types import ArgoFlapMode
 from custom_components.argoclima.types import ArgoOperationMode
 from custom_components.argoclima.types import ArgoTimerType
 from homeassistant.components.climate.const import DOMAIN as ENTITY_DOMAIN_CLIMATE
+from homeassistant.components.light import DOMAIN as ENTITY_DOMAIN_LIGHT
 from homeassistant.components.select.const import DOMAIN as ENTITY_DOMAIN_SELECT
 
 
@@ -156,6 +157,8 @@ class ArgoDeviceType:
         list = []
         if self._on_off:
             list.append(ENTITY_DOMAIN_CLIMATE)
+        if self._device_lights:
+            list.append(ENTITY_DOMAIN_LIGHT)
         if self._unit or self._timer:
             list.append(ENTITY_DOMAIN_SELECT)
         return list
@@ -184,6 +187,7 @@ class ArgoDeviceType:
             .unit()
             .current_temperature()
             .target_temperature(10, 32)
+            .device_lights()
             .fan_speeds(
                 [
                     ArgoFanSpeed.AUTO,
