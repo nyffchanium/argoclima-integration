@@ -6,9 +6,9 @@ from custom_components.argoclima.types import ArgoFlapMode
 from custom_components.argoclima.types import ArgoOperationMode
 from custom_components.argoclima.types import ArgoTimerType
 from homeassistant.components.climate.const import DOMAIN as ENTITY_DOMAIN_CLIMATE
-from homeassistant.components.light import DOMAIN as ENTITY_DOMAIN_LIGHT
 from homeassistant.components.number import DOMAIN as ENTITY_DOMAIN_NUMBER
 from homeassistant.components.select.const import DOMAIN as ENTITY_DOMAIN_SELECT
+from homeassistant.components.switch import DOMAIN as ENTITY_DOMAIN_SWITCH
 
 
 class InvalidOperationError(Exception):
@@ -168,12 +168,12 @@ class ArgoDeviceType:
         list = []
         if self._on_off:
             list.append(ENTITY_DOMAIN_CLIMATE)
-        if self._device_lights:
-            list.append(ENTITY_DOMAIN_LIGHT)
         if self._eco_limit:
             list.append(ENTITY_DOMAIN_NUMBER)
         if self._unit or self._timer:
             list.append(ENTITY_DOMAIN_SELECT)
+        if self._device_lights:
+            list.append(ENTITY_DOMAIN_SWITCH)
         return list
 
     def __str__(self) -> str:
