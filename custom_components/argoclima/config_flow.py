@@ -1,4 +1,3 @@
-"""Adds config flow for Blueprint."""
 from typing import Any
 from typing import Dict
 
@@ -97,7 +96,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
         super().__init__()
         self._errors = {}
         self.config_entry = config_entry
-        self.options = dict(config_entry.options)
+        self.data = dict(config_entry.data)
 
     async def async_step_init(self, user_input: Dict[str, Any] = None) -> FlowResult:
         """Manage the options."""
@@ -106,13 +105,11 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_user(self, user_input: Dict[str, Any] = None) -> FlowResult:
         """Handle a flow initialized by the user."""
         if user_input is not None:
-            type = ArgoDeviceType.from_name(self.options.get(CONF_DEVICE_TYPE))
+            type = ArgoDeviceType.from_name(self.data.get(CONF_DEVICE_TYPE))
             hostOk = await async_test_host(self.hass, type, user_input[CONF_HOST])
             if hostOk:
-                self.options.update({CONF_HOST: user_input[CONF_HOST]})
-                return self.async_create_entry(
-                    title=self.config_entry.title, data=self.options
-                )
+                self.data.update({CONF_HOST: user_input[CONF_HOST]})
+                return self.async_create_entry(title="", data=self.data)
             else:
                 self._errors["base"] = "host"
 
@@ -124,13 +121,12 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
                 user_input[key] is not None and len(user_input[key]) > 0
             ):
                 return user_input[key]
-            return self.options.get(key)
+            return self.data.get(key)
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_NAME, default=default(CONF_NAME)): str,
                     vol.Required(CONF_HOST, default=default(CONF_HOST)): str,
                 }
             ),
