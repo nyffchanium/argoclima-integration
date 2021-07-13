@@ -93,7 +93,7 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [argoclima]: https://github.com/nyffchanium/argoclima-integration
 [black]: https://github.com/psf/black
 [black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
-[project-status-shield]: https://img.shields.io/badge/project%20status-experimental-red.svg?style=for-the-badge
+[project-status-shield]: https://img.shields.io/badge/project%20status-released-brightgreen.svg?style=for-the-badge
 [buymecoffee]: https://www.buymeacoffee.com/nyffchanium
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
 [commits-shield]: https://img.shields.io/github/commit-activity/y/nyffchanium/argoclima-integration.svg?style=for-the-badge
