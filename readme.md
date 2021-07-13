@@ -33,11 +33,11 @@ At the moment, only the device I own is supported. There is a good chance that o
 | set flap mode | x | - |
 | set filter mode | x | - |
 | set active timer | `select` | ✓ |
-| use remote temperature | x | x |
+| use remote temperature \* | `switch` | x |
 | timer configuration | x | ✓ |
 | set current time and weekday | synchronize_time service | ✓ |
 | device lights on / off | `light` | ✓ |
-| display unit \* | `select` | ✓ |
+| display unit \*\* | `select` | ✓ |
 | eco mode power limit | `number` | ✓ |
 | firmware version | x | x |
 | reset device | x | x |
@@ -46,7 +46,8 @@ At the moment, only the device I own is supported. There is a good chance that o
 [-] _not supported by the device_\
 [x] _not implemented_
 
-\* this only affects the value displayed on the device and the webinterface
+\* No idea whether that actually works. Could be that the remote would have to be in this mode as well for it to send values. Not tested.
+\*\* This only affects the value displayed on the device and the webinterface.
 
 ## Installation
 

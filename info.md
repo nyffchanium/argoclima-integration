@@ -15,35 +15,35 @@
 
 ## Supported devices and features
 
-At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel free to get in touch or contribute.
-
-| Feature                      | Implementation / Supported for | Ulisse 13 DCI Eco WiFi |
+At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel
+| Feature | Implementation / Supported for | Ulisse 13 DCI Eco WiFi |
 | ---------------------------- | ------------------------------ | ---------------------- |
-| on / off                     | `climate` operation            | ✓                      |
-| operation mode               | `climate` operation            | ✓                      |
-| eco mode                     | `climate` preset               | ✓                      |
-| turbo mode                   | `climate` preset               | ✓                      |
-| night mode                   | `climate` preset               | ✓                      |
-| current temperature          | `climate`                      | ✓                      |
-| set target temperature       | `climate`                      | ✓                      |
-| set fan speed                | `climate` fan mode             | ✓                      |
-| set flap mode                | x                              | -                      |
-| set filter mode              | x                              | -                      |
-| set active timer             | `select`                       | ✓                      |
-| use remote temperature       | x                              | x                      |
-| timer configuration          | x                              | ✓                      |
-| set current time and weekday | synchronize_time service       | ✓                      |
-| device lights on / off       | `light`                        | ✓                      |
-| display unit \*              | `select`                       | ✓                      |
-| eco mode power limit         | `number`                       | ✓                      |
-| firmware version             | x                              | x                      |
-| reset device                 | x                              | x                      |
+| on / off | `climate` operation | ✓ |
+| operation mode | `climate` operation | ✓ |
+| eco mode | `climate` preset | ✓ |
+| turbo mode | `climate` preset | ✓ |
+| night mode | `climate` preset | ✓ |
+| current temperature | `climate` | ✓ |
+| set target temperature | `climate` | ✓ |
+| set fan speed | `climate` fan mode | ✓ |
+| set flap mode | x | - |
+| set filter mode | x | - |
+| set active timer | `select` | ✓ |
+| use remote temperature \* | `switch` | x |
+| timer configuration | x | ✓ |
+| set current time and weekday | synchronize_time service | ✓ |
+| device lights on / off | `light` | ✓ |
+| display unit \*\* | `select` | ✓ |
+| eco mode power limit | `number` | ✓ |
+| firmware version | x | x |
+| reset device | x | x |
 
 [`text`] _platform the features is represented by in HA_\
 [-] _not supported by the device_\
 [x] _not implemented_
 
-\* this only affects the value displayed on the device and the webinterface
+\* No idea whether that actually works. Could be that the remote would have to be in this mode as well for it to send values. Not tested.
+\*\* This only affects the value displayed on the device and the webinterface.
 
 {% if not installed %}
 

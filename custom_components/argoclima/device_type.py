@@ -31,6 +31,7 @@ class ArgoDeviceType:
         self._target_temperature_min: float = None
         self._target_temperature_max: float = None
         self._current_temperature = False
+        self._remote_temperature = False
         self._fan_speeds: List[ArgoFanSpeed] = []
         self._fan_speed = False
         self._flap_modes: List[ArgoFlapMode] = []
@@ -104,6 +105,10 @@ class ArgoDeviceType:
         return self._current_temperature
 
     @property
+    def remote_temperature(self) -> bool:
+        return self._remote_temperature
+
+    @property
     def fan_speeds(self) -> List[ArgoFanSpeed]:
         return self._fan_speeds
 
@@ -172,7 +177,7 @@ class ArgoDeviceType:
             list.append(ENTITY_DOMAIN_NUMBER)
         if self._unit or self._timer:
             list.append(ENTITY_DOMAIN_SELECT)
-        if self._device_lights:
+        if self._device_lights or self.remote_temperature:
             list.append(ENTITY_DOMAIN_SWITCH)
         return list
 
@@ -202,6 +207,7 @@ class ArgoDeviceType:
             .target_temperature(10, 32)
             .device_lights()
             .eco_limit(30, 99)
+            .remote_temperature()
             .fan_speeds(
                 [
                     ArgoFanSpeed.AUTO,
@@ -268,6 +274,10 @@ class ArgoDeviceTypeBuilder:
 
     def current_temperature(self) -> "ArgoDeviceTypeBuilder":
         self._deviceType._current_temperature = True
+        return self
+
+    def remote_temperature(self) -> "ArgoDeviceTypeBuilder":
+        self._deviceType._remote_temperature = True
         return self
 
     def fan_speeds(self, modes: List[ArgoFanSpeed]) -> "ArgoDeviceTypeBuilder":

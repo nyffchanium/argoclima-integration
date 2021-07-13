@@ -155,7 +155,7 @@ class ArgoData:
         self._mode = ArgoConstrainedDataValue(3, 3, list(map(int, ArgoOperationMode)))
         self._fan = ArgoConstrainedDataValue(4, 4, list(map(int, ArgoFanSpeed)))
         # self._flap = RangedDataValue(5, 5, 0, 7)
-        self._target_remote = ArgoBooleanDataValue(6, 6)
+        self._remote_temperature = ArgoBooleanDataValue(6, 6)
         # self._filter = BooleanDataValue(8, 8)
         self._eco = ArgoBooleanDataValue(8, 8)
         self._turbo = ArgoBooleanDataValue(9, 9)
@@ -186,7 +186,7 @@ class ArgoData:
             self._operating,
             self._mode,
             self._fan,
-            self._target_remote,
+            self._remote_temperature,
             self._eco,
             self._turbo,
             self._night,
@@ -287,12 +287,20 @@ class ArgoData:
         self._fan.request_value(value)
 
     @property
+    def remote_temperature(self) -> bool:
+        return self._remote_temperature.value
+
+    @remote_temperature.setter
+    def remote_temperature(self, value: bool):
+        self._remote_temperature.request_value(value)
+
+    @property
     def target_remote(self) -> bool:
-        return self._target_remote.value
+        return self._remote_temperature.value
 
     @target_remote.setter
     def target_remote(self, value: bool):
-        self._target_remote.request_value(value)
+        self._remote_temperature.request_value(value)
 
     @property
     def eco(self) -> bool:
