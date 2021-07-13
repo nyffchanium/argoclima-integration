@@ -1,8 +1,11 @@
 from typing import Callable
 from typing import List
 
+from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.device_type import InvalidOperationError
+from custom_components.argoclima.entity import ArgoEntity
 from custom_components.argoclima.types import ArgoTimerType
 from custom_components.argoclima.types import ArgoUnit
 from homeassistant.components.select import (
@@ -10,10 +13,6 @@ from homeassistant.components.select import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-
-from .const import CONF_DEVICE_TYPE
-from .const import DOMAIN
-from .entity import ArgoEntity
 
 
 async def async_setup_entry(

@@ -2,6 +2,13 @@ from typing import Any
 from typing import Dict
 
 import voluptuous as vol
+from custom_components.argoclima.api import ArgoApiClient
+from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
+from custom_components.argoclima.const import ARGO_DEVICES
+from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import CONF_HOST
+from custom_components.argoclima.const import CONF_NAME
+from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant import config_entries
@@ -9,14 +16,6 @@ from homeassistant.core import callback
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
-
-from .api import ArgoApiClient
-from .const import ARGO_DEVICE_ULISSE_ECO
-from .const import ARGO_DEVICES
-from .const import CONF_DEVICE_TYPE
-from .const import CONF_HOST
-from .const import CONF_NAME
-from .const import DOMAIN
 
 
 async def async_test_host(hass: HomeAssistant, type: ArgoDeviceType, host: str):

@@ -1,14 +1,14 @@
 import logging
 from datetime import timedelta
 
+from custom_components.argoclima.api import ArgoApiClient
+from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from .api import ArgoApiClient
-from .const import DOMAIN
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 

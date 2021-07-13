@@ -1,9 +1,11 @@
 from typing import Callable
 from typing import List
 
+from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.data import ArgoFanSpeed
 from custom_components.argoclima.data import ArgoOperationMode
 from custom_components.argoclima.device_type import InvalidOperationError
+from custom_components.argoclima.entity import ArgoEntity
 from custom_components.argoclima.types import ArgoUnit
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import HVAC_MODE_OFF
@@ -16,11 +18,6 @@ from homeassistant.components.climate.const import SUPPORT_PRESET_MODE
 from homeassistant.components.climate.const import SUPPORT_TARGET_TEMPERATURE
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-
-from .const import (
-    DOMAIN,
-)
-from .entity import ArgoEntity
 
 
 async def async_setup_entry(

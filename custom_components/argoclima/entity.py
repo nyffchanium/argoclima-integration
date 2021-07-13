@@ -3,12 +3,11 @@ import uuid
 
 from custom_components.argoclima import ArgoDataUpdateCoordinator
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import DOMAIN
+from custom_components.argoclima.const import MANUFACTURER
 from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from .const import DOMAIN
-from .const import MANUFACTURER
 
 
 class ArgoEntity(CoordinatorEntity):

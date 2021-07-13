@@ -1,6 +1,11 @@
 import asyncio
 import logging
 
+from custom_components.argoclima.api import ArgoApiClient
+from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import CONF_HOST
+from custom_components.argoclima.const import DOMAIN
+from custom_components.argoclima.const import STARTUP_MESSAGE
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.service import setup_service
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
@@ -10,11 +15,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import ArgoApiClient
-from .const import CONF_DEVICE_TYPE
-from .const import CONF_HOST
-from .const import DOMAIN
-from .const import STARTUP_MESSAGE
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 

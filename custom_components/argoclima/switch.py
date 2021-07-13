@@ -1,13 +1,12 @@
 from typing import Callable
 from typing import List
 
+from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.device_type import InvalidOperationError
+from custom_components.argoclima.entity import ArgoEntity
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-
-from .const import DOMAIN
-from .entity import ArgoEntity
 
 
 async def async_setup_entry(
