@@ -4,7 +4,7 @@
   "name": "Argoclima integration development",
   "context": "..",
   "appPort": ["9123:8123"],
-  "postCreateCommand": "container install",
+  "postCreateCommand": "container install && pip install pre-commit flake8 reorder-python-imports",
   "extensions": [
     "ms-python.python",
     "github.vscode-pull-request-github",
