@@ -179,8 +179,8 @@ class ArgoDeviceType:
     def __str__(self) -> str:
         return self.name
 
-    @classmethod
-    def from_name(cls, name: str) -> "ArgoDeviceType":
+    @staticmethod
+    def from_name(name: str) -> "ArgoDeviceType":
         map = {
             ARGO_DEVICE_ULISSE_ECO: ArgoDeviceTypeBuilder(
                 ARGO_DEVICE_ULISSE_ECO, 1001, 10

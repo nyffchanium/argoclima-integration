@@ -1,16 +1,14 @@
 import asyncio
 import logging
-from datetime import timedelta
 
-from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
+from custom_components.argoclima.service import setup_service
+from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .api import ArgoApiClient
 from .const import CONF_DEVICE_TYPE
@@ -22,7 +20,7 @@ _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 async def async_setup(hass: HomeAssistant, config: Config):
-    """Set up this integration using YAML is not supported."""
+    await setup_service(hass)
     return True
 
 
@@ -53,32 +51,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         )
 
     entry.add_update_listener(async_reload_entry)
+
     return True
-
-
-class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
-    def __init__(
-        self, hass: HomeAssistant, client: ArgoApiClient, type: ArgoDeviceType
-    ) -> None:
-        """Initialize."""
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(seconds=type.update_interval),
-            update_method=self._async_update,
-        )
-
-        self._api = client
-        self.platforms = []
-        self.data = ArgoData(type)
-
-    async def _async_update(self) -> ArgoData:
-        """Update data via library."""
-        try:
-            return await self._api.async_sync_data(self.data)
-        except Exception as exception:
-            raise UpdateFailed() from exception
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

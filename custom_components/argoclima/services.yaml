@@ -1,0 +1,32 @@
+synchronize_time:
+  name: Set Time
+  description: Sets the internal time of an Arogclima device.
+  fields:
+    device:
+      name: Device
+      description: The targeted device.
+      required: true
+      selector:
+        device:
+          integration: "argoclima"
+    time:
+      name: Time
+      description: Time to set the device to. Leave empty to use current local time.
+      required: false
+      selector:
+        time:
+    weekday:
+      name: Weekday
+      description: Weekday to set the device to. Leave empty to use current local weekday.
+      required: false
+      default: Monday
+      selector:
+        select:
+          options:
+            - Monday
+            - Tuesday
+            - Wednesday
+            - Thursday
+            - Friday
+            - Saturday
+            - Sunday

@@ -17,26 +17,27 @@
 
 At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel free to get in touch or contribute.
 
-| Feature / Device             | Ulisse 13 DCI Eco WiFi |
-| ---------------------------- | ---------------------- |
-| on / off                     | `climate` operation    |
-| operation mode               | `climate` operation    |
-| eco mode                     | `climate` preset       |
-| turbo mode                   | `climate` preset       |
-| night mode                   | `climate` preset       |
-| current temperature          | `climate`              |
-| set target temperature       | `climate`              |
-| set fan speed                | `climate` fan mode     |
-| set flap mode                | -                      |
-| set filter mode              | -                      |
-| set active timer             | `select`               |
-| timer configuration          | x                      |
-| set current time and weekday | x                      |
-| device lights on / off       | `light`                |
-| display unit \*              | `select`               |
-| eco mode power limit         | `number`               |
-| firmware version             | x                      |
-| reset device                 | x                      |
+| Feature                      | Implementation / Supported for | Ulisse 13 DCI Eco WiFi |
+| ---------------------------- | ------------------------------ | ---------------------- |
+| on / off                     | `climate` operation            | ✓                      |
+| operation mode               | `climate` operation            | ✓                      |
+| eco mode                     | `climate` preset               | ✓                      |
+| turbo mode                   | `climate` preset               | ✓                      |
+| night mode                   | `climate` preset               | ✓                      |
+| current temperature          | `climate`                      | ✓                      |
+| set target temperature       | `climate`                      | ✓                      |
+| set fan speed                | `climate` fan mode             | ✓                      |
+| set flap mode                | x                              | -                      |
+| set filter mode              | x                              | -                      |
+| set active timer             | `select`                       | ✓                      |
+| use remote temperature       | x                              | x                      |
+| timer configuration          | x                              | ✓                      |
+| set current time and weekday | synchronize_time service       | ✓                      |
+| device lights on / off       | `light`                        | ✓                      |
+| display unit \*              | `select`                       | ✓                      |
+| eco mode power limit         | `number`                       | ✓                      |
+| firmware version             | x                              | x                      |
+| reset device                 | x                              | x                      |
 
 [`text`] _platform the features is represented by in HA_\
 [-] _not supported by the device_\
@@ -69,7 +70,8 @@ Select your device type, give it a name and enter the IP. The IP can be changed 
 ## Known Problems
 
 If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
-Because of this, you sould not use the official wep app in addition to this integration.
+Because of this, you sould not use the official wep app in addition to this integration.\
+In case a value could not be changed, it will be sent again until it is confirmed. There are however settings that can only be written and thus there is no way to check if they have been accepted. This affects current time and weekday, timer configuration and reset. Those values will only be sent once.
 
 ## Credits
 

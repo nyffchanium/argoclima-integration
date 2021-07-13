@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import IntEnum
 from enum import IntFlag
 
@@ -39,8 +40,8 @@ class ArgoUnit(IntEnum):
             return TEMP_FAHRENHEIT
         raise UnknownConversionError
 
-    @classmethod
-    def from_ha_unit(self, mode: str) -> "ArgoOperationMode":
+    @staticmethod
+    def from_ha_unit(mode: str) -> "ArgoOperationMode":
         if mode == TEMP_CELSIUS:
             return ArgoUnit.CELCIUS
         if mode == TEMP_FAHRENHEIT:
@@ -68,8 +69,8 @@ class ArgoOperationMode(IntEnum):
             return HVAC_MODE_AUTO
         raise UnknownConversionError
 
-    @classmethod
-    def from_hvac_mode(self, mode: str) -> "ArgoOperationMode":
+    @staticmethod
+    def from_hvac_mode(mode: str) -> "ArgoOperationMode":
         if mode == HVAC_MODE_COOL:
             return ArgoOperationMode.COOL
         if mode == HVAC_MODE_DRY:
@@ -109,8 +110,8 @@ class ArgoFanSpeed(IntEnum):
             return FAN_HIGHEST
         raise UnknownConversionError
 
-    @classmethod
-    def from_ha_string(self, string: str) -> "ArgoOperationMode":
+    @staticmethod
+    def from_ha_string(string: str) -> "ArgoOperationMode":
         if string == FAN_AUTO:
             return ArgoFanSpeed.AUTO
         if string == FAN_LOWEST:
@@ -154,6 +155,13 @@ class ArgoWeekday(IntEnum):
 
     def __str__(self) -> str:
         return self.name.lower()
+
+    @classmethod
+    def from_datetime(cls, date: datetime) -> "ArgoWeekday":
+        val = date.weekday() + 1
+        if val == 7:
+            val = 0
+        return cls(val)
 
 
 class ArgoTimerWeekday(IntFlag):

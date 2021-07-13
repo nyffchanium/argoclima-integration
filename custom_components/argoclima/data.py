@@ -75,6 +75,11 @@ class ArgoDataValue:
             self._change_try_count = 0
             self._change_try_counter_enabled = True
 
+    def assume_change_successful(self) -> None:
+        if self._change_try_counter_enabled:
+            self._pending_change = False
+            self._change_try_counter_enabled = False
+
     def notify_unsuccessful_change(self) -> None:
         if self._change_try_counter_enabled:
             self._change_try_count += 1
@@ -232,6 +237,9 @@ class ArgoData:
                 if val.pending_change:
                     val.notify_unsuccessful_change()
 
+            elif val.pending_change:
+                val.assume_change_successful()
+
     def is_update_pending(self) -> bool:
         for val in self._values:
             if val.pending_change:
@@ -327,22 +335,22 @@ class ArgoData:
         self._timer.request_value(value)
 
     def set_current_weekday(self, value: ArgoWeekday):
-        self._current_weekday.value = value
+        self._current_weekday.request_value(value)
 
     def set_timer_weekdays(self, value: ArgoTimerWeekday):
-        self._timer_weekdays.value = value
+        self._timer_weekdays.request_value(value)
 
     def set_time(self, hours: int, minutes: int):
-        self._time.value = hours * 60 + minutes
+        self._time.request_value(hours * 60 + minutes)
 
     def set_delaytimer_duration(self, hours: int, minutes: int):
-        self._delaytimer_duration.value = hours * 60 + minutes
+        self._delaytimer_duration.request_value(hours * 60 + minutes)
 
     def set_timer_on(self, hours: int, minutes: int):
-        self._timer_on.value = hours * 60 + minutes
+        self._timer_on.request_value(hours * 60 + minutes)
 
     def set_timer_off(self, hours: int, minutes: int):
-        self._timer_off.value = hours * 60 + minutes
+        self._timer_off.request_value(hours * 60 + minutes)
 
     @property
     def eco_limit(self) -> int:
