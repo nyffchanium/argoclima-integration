@@ -21,7 +21,7 @@ ATTR_WEEKDAY = "weekday"
 
 
 async def setup_service(hass: HomeAssistant):
-    async def _hande_sync_time_service_call(call, **kwargs) -> None:
+    async def _set_time(call, **kwargs) -> None:
         device: dr.DeviceEntry = call.data.get(ATTR_DEVICE)
         time: dt_time = call.data.get(ATTR_TIME)
         weekday: ArgoWeekday = call.data.get(ATTR_WEEKDAY)
@@ -80,8 +80,8 @@ async def setup_service(hass: HomeAssistant):
 
     hass.services.async_register(
         DOMAIN,
-        "synchronize_time",
-        verify_domain_control(hass, DOMAIN)(_hande_sync_time_service_call),
+        "set_time",
+        verify_domain_control(hass, DOMAIN)(_set_time),
         schema=vol.Schema(
             {
                 vol.Required(ATTR_DEVICE): device,

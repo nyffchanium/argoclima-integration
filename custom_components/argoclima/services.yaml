@@ -1,6 +1,6 @@
-synchronize_time:
+set_time:
   name: Set Time
-  description: Sets the internal time of an Arogclima device.
+  description: Set the internal time of an Arogclima device.
   fields:
     device:
       name: Device

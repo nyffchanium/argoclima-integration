@@ -31,7 +31,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 | set active timer | `select` | ✓ |
 | use remote temperature | `switch` | ✓ |
 | timer configuration | x | x |
-| set current time and weekday | synchronize_time service | ✓ |
+| set current time and weekday | set_time service | ✓ |
 | device lights on / off | `switch` | ✓ |
 | display unit \* | `select` | ✓ |
 | eco mode power limit | `number` | ✓ |
