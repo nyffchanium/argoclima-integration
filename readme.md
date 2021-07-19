@@ -39,7 +39,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 | device lights on / off | `switch` | ✓ |
 | display unit \* | `select` | ✓ |
 | eco mode power limit | `number` | ✓ |
-| firmware version | x | x |
+| firmware version \*\* | device registry | ✓ |
 | reset device | x | x |
 
 [`text`] _platform the features is represented by in HA_\
@@ -47,6 +47,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 [x] _not implemented_
 
 \* This only affects the value displayed on the device and the webinterface.
+\*\* Not visible in the frontend.
 
 ## Installation
 
@@ -71,11 +72,34 @@ Follow the instructions provided with the device to connect it to your network. 
 Select your device type, give it a name and enter the IP. The IP can be changed later.\
 ![configuration](config.png)
 
-## Known Problems
+## Using the Remote Sensor
 
-If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
-Because of this, you sould not use the official wep app in addition to this integration.\
-In case a value could not be changed, it will be sent again until it is confirmed. There are however settings that can only be written and thus there is no way to check if they have been accepted. This affects current time and weekday, timer configuration and reset. Those values will only be sent once.
+The temperature sensor integrated in the remote can still be used.\
+To make this work:
+
+1. To not overwrite the device's configuration, e.g. cover up the IR diode of the remote.
+2. Set the state of the remote to On (indicated by e.g. the grid lines and the fan icon being visible).
+3. Enable remote temperature mode (indicated by the user icon, toggled by holding the fan button for 2 seconds). _This might not be required. Not sure._
+
+If my observations are correct, the remote will now send the temperature (no other settings):
+
+- every 6 minutes if no change is detected
+- whenever the temperature displayed on the remote changes
+
+Probably more often, but that's what I found.
+
+## Restrictions / Problems
+
+- If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
+  Because of this, you sould not use the official wep app in addition to this integration.
+- In case a value could not be changed (due to the problem mentioned above), it will be sent again until it is confirmed.
+- Because the response of an update request does not contain the updated information, updates will be sent twice in most cases.
+- There are however settings that can only be written and thus there is no way to check if they have been accepted. This affects current time and weekday, timer configuration and reset. Those values will only be sent once.
+
+## Troubleshooting
+
+**Device can't be created / Device is unavailable, the IP is correct and the device is connected:**\
+Turn off the device and unplug it, leave it for _an unknown amount of time (1min is enough for sure)_, then try again.
 
 ## Contributions are welcome!
 
