@@ -38,7 +38,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 | firmware version \*\* | device registry | ✓ |
 | reset device | x | x |
 
-[`text`] _platform the features is represented by in HA_\
+[`text`] _platform the feature is represented by in HA_\
 [-] _not supported by the device_\
 [x] _not implemented_
 
@@ -98,9 +98,9 @@ Turn off the device and unplug it, leave it for _an unknown amount of time (1min
 
 ## Credits
 
-This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter](https://github.com/oncleben31/cookiecutter-homeassistant-custom-component) template.
+This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
 
-Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [integration_blueprint][integration_blueprint] template
+Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [integration_blueprint][integration_blueprint] template.
 
 ---
 
@@ -127,3 +127,5 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [releases-shield]: https://img.shields.io/github/release/nyffchanium/argoclima-integration.svg?style=for-the-badge
 [releases]: https://github.com/nyffchanium/argoclima-integration/releases
 [user_profile]: https://github.com/nyffchanium
+[cookie_cutter]: https://github.com/oncleben31/cookiecutter-homeassistant-custom-component
+[integration_blueprint]: https://github.com/custom-components/integration_blueprint
