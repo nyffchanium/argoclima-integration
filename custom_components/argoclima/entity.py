@@ -34,6 +34,10 @@ class ArgoEntity(CoordinatorEntity):
         ).hex
 
     @property
+    def available(self) -> bool:
+        return self.coordinator.last_update_success
+
+    @property
     def name(self):
         return f"{self._entry.title} {self._entity_name}"
 
@@ -48,6 +52,8 @@ class ArgoEntity(CoordinatorEntity):
             "identifiers": {(DOMAIN, self._entry.entry_id)},
             "name": self._entry.title,
             "model": self._type.name,
-            "sw_version": self.coordinator.data.firmware_version,
+            "sw_version": self.coordinator.data.firmware_version
+            if self.coordinator.data is not None
+            else None,
             "manufacturer": MANUFACTURER,
         }

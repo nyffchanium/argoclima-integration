@@ -7,7 +7,6 @@ from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -32,7 +31,4 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
 
     async def _async_update(self) -> ArgoData:
         """Update data via library."""
-        try:
-            return await self._api.async_sync_data(self.data)
-        except Exception as exception:
-            raise UpdateFailed() from exception
+        return await self._api.async_sync_data(self.data)
