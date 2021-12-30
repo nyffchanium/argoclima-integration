@@ -91,7 +91,7 @@ Probably more often, but that's what I found.
 ## Restrictions / Problems
 
 - If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
-  Because of this, you sould not use the official wep app in addition to this integration.
+  Because of this, you should not use the official wep app in addition to this integration.
 - In case a value could not be changed (due to the problem mentioned above), it will be sent again until it is confirmed.
 - Because the response of an update request does not contain the updated information, updates will be sent twice in most cases.
 - There are however settings that can only be written and thus there is no way to check if they have been accepted. This affects current time and weekday, timer configuration and reset. Those values will only be sent once.
@@ -122,7 +122,7 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [commits-shield]: https://img.shields.io/github/commit-activity/y/nyffchanium/argoclima-integration.svg?style=for-the-badge
 [commits]: https://github.com/nyffchanium/argoclima-integration/commits/master
 [hacs]: https://hacs.xyz
-[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Default-brightgreen.svg?style=for-the-badge
 [discord]: https://discord.gg/Qa5fW2R
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
 [exampleimg]: example.png
