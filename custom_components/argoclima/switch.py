@@ -6,6 +6,7 @@ from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.device_type import InvalidOperationError
 from custom_components.argoclima.entity import ArgoEntity
+from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -31,7 +32,9 @@ async def async_setup_entry(
 
 class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
     def __init__(self, coordinator, entry: ConfigEntry):
-        ArgoEntity.__init__(self, "Device Light", coordinator, entry, "switch")
+        ArgoEntity.__init__(
+            self, "Device Light", coordinator, entry, SwitchDeviceClass.SWITCH
+        )
         SwitchEntity.__init__(self)
 
     @property
@@ -60,7 +63,7 @@ class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
 class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
     def __init__(self, coordinator, entry: ConfigEntry):
         ArgoEntity.__init__(
-            self, "Use Remote Temperature", coordinator, entry, "switch"
+            self, "Use Remote Temperature", coordinator, entry, SwitchDeviceClass.SWITCH
         )
         SwitchEntity.__init__(self)
 
