@@ -1,6 +1,6 @@
 {
   "name": "Argoclima",
-  "homeassistant": "2021.7.0",
+  "homeassistant": "2021.12.1",
   "domains": ["climate"],
   "iot_class": "Local Polling"
 }

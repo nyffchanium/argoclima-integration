@@ -8,11 +8,10 @@ from custom_components.argoclima.device_type import InvalidOperationError
 from custom_components.argoclima.entity import ArgoEntity
 from custom_components.argoclima.types import ArgoTimerType
 from custom_components.argoclima.types import ArgoUnit
-from homeassistant.components.select import (
-    SelectEntity,
-)
+from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 
 
 async def async_setup_entry(
@@ -35,7 +34,9 @@ async def async_setup_entry(
 
 class ArgoUnitSelect(ArgoEntity, SelectEntity):
     def __init__(self, coordinator, entry: ConfigEntry):
-        ArgoEntity.__init__(self, "Display Unit", coordinator, entry)
+        ArgoEntity.__init__(
+            self, "Display Unit", coordinator, entry, None, EntityCategory.CONFIG
+        )
         SelectEntity.__init__(self)
 
     @property
@@ -62,7 +63,9 @@ class ArgoUnitSelect(ArgoEntity, SelectEntity):
 
 class ArgoTimerSelect(ArgoEntity, SelectEntity):
     def __init__(self, coordinator, entry: ConfigEntry):
-        ArgoEntity.__init__(self, "Active Timer", coordinator, entry)
+        ArgoEntity.__init__(
+            self, "Active Timer", coordinator, entry, None, EntityCategory.CONFIG
+        )
         SelectEntity.__init__(self)
 
     @property

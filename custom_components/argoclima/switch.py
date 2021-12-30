@@ -10,6 +10,7 @@ from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 
 
 async def async_setup_entry(
@@ -33,7 +34,12 @@ async def async_setup_entry(
 class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
     def __init__(self, coordinator, entry: ConfigEntry):
         ArgoEntity.__init__(
-            self, "Device Light", coordinator, entry, SwitchDeviceClass.SWITCH
+            self,
+            "Device Light",
+            coordinator,
+            entry,
+            SwitchDeviceClass.SWITCH,
+            EntityCategory.CONFIG,
         )
         SwitchEntity.__init__(self)
 
@@ -63,7 +69,12 @@ class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
 class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
     def __init__(self, coordinator, entry: ConfigEntry):
         ArgoEntity.__init__(
-            self, "Use Remote Temperature", coordinator, entry, SwitchDeviceClass.SWITCH
+            self,
+            "Use Remote Temperature",
+            coordinator,
+            entry,
+            SwitchDeviceClass.SWITCH,
+            EntityCategory.CONFIG,
         )
         SwitchEntity.__init__(self)
 
