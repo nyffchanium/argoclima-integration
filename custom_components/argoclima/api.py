@@ -1,5 +1,3 @@
-import asyncio
-
 import aiohttp
 import async_timeout
 from custom_components.argoclima.data import ArgoData
@@ -25,7 +23,7 @@ class ArgoApiClient:
 
         url = f"http://{self._host}:{self._port}/?HMI={data.to_parameter_string()}&UPD={1 if data.is_update_pending() else 0}"
 
-        async with async_timeout.timeout(TIMEOUT, loop=asyncio.get_event_loop()):
+        async with async_timeout.timeout(TIMEOUT):
             response = await self._session.get(url, headers=HEADERS)
             data.parse_response_parameter_string(await response.text())
             return data
