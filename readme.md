@@ -88,6 +88,14 @@ If my observations are correct, the remote will now send the temperature (no oth
 
 Probably more often, but that's what I found.
 
+## Dummy Server
+
+You can find a dummy implementation of the server in the folder `dummy-server`. You can use this if you do not want your AC to communicate with the internet. By this you will lose the ability to use the original web UI.
+
+For this to work you need to redirect all traffic to a server running this dummy implementation. As the original server is a hardcoded public IP you need to change the routing through your router. For example with an Asus router running Asuswrt-Merlin this can be done by SSHing to your router and adding a file called `nat-start` to `/jffs/scripts` (ensure to enable custom scripts via the router UI). This file should contain `iptables -t nat -I PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination YOUR_SERVER:8080` with `YOUR_SERVER` replaced with the server ip running the dummy server.
+
+You can set the port the dummy server listens to via the env `SERVER_PORT`, it defaults to `8080`
+
 ## Restrictions / Problems
 
 - If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
