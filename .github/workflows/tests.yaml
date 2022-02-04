@@ -50,7 +50,7 @@ jobs:
         uses: "hacs/action@main"
         with:
           category: "integration"
-  
+
   hassfest:
     runs-on: "ubuntu-latest"
     name: Hassfest
