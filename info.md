@@ -15,7 +15,7 @@
 
 ## Supported devices and features
 
-At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel
+At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel free to get in touch or contribute.
 | Feature | Implementation / Supported for | Ulisse 13 DCI Eco WiFi |
 | ---------------------------- | ------------------------------ | ---------------------- |
 | on / off | `climate` operation | ✓ |
@@ -83,6 +83,10 @@ If my observations are correct, the remote will now send the temperature (no oth
 
 Probably more often, but that's what I found.
 
+## Dummy Server
+
+If you want to restrict the internet access of the device or make sure this integration will still work should the server go offline, you can use the [dummy server][dummy-server] provided with this repository.
+
 ## Restrictions / Problems
 
 - If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
@@ -97,6 +101,8 @@ Probably more often, but that's what I found.
 Turn off the device and unplug it, leave it for _an unknown amount of time (1min is enough for sure)_, then try again.
 
 ## Credits
+
+The dummy server has been contributed by [@lallinger](https://github.com/lallinger).
 
 This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
 
@@ -129,3 +135,4 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [user_profile]: https://github.com/nyffchanium
 [cookie_cutter]: https://github.com/oncleben31/cookiecutter-homeassistant-custom-component
 [integration_blueprint]: https://github.com/custom-components/integration_blueprint
+[dummy-server]: https://github.com/nyffchanium/argoclima-integration#dummy-server

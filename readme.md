@@ -19,7 +19,7 @@ This is an unoffical Home Assistant integration I wrote for my Argo Ulisse Eco, 
 
 ## Supported devices and features
 
-At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel
+At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel free to get in touch or contribute.
 | Feature | Implementation / Supported for | Ulisse 13 DCI Eco WiFi |
 | ---------------------------- | ------------------------------ | ---------------------- |
 | on / off | `climate` operation | ✓ |
@@ -92,9 +92,9 @@ Probably more often, but that's what I found.
 
 You can find a dummy implementation of the server in the folder `dummy-server`. You can use this if you do not want your AC to communicate with the internet. By this you will lose the ability to use the original web UI.
 
-For this to work you need to redirect all traffic to a server running this dummy implementation. As the original server is a hardcoded public IP you need to change the routing through your router. For example with an Asus router running Asuswrt-Merlin this can be done by SSHing to your router and adding a file called `nat-start` to `/jffs/scripts` (ensure to enable custom scripts via the router UI). This file should contain `iptables -t nat -I PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination YOUR_SERVER:8080` with `YOUR_SERVER` replaced with the server ip running the dummy server.
+For this to work you need to redirect all traffic to a server running this dummy implementation. As the original server is a hardcoded public IP you need to change the routing through your router. For example with an Asus router running Asuswrt-Merlin this can be done by SSHing to your router and adding a file called `nat-start` to `/jffs/scripts` (ensure to enable custom scripts via the router UI). This file should contain `iptables -t nat -I PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination YOUR_SERVER:8080` with `YOUR_SERVER` replaced with the server IP running the dummy server.
 
-You can set the port the dummy server listens to via the env `SERVER_PORT`, it defaults to `8080`
+You can set the port the dummy server listens to via the env `SERVER_PORT`, it defaults to `8080`.
 
 ## Restrictions / Problems
 
@@ -114,6 +114,8 @@ Turn off the device and unplug it, leave it for _an unknown amount of time (1min
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
 
 ## Credits
+
+The dummy server has been contributed by [@lallinger](https://github.com/lallinger).
 
 This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
 
