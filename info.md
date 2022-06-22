@@ -15,7 +15,7 @@
 
 ## Supported devices and features
 
-At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API thoug. So if you own a different device, please feel free to get in touch or contribute.
+At the moment, only the device I own is supported. There is a good chance that other wifi capable devices use the same API though. So if you own a different device, please feel free to get in touch or contribute.
 | Feature | Implementation / Supported for | Ulisse 13 DCI Eco WiFi |
 | ---------------------------- | ------------------------------ | ---------------------- |
 | on / off | `climate` operation | ✓ |
@@ -42,7 +42,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 [-] _not supported by the device_\
 [x] _not implemented_
 
-\* This only affects the value displayed on the device and the webinterface.
+\* This only affects the value displayed on the device and the web interface.
 \*\* Not visible in the frontend.
 
 {% if not installed %}
@@ -89,6 +89,7 @@ If you want to restrict the internet access of the device or make sure this inte
 
 ## Restrictions / Problems
 
+- With the remote / web interface, the _eco_, _turbo_ and _night_ modes can be activated all at the same time. This is not possible with this integration due to the climate entity platform only supporting one mode at a time. I don't know whether those mixed modes would actually do something "special" or if it's just ignored.
 - If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
   Because of this, you should not use the official wep app in addition to this integration.
 - In case a value could not be changed (due to the problem mentioned above), it will be sent again until it is confirmed.
