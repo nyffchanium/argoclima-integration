@@ -71,7 +71,7 @@ async def setup_service(hass: HomeAssistant):
             raise vol.Invalid("Invalid weekday")
 
     def device(value: Any) -> dr.DeviceEntry:
-        """"Validate that the device exists."""
+        """Validate that the device exists."""
         device_registry = cast(dr.DeviceRegistry, hass.data[dr.DATA_REGISTRY])
         try:
             return device_registry.devices[str(value)]

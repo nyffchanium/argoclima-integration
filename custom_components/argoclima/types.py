@@ -20,7 +20,7 @@ FAN_HIGHEST = "highest"
 
 
 class UnknownConversionError(Exception):
-    """"Unknown type conversion"""
+    """Unknown type conversion"""
 
 
 class ValueType(IntEnum):

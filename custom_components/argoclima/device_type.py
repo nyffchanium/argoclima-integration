@@ -12,7 +12,7 @@ from homeassistant.components.switch import DOMAIN as ENTITY_DOMAIN_SWITCH
 
 
 class InvalidOperationError(Exception):
-    """"This operation is not available for this device type"""
+    """This operation is not available for this device type"""
 
 
 class ArgoDeviceType:
