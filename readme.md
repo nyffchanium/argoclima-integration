@@ -98,7 +98,7 @@ You can set the port the dummy server listens to via the env `SERVER_PORT`, it d
 
 ## Restrictions / Problems
 
-- With the remote / web interface, the _eco_, _turbo_ and _night_ modes can be activated all at the same time. This is not possible with this integration due to the climate entity platform only supporting one mode at a time. I don't know whether those mixed modes would actually do something "special" or if it's just ignored.
+- With the remote / web interface, the _eco_, _turbo_ and _night_ modes can be activated all at the same time. It is possible to implement this, but I find it unnecessary. I don't know whether those mixed modes would actually do something "special" or if it's just ignored. If you need any of these combinations, open an issue.
 - If an API request is sent while another one is still in progress, the latter will be cancelled. It does not matter whether any of the requests actually changes anything. I.e. concerning parallel requests, only the most recent one is regarded by the device.\
   Because of this, you should not use the official wep app in addition to this integration.
 - In case a value could not be changed (due to the problem mentioned above), it will be sent again until it is confirmed.
