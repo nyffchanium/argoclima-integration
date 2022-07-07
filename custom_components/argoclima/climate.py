@@ -8,14 +8,12 @@ from custom_components.argoclima.device_type import InvalidOperationError
 from custom_components.argoclima.entity import ArgoEntity
 from custom_components.argoclima.types import ArgoUnit
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import HVAC_MODE_OFF
+from homeassistant.components.climate.const import ClimateEntityFeature
+from homeassistant.components.climate.const import HVACMode
 from homeassistant.components.climate.const import PRESET_BOOST
 from homeassistant.components.climate.const import PRESET_ECO
 from homeassistant.components.climate.const import PRESET_NONE
 from homeassistant.components.climate.const import PRESET_SLEEP
-from homeassistant.components.climate.const import SUPPORT_FAN_MODE
-from homeassistant.components.climate.const import SUPPORT_PRESET_MODE
-from homeassistant.components.climate.const import SUPPORT_TARGET_TEMPERATURE
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -38,7 +36,7 @@ class ArgoEntityClimate(ArgoEntity, ClimateEntity):
     def temperature_unit(self):
         if not self._type.current_temperature:
             raise InvalidOperationError
-        return ArgoUnit.CELCIUS.to_ha_unit()
+        return ArgoUnit.CELSIUS.to_ha_unit()
 
     @property
     def current_temperature(self):
@@ -69,14 +67,14 @@ class ArgoEntityClimate(ArgoEntity, ClimateEntity):
         if not self._type.operation_mode:
             raise InvalidOperationError
         if not self.coordinator.data.operating:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
         return self.coordinator.data.mode.to_hvac_mode()
 
     @property
     def hvac_modes(self):
         if not self._type.operation_mode:
             raise InvalidOperationError
-        modes = [HVAC_MODE_OFF]
+        modes = [HVACMode.OFF]
         for mode in self._type.operation_modes:
             modes.append(mode.to_hvac_mode())
         return modes
@@ -125,11 +123,11 @@ class ArgoEntityClimate(ArgoEntity, ClimateEntity):
     def supported_features(self):
         features = 0
         if self._type.target_temperature:
-            features |= SUPPORT_TARGET_TEMPERATURE
+            features |= ClimateEntityFeature.TARGET_TEMPERATURE
         if self._type.fan_speed:
-            features |= SUPPORT_FAN_MODE
+            features |= ClimateEntityFeature.FAN_MODE
         if self._type.preset:
-            features |= SUPPORT_PRESET_MODE
+            features |= ClimateEntityFeature.PRESET_MODE
         return features
 
     async def async_set_hvac_mode(self, hvac_mode):
@@ -137,7 +135,7 @@ class ArgoEntityClimate(ArgoEntity, ClimateEntity):
         if not self._type.operation_mode:
             raise InvalidOperationError
         data = self.coordinator.data
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             data.operating = False
         else:
             data.operating = True

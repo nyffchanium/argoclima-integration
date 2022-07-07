@@ -6,11 +6,7 @@ from homeassistant.components.climate.const import FAN_AUTO
 from homeassistant.components.climate.const import FAN_HIGH
 from homeassistant.components.climate.const import FAN_LOW
 from homeassistant.components.climate.const import FAN_MEDIUM
-from homeassistant.components.climate.const import HVAC_MODE_AUTO
-from homeassistant.components.climate.const import HVAC_MODE_COOL
-from homeassistant.components.climate.const import HVAC_MODE_DRY
-from homeassistant.components.climate.const import HVAC_MODE_FAN_ONLY
-from homeassistant.components.climate.const import HVAC_MODE_HEAT
+from homeassistant.components.climate.const import HVACMode
 from homeassistant.const import TEMP_CELSIUS
 from homeassistant.const import TEMP_FAHRENHEIT
 
@@ -30,22 +26,22 @@ class ValueType(IntEnum):
 
 
 class ArgoUnit(IntEnum):
-    CELCIUS = 0
-    FARENHEIT = 1
+    CELSIUS = 0
+    FAHRENHEIT = 1
 
     def to_ha_unit(self) -> str:
-        if self.value == ArgoUnit.CELCIUS:
+        if self.value == ArgoUnit.CELSIUS:
             return TEMP_CELSIUS
-        if self.value == ArgoUnit.FARENHEIT:
+        if self.value == ArgoUnit.FAHRENHEIT:
             return TEMP_FAHRENHEIT
         raise UnknownConversionError
 
     @staticmethod
     def from_ha_unit(mode: str) -> "ArgoOperationMode":
         if mode == TEMP_CELSIUS:
-            return ArgoUnit.CELCIUS
+            return ArgoUnit.CELSIUS
         if mode == TEMP_FAHRENHEIT:
-            return ArgoUnit.FARENHEIT
+            return ArgoUnit.FAHRENHEIT
         raise UnknownConversionError
 
 
@@ -58,28 +54,28 @@ class ArgoOperationMode(IntEnum):
 
     def to_hvac_mode(self) -> str:
         if self.value == ArgoOperationMode.COOL:
-            return HVAC_MODE_COOL
+            return HVACMode.COOL
         if self.value == ArgoOperationMode.DRY:
-            return HVAC_MODE_DRY
+            return HVACMode.DRY
         if self.value == ArgoOperationMode.HEAT:
-            return HVAC_MODE_HEAT
+            return HVACMode.HEAT
         if self.value == ArgoOperationMode.FAN:
-            return HVAC_MODE_FAN_ONLY
+            return HVACMode.FAN_ONLY
         if self.value == ArgoOperationMode.AUTO:
-            return HVAC_MODE_AUTO
+            return HVACMode.AUTO
         raise UnknownConversionError
 
     @staticmethod
     def from_hvac_mode(mode: str) -> "ArgoOperationMode":
-        if mode == HVAC_MODE_COOL:
+        if mode == HVACMode.COOL:
             return ArgoOperationMode.COOL
-        if mode == HVAC_MODE_DRY:
+        if mode == HVACMode.DRY:
             return ArgoOperationMode.DRY
-        if mode == HVAC_MODE_HEAT:
+        if mode == HVACMode.HEAT:
             return ArgoOperationMode.HEAT
-        if mode == HVAC_MODE_FAN_ONLY:
+        if mode == HVACMode.FAN_ONLY:
             return ArgoOperationMode.FAN
-        if mode == HVAC_MODE_AUTO:
+        if mode == HVACMode.AUTO:
             return ArgoOperationMode.AUTO
         raise UnknownConversionError
 
@@ -149,7 +145,7 @@ class ArgoWeekday(IntEnum):
     MONDAY = 1
     TUESDAY = 2
     WEDNESDAY = 3
-    THURSAY = 4
+    THURSDAY = 4
     FRIDAY = 5
     SATURDAY = 6
 
@@ -169,7 +165,7 @@ class ArgoTimerWeekday(IntFlag):
     MONDAY = 2
     TUESDAY = 4
     WEDNESDAY = 8
-    THURSAY = 16
+    THURSDAY = 16
     FRIDAY = 32
     SATURDAY = 64
 
