@@ -90,11 +90,24 @@ Probably more often, but that's what I found.
 
 ## Dummy Server
 
-You can find a dummy implementation of the server in the folder `dummy-server`. You can use this if you do not want your AC to communicate with the internet. By this you will lose the ability to use the original web UI.
+By default, your device periodically communicates with Argos's server (hardcoded IP `31.14.128.210`). Without this connection, the API this integration uses won't work. This repository provides a dummy server docker image, so you can keep the traffic in your local network. By doing this, you will lose the ability to use the original web UI.
 
-For this to work you need to redirect all traffic to a server running this dummy implementation. As the original server is a hardcoded public IP you need to change the routing through your router. For example with an Asus router running Asuswrt-Merlin this can be done by SSHing to your router and adding a file called `nat-start` to `/jffs/scripts` (ensure to enable custom scripts via the router UI). This file should contain `iptables -t nat -I PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination YOUR_SERVER:8080` with `YOUR_SERVER` replaced with the server IP running the dummy server.
+You can pull the docker image from https://hub.docker.com/r/nyffchanium/argoclima-dummy-server, or you can run the server without docker by using the Go script in the `dummy-server` folder.
 
-You can set the port the dummy server listens to via the env `SERVER_PORT`, it defaults to `8080`.
+You can set the port the dummy server listens to via the env `SERVER_PORT`. It defaults to `8080`.
+
+### Routing
+For the dummy server to be of any use, you need to redirect the traffic to it. As the original server is a hardcoded public IP you need to change the routing through your router.
+
+Example with an Asus router running Asuswrt-Merlin:
+1. Enable custom scripts and SSH via the router UI (Administration -> System).
+2. SSH into your router and create a file called `nat-start` in `/jffs/scripts` (replace `YOUR_SERVER` and `YOUR_PORT` with the address and port of your dummy server instance).
+   ```sh
+   #!/bin/sh
+   iptables -t nat -I PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination YOUR_SERVER:YOUR_PORT
+   ```
+4. Make sure the file is executable. `chmod a+rx /jffs/scripts/*`.
+5. Restart your router.
 
 ## Restrictions / Problems
 
@@ -109,6 +122,11 @@ You can set the port the dummy server listens to via the env `SERVER_PORT`, it d
 
 **Device can't be created / Device is unavailable, the IP is correct and the device is connected:**\
 Turn off the device and unplug it, leave it for _an unknown amount of time (1min is enough for sure)_, then try again.
+
+**Home Assistant loses the connection to the device every few seconds:**\
+![image](https://github.com/nyffchanium/argoclima-integration/assets/55743116/9a19f95c-9685-4a49-a959-22d8ce2db0de)\
+This seems to be caused by Argo's server being overloaded and not responding to the device's requests. Apparently, dropped / timed out requests result in the device resetting the WLAN connection.\
+At the moment, the only known workaround is to use the [dummy server](#dummy-server).
 
 ## Contributions are welcome!
 
