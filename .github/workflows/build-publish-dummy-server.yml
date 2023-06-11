@@ -32,4 +32,4 @@ jobs:
         with:
           context: dummy-server
           push: true
-          tags: ${{ IMAGE_NAME }}:latest
+          tags: ${{ env.IMAGE_NAME }}:latest
