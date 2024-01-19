@@ -7,8 +7,7 @@ from homeassistant.components.climate.const import FAN_HIGH
 from homeassistant.components.climate.const import FAN_LOW
 from homeassistant.components.climate.const import FAN_MEDIUM
 from homeassistant.components.climate.const import HVACMode
-from homeassistant.const import TEMP_CELSIUS
-from homeassistant.const import TEMP_FAHRENHEIT
+from homeassistant.const import UnitOfTemperature
 
 FAN_LOWEST = "lowest"
 FAN_HIGHER = "higher"
@@ -31,16 +30,16 @@ class ArgoUnit(IntEnum):
 
     def to_ha_unit(self) -> str:
         if self.value == ArgoUnit.CELSIUS:
-            return TEMP_CELSIUS
+            return UnitOfTemperature.CELSIUS
         if self.value == ArgoUnit.FAHRENHEIT:
-            return TEMP_FAHRENHEIT
+            return UnitOfTemperature.FAHRENHEIT
         raise UnknownConversionError
 
     @staticmethod
     def from_ha_unit(mode: str) -> "ArgoOperationMode":
-        if mode == TEMP_CELSIUS:
+        if mode == UnitOfTemperature.CELSIUS:
             return ArgoUnit.CELSIUS
-        if mode == TEMP_FAHRENHEIT:
+        if mode == UnitOfTemperature.FAHRENHEIT:
             return ArgoUnit.FAHRENHEIT
         raise UnknownConversionError
 
