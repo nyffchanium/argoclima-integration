@@ -6,7 +6,9 @@
   "issue_tracker": "https://github.com/nyffchanium/argoclima-integration/issues",
   "dependencies": [],
   "config_flow": true,
-  "codeowners": ["@nyffchanium"],
+  "codeowners": [
+    "@nyffchanium"
+  ],
   "requirements": [],
-  "version": "1.1.2"
+  "version": "1.1.3"
 }
