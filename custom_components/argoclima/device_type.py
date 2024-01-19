@@ -1,5 +1,3 @@
-from typing import List
-
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.types import ArgoFanSpeed
 from custom_components.argoclima.types import ArgoFlapMode
@@ -21,7 +19,7 @@ class ArgoDeviceType:
         self._port = port
         self._update_interval = update_interval
         self._on_off = False
-        self._operation_modes: List[ArgoOperationMode] = []
+        self._operation_modes: list[ArgoOperationMode] = []
         self._operation_mode = False
         self._eco_mode = False
         self._turbo_mode = False
@@ -32,12 +30,12 @@ class ArgoDeviceType:
         self._target_temperature_max: float = None
         self._current_temperature = False
         self._remote_temperature = False
-        self._fan_speeds: List[ArgoFanSpeed] = []
+        self._fan_speeds: list[ArgoFanSpeed] = []
         self._fan_speed = False
-        self._flap_modes: List[ArgoFlapMode] = []
+        self._flap_modes: list[ArgoFlapMode] = []
         self._flap_mode = False
         self._filter_mode = False
-        self._timers: List[ArgoTimerType] = []
+        self._timers: list[ArgoTimerType] = []
         self._timer = False
         self._set_time_and_weekday = False
         self._device_lights = False
@@ -65,7 +63,7 @@ class ArgoDeviceType:
         return self._on_off
 
     @property
-    def operation_modes(self) -> List[ArgoOperationMode]:
+    def operation_modes(self) -> list[ArgoOperationMode]:
         return self._operation_modes
 
     @property
@@ -109,7 +107,7 @@ class ArgoDeviceType:
         return self._remote_temperature
 
     @property
-    def fan_speeds(self) -> List[ArgoFanSpeed]:
+    def fan_speeds(self) -> list[ArgoFanSpeed]:
         return self._fan_speeds
 
     @property
@@ -117,7 +115,7 @@ class ArgoDeviceType:
         return self._fan_speed
 
     @property
-    def flap_modes(self) -> List[ArgoFlapMode]:
+    def flap_modes(self) -> list[ArgoFlapMode]:
         return self._flap_modes
 
     @property
@@ -129,7 +127,7 @@ class ArgoDeviceType:
         return self._filter_mode
 
     @property
-    def timers(self) -> List[ArgoTimerType]:
+    def timers(self) -> list[ArgoTimerType]:
         return self._timers
 
     @property
@@ -169,7 +167,7 @@ class ArgoDeviceType:
         return self._reset
 
     @property
-    def platforms(self) -> List[str]:
+    def platforms(self) -> list[str]:
         list = []
         if self._on_off:
             list.append(ENTITY_DOMAIN_CLIMATE)
@@ -245,7 +243,7 @@ class ArgoDeviceTypeBuilder:
         return self
 
     def operation_modes(
-        self, modes: List[ArgoOperationMode]
+        self, modes: list[ArgoOperationMode]
     ) -> "ArgoDeviceTypeBuilder":
         self._deviceType._operation_modes = modes
         self._deviceType._operation_mode = True
@@ -280,12 +278,12 @@ class ArgoDeviceTypeBuilder:
         self._deviceType._remote_temperature = True
         return self
 
-    def fan_speeds(self, modes: List[ArgoFanSpeed]) -> "ArgoDeviceTypeBuilder":
+    def fan_speeds(self, modes: list[ArgoFanSpeed]) -> "ArgoDeviceTypeBuilder":
         self._deviceType._fan_speeds = modes
         self._deviceType._fan_speed = True
         return self
 
-    def flap_modes(self, modes: List[ArgoFlapMode]) -> "ArgoDeviceTypeBuilder":
+    def flap_modes(self, modes: list[ArgoFlapMode]) -> "ArgoDeviceTypeBuilder":
         self._deviceType._flap_modes = modes
         self._deviceType._flap_mode = True
         return self
@@ -294,7 +292,7 @@ class ArgoDeviceTypeBuilder:
         self._deviceType._filter_mode = True
         return self
 
-    def timers(self, modes: List[ArgoTimerType]) -> "ArgoDeviceTypeBuilder":
+    def timers(self, modes: list[ArgoTimerType]) -> "ArgoDeviceTypeBuilder":
         self._deviceType._timers = modes
         self._deviceType._timer = True
         return self

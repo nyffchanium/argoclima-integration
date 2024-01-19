@@ -1,5 +1,4 @@
-from typing import Callable
-from typing import List
+from collections.abc import Callable
 
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import DOMAIN
@@ -17,7 +16,7 @@ from homeassistant.helpers.entity import EntityCategory
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_devices: Callable[[List[SelectEntity]], None],
+    async_add_devices: Callable[[list[SelectEntity]], None],
 ):
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
@@ -46,7 +45,7 @@ class ArgoUnitSelect(ArgoEntity, SelectEntity):
         return self.coordinator.data.unit.to_ha_unit()
 
     @property
-    def options(self) -> List[str]:
+    def options(self) -> list[str]:
         if not self._type.unit:
             raise InvalidOperationError
         list = []
@@ -75,7 +74,7 @@ class ArgoTimerSelect(ArgoEntity, SelectEntity):
         return self.coordinator.data.timer.__str__()
 
     @property
-    def options(self) -> List[str]:
+    def options(self) -> list[str]:
         if not self._type.timer:
             raise InvalidOperationError
         list = []

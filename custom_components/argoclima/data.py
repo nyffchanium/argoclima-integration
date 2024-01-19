@@ -1,5 +1,3 @@
-from typing import List
-
 from custom_components.argoclima.const import API_UPDATE_ATTEMPTS
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.types import ArgoFanSpeed
@@ -115,7 +113,7 @@ class ArgoConstrainedDataValue(ArgoDataValue):
         self,
         update_index: int,
         response_index: int,
-        allowed_values: List[int],
+        allowed_values: list[int],
         type: ValueType = ValueType.READ_WRITE,
     ) -> None:
         super().__init__(update_index, response_index, type)
@@ -180,7 +178,7 @@ class ArgoData:
         )
         self._unit = ArgoDataValue(26, 24)
         self._firmware_version = ArgoDataValue(None, 23, ValueType.READ_ONLY)
-        self._values: List[ArgoDataValue] = [
+        self._values: list[ArgoDataValue] = [
             self._target_temp,
             self._temp,
             self._operating,

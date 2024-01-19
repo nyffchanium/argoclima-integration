@@ -1,5 +1,4 @@
-from typing import Callable
-from typing import List
+from collections.abc import Callable
 
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.data import ArgoFanSpeed
@@ -21,7 +20,7 @@ from homeassistant.core import HomeAssistant
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_devices: Callable[[List[ClimateEntity]], None],
+    async_add_devices: Callable[[list[ClimateEntity]], None],
 ):
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_devices([ArgoEntityClimate(coordinator, entry)])

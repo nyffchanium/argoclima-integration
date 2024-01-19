@@ -1,5 +1,4 @@
-from typing import Callable
-from typing import List
+from collections.abc import Callable
 
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import DOMAIN
@@ -16,7 +15,7 @@ from homeassistant.helpers.entity import EntityCategory
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_devices: Callable[[List[SwitchEntity]], None],
+    async_add_devices: Callable[[list[SwitchEntity]], None],
 ):
     coordinator = hass.data[DOMAIN][entry.entry_id]
 

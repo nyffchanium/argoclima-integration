@@ -1,5 +1,4 @@
 from typing import Any
-from typing import Dict
 
 import voluptuous as vol
 from custom_components.argoclima.api import ArgoApiClient
@@ -44,7 +43,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry) -> "ArgoOptionsFlowHandler":
         return ArgoOptionsFlowHandler(config_entry)
 
-    async def async_step_user(self, user_input: Dict[str, Any] = None) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] = None) -> FlowResult:
         """Handle a flow initialized by the user."""
         self._errors = {}
 
@@ -67,7 +66,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self._show_config_form(user_input)
 
-    def _show_config_form(self, user_input: Dict[str, Any]) -> FlowResult:
+    def _show_config_form(self, user_input: dict[str, Any]) -> FlowResult:
         def default(key: str, default: str = None):
             if user_input is not None and user_input[key] is not None:
                 return user_input[key]
@@ -97,11 +96,11 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
         self.config_entry = config_entry
         self.data = dict(config_entry.data)
 
-    async def async_step_init(self, user_input: Dict[str, Any] = None) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] = None) -> FlowResult:
         """Manage the options."""
         return await self.async_step_user(user_input)
 
-    async def async_step_user(self, user_input: Dict[str, Any] = None) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] = None) -> FlowResult:
         """Handle a flow initialized by the user."""
         if user_input is not None:
             type = ArgoDeviceType.from_name(self.data.get(CONF_DEVICE_TYPE))
@@ -114,7 +113,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self._async_show_option_form(user_input)
 
-    def _async_show_option_form(self, user_input: Dict[str, Any]) -> FlowResult:
+    def _async_show_option_form(self, user_input: dict[str, Any]) -> FlowResult:
         def default(key: str):
             if user_input is not None and (
                 user_input[key] is not None and len(user_input[key]) > 0

@@ -1,5 +1,4 @@
-from typing import Callable
-from typing import List
+from collections.abc import Callable
 
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.device_type import InvalidOperationError
@@ -15,7 +14,7 @@ from homeassistant.helpers.entity import EntityCategory
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_devices: Callable[[List[NumberEntity]], None],
+    async_add_devices: Callable[[list[NumberEntity]], None],
 ):
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
