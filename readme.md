@@ -1,7 +1,7 @@
 ![Project Status][project-status-shield]
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
-[![License][license-shield]](LICENSE)
+[![License][license-shield]][license]
 
 [![pre-commit][pre-commit-shield]][pre-commit]
 [![Black][black-shield]][black]
@@ -136,7 +136,7 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 The dummy server has been contributed by [@lallinger](https://github.com/lallinger).
 
-This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
+This project was initially generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
 
 Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [integration_blueprint][integration_blueprint] template.
 

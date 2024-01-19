@@ -15,7 +15,7 @@ Pull requests are the best way to propose changes to the codebase.
 
 1. Fork the repo and create your branch from `master`.
 2. If you've changed something, update the documentation.
-3. Make sure your code lints (using black).
+3. Make sure your code lints (using `scripts/lint`).
 4. Test you contribution.
 5. Issue that pull request!
 
@@ -40,24 +40,23 @@ Report a bug by [opening a new issue](../../issues/new/choose); it's that easy!
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
 
-People _love_ thorough bug reports. I'm not even kidding.
+People *love* thorough bug reports. I'm not even kidding.
 
 ## Use a Consistent Coding Style
 
-Use [black](https://github.com/ambv/black) and [prettier](https://prettier.io/)
-to make sure the code follows the style.
+Use [black](https://github.com/ambv/black) to make sure the code follows the style.
 
 Or use the `pre-commit` settings implemented in this repository
 (see deicated section below).
 
 ## Test your code modification
 
-This custom component is based on [integration_blueprint template](https://github.com/custom-components/integration_blueprint).
+This custom component is based on [integration_blueprint template](https://github.com/ludeeus/integration_blueprint).
 
 It comes with development environment in a container, easy to launch
 if you use Visual Studio Code. With this container you will have a stand alone
 Home Assistant instance running and already configured with the included
-[`.devcontainer/configuration.yaml`](./.devcontainer/configuration.yaml)
+[`configuration.yaml`](./config/configuration.yaml)
 file.
 
 You can use the `pre-commit` settings implemented in this repository to have

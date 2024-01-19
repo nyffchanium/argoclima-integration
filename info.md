@@ -1,7 +1,7 @@
 ![Project Status][project-status-shield]
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
-[![License][license-shield]](LICENSE)
+[![License][license-shield]][license]
 
 [![pre-commit][pre-commit-shield]][pre-commit]
 [![Black][black-shield]][black]
@@ -85,7 +85,24 @@ Probably more often, but that's what I found.
 
 ## Dummy Server
 
-If you want to restrict the internet access of the device or make sure this integration will still work should the server go offline, you can use the [dummy server][dummy-server] provided with this repository.
+By default, your device periodically communicates with Argos's server (hardcoded IP `31.14.128.210`). Without this connection, the API this integration uses won't work. This repository provides a dummy server docker image, so you can keep the traffic in your local network. By doing this, you will lose the ability to use the original web UI.
+
+You can pull the docker image from https://hub.docker.com/r/nyffchanium/argoclima-dummy-server, or you can run the server without docker by using the Go script in the `dummy-server` folder.
+
+You can set the port the dummy server listens to via the env `SERVER_PORT`. It defaults to `8080`.
+
+### Routing
+For the dummy server to be of any use, you need to redirect the traffic to it. As the original server is a hardcoded public IP you need to change the routing through your router.
+
+Example with an Asus router running Asuswrt-Merlin:
+1. Enable custom scripts and SSH via the router UI (Administration -> System).
+2. SSH into your router and create a file called `nat-start` in `/jffs/scripts` (replace `YOUR_SERVER` and `YOUR_PORT` with the address and port of your dummy server instance).
+   ```sh
+   #!/bin/sh
+   iptables -t nat -I PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination YOUR_SERVER:YOUR_PORT
+   ```
+4. Make sure the file is executable. `chmod a+rx /jffs/scripts/*`.
+5. Restart your router.
 
 ## Restrictions / Problems
 
@@ -101,11 +118,20 @@ If you want to restrict the internet access of the device or make sure this inte
 **Device can't be created / Device is unavailable, the IP is correct and the device is connected:**\
 Turn off the device and unplug it, leave it for _an unknown amount of time (1min is enough for sure)_, then try again.
 
+**Home Assistant loses the connection to the device every few seconds:**\
+![image](https://github.com/nyffchanium/argoclima-integration/assets/55743116/9a19f95c-9685-4a49-a959-22d8ce2db0de)\
+This seems to be caused by Argo's server being overloaded and not responding to the device's requests. Apparently, dropped / timed out requests result in the device resetting the WLAN connection.\
+At the moment, the only known workaround is to use the [dummy server](#dummy-server).
+
+## Contributions are welcome!
+
+If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
+
 ## Credits
 
 The dummy server has been contributed by [@lallinger](https://github.com/lallinger).
 
-This project was generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
+This project was initially generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
 
 Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [integration_blueprint][integration_blueprint] template.
 
@@ -136,4 +162,3 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [user_profile]: https://github.com/nyffchanium
 [cookie_cutter]: https://github.com/oncleben31/cookiecutter-homeassistant-custom-component
 [integration_blueprint]: https://github.com/custom-components/integration_blueprint
-[dummy-server]: https://github.com/nyffchanium/argoclima-integration#dummy-server
