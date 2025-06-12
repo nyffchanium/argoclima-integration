@@ -10,7 +10,7 @@ from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.service import setup_service
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config
+from homeassistant.core_config import Config
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
