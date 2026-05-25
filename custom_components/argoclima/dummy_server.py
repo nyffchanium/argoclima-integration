@@ -204,7 +204,7 @@ async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -
             push_data.host,
         )
         coordinator.async_update_host(push_data.host)
-        data = _data_from_hmi(push_data)
+        data = _data_from_hmi(push_data, coordinator.data)
         if data is not None:
             coordinator.async_set_updated_data(data)
             _LOGGER.debug(
@@ -325,7 +325,9 @@ async def _async_start_discovery_flow(
     )
 
 
-def _data_from_hmi(push_data: ArgoPushData) -> ArgoData | None:
+def _data_from_hmi(
+    push_data: ArgoPushData, current_data: ArgoData | None = None
+) -> ArgoData | None:
     if push_data.hmi is None:
         return None
 
@@ -342,6 +344,11 @@ def _data_from_hmi(push_data: ArgoPushData) -> ArgoData | None:
             push_data.cpu_id,
         )
         return None
+
+    if current_data is not None and current_data.is_update_pending():
+        current_data.parse_response_parameter_string(push_data.hmi)
+        return current_data
+
     return data
 
 
