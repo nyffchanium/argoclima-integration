@@ -1,10 +1,26 @@
 {
   "config": {
     "error": {
-      "host": "Could not reach host or host is not a supported device."
+      "host": "Could not reach host or host is not a supported device.",
+      "invalid_device_type": "Unsupported device type."
     },
     "step": {
       "user": {
+        "menu_options": {
+          "server": "Set up Argoclima Dummy Server",
+          "device": "Set up device manually"
+        },
+        "description": "Choose whether to run the in-tree dummy cloud listener or add a device manually.",
+        "title": "Argoclima"
+      },
+      "server": {
+        "data": {
+          "port": "Server port"
+        },
+        "description": "The listener binds to all IPv4 interfaces on this port. Configure DNAT on your router to forward device cloud traffic to this port.",
+        "title": "Argoclima Dummy Server"
+      },
+      "device": {
         "data": {
           "device": "Device type",
           "host": "IP or hostname of the device",
@@ -12,6 +28,15 @@
         },
         "description": "If you need help with the configuration have a look here: https://github.com/nyffchanium/argoclima-integration",
         "title": "Argoclima"
+      },
+      "discovery_confirm": {
+        "data": {
+          "device": "Device type",
+          "host": "IP address of the device",
+          "name": "Give the device a name"
+        },
+        "description": "A device announced itself through the Argoclima Dummy Server.",
+        "title": "Argoclima device discovered"
       }
     }
   },
@@ -20,6 +45,12 @@
       "host": "Could not reach host or host is not a supported device."
     },
     "step": {
+      "server": {
+        "data": {
+          "port": "Server port"
+        },
+        "description": "Changing the port reloads the listener."
+      },
       "user": {
         "data": {
           "host": "IP or hostname of the device",

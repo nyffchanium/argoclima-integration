@@ -1,10 +1,26 @@
 {
   "config": {
     "error": {
-      "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät."
+      "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
+      "invalid_device_type": "Nicht unterstützter Gerätetyp."
     },
     "step": {
       "user": {
+        "menu_options": {
+          "server": "Argoclima Dummy Server einrichten",
+          "device": "Gerät manuell einrichten"
+        },
+        "description": "Wähle, ob der integrierte Dummy-Cloud-Listener gestartet oder ein Gerät manuell hinzugefügt werden soll.",
+        "title": "Argoclima"
+      },
+      "server": {
+        "data": {
+          "port": "Server-Port"
+        },
+        "description": "Der Listener bindet auf diesem Port an alle IPv4-Schnittstellen. Konfiguriere DNAT auf deinem Router, um den Cloud-Traffic des Geräts auf diesen Port weiterzuleiten.",
+        "title": "Argoclima Dummy Server"
+      },
+      "device": {
         "data": {
           "device": "Gerätetyp",
           "host": "IP oder Hostname des Geräts",
@@ -12,6 +28,15 @@
         },
         "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: https://github.com/nyffchanium/argoclima-integration",
         "title": "Argoclima"
+      },
+      "discovery_confirm": {
+        "data": {
+          "device": "Gerätetyp",
+          "host": "IP-Adresse des Geräts",
+          "name": "Gib dem Gerät einen Namen"
+        },
+        "description": "Ein Gerät hat sich über den Argoclima Dummy Server gemeldet.",
+        "title": "Argoclima-Gerät entdeckt"
       }
     }
   },
@@ -20,6 +45,12 @@
       "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät."
     },
     "step": {
+      "server": {
+        "data": {
+          "port": "Server-Port"
+        },
+        "description": "Eine Änderung des Ports lädt den Listener neu."
+      },
       "user": {
         "data": {
           "host": "IP oder Hostname des Geräts",
