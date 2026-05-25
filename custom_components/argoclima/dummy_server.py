@@ -29,7 +29,7 @@ from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
-DATA_DISCOVERED_CPU_IDS = "discovered_cpu_ids"
+DATA_DISCOVERY_IN_FLIGHT_CPU_IDS = "discovery_in_flight_cpu_ids"
 HOST_ONLY_CPU_ID_PREFIX = "host:"
 REQUEST_HEADER_LIMIT = 16 * 1024
 REQUEST_BODY_LIMIT = 16 * 1024
@@ -284,12 +284,12 @@ def _async_update_entry_identity(
 async def _async_start_discovery_flow(
     hass: HomeAssistant, push_data: ArgoPushData
 ) -> None:
-    discovered = hass.data.setdefault(DOMAIN, {}).setdefault(
-        DATA_DISCOVERED_CPU_IDS, set()
+    in_flight = hass.data.setdefault(DOMAIN, {}).setdefault(
+        DATA_DISCOVERY_IN_FLIGHT_CPU_IDS, set()
     )
-    if push_data.cpu_id in discovered:
+    if push_data.cpu_id in in_flight:
         _LOGGER.debug(
-            "Argoclima discovery flow for CPU_ID %s already started",
+            "Argoclima discovery flow for CPU_ID %s is already starting",
             push_data.cpu_id,
         )
         return
@@ -298,31 +298,33 @@ async def _async_start_discovery_flow(
     if hasattr(flow_manager, "async_progress_by_handler"):
         for flow in flow_manager.async_progress_by_handler(DOMAIN):
             if flow.get("context", {}).get("unique_id") == push_data.cpu_id:
-                discovered.add(push_data.cpu_id)
                 _LOGGER.debug(
                     "Argoclima discovery flow for CPU_ID %s already in progress",
                     push_data.cpu_id,
                 )
                 return
 
-    discovered.add(push_data.cpu_id)
     _LOGGER.info(
         "Starting Argoclima discovery flow for CPU_ID %s host %s",
         push_data.cpu_id,
         push_data.host,
     )
-    await flow_manager.async_init(
-        DOMAIN,
-        context={
-            "source": SOURCE_INTEGRATION_DISCOVERY,
-            "unique_id": push_data.cpu_id,
-        },
-        data={
-            CONF_CPU_ID: push_data.cpu_id,
-            CONF_HOST: push_data.host,
-            CONF_DEVICE_TYPE: push_data.device_type,
-        },
-    )
+    in_flight.add(push_data.cpu_id)
+    try:
+        await flow_manager.async_init(
+            DOMAIN,
+            context={
+                "source": SOURCE_INTEGRATION_DISCOVERY,
+                "unique_id": push_data.cpu_id,
+            },
+            data={
+                CONF_CPU_ID: push_data.cpu_id,
+                CONF_HOST: push_data.host,
+                CONF_DEVICE_TYPE: push_data.device_type,
+            },
+        )
+    finally:
+        in_flight.discard(push_data.cpu_id)
 
 
 def _data_from_hmi(
