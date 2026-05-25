@@ -90,24 +90,18 @@ Probably more often, but that's what I found.
 
 ## Dummy Server
 
-By default, your device periodically communicates with Argos's server (hardcoded IP `31.14.128.210`). Without this connection, the API this integration uses won't work. This repository provides a dummy server docker image, so you can keep the traffic in your local network. By doing this, you will lose the ability to use the original web UI.
+By default, your device periodically communicates with Argo's server (hardcoded IP `31.14.128.210`). Without this connection, the API this integration uses won't work. The integration includes an "Argoclima Dummy Server" config entry, so you can keep that traffic in your local network. By doing this, you will lose the ability to use the original web UI.
 
-You can pull the docker image from https://hub.docker.com/r/nyffchanium/argoclima-dummy-server, or you can run the server without docker by using the Go script in the `dummy-server` folder.
+The dummy server binds to all Home Assistant IPv4 interfaces on the configured port. The default port is `8080`. When devices push status to it, the integration discovers devices by `CPU_ID`, keeps the current device IP updated, and disables scheduled polling while the dummy server is active.
 
-You can set the port the dummy server listens to via the env `SERVER_PORT`. It defaults to `8080`.
+The old Docker image and Go server are no longer required for Home Assistant setups.
 
 ### Routing
-For the dummy server to be of any use, you need to redirect the traffic to it. As the original server is a hardcoded public IP you need to change the routing through your router.
+For the dummy server to be of any use, traffic for the hardcoded public IP must be redirected to Home Assistant with DNAT.
 
-Example with an Asus router running Asuswrt-Merlin:
-1. Enable custom scripts and SSH via the router UI (Administration -> System).
-2. SSH into your router and create a file called `nat-start` in `/jffs/scripts` (replace `YOUR_SERVER` and `YOUR_PORT` with the address and port of your dummy server instance).
-   ```sh
-   #!/bin/sh
-   iptables -t nat -I PREROUTING -s 0.0.0.0/0 -d 31.14.128.210 -p tcp -j DNAT --to-destination YOUR_SERVER:YOUR_PORT
-   ```
-4. Make sure the file is executable. `chmod a+rx /jffs/scripts/*`.
-5. Restart your router.
+1. Add the "Argoclima Dummy Server" entry in Home Assistant and choose a port.
+2. Configure your router to DNAT device traffic for `31.14.128.210:80` to `HOME_ASSISTANT_IP:CONFIGURED_PORT`.
+3. Keep routing scoped to your Argo device source address if your router supports it.
 
 ## Restrictions / Problems
 
