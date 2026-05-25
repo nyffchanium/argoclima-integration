@@ -2,6 +2,7 @@ import hashlib
 import uuid
 
 from custom_components.argoclima import ArgoDataUpdateCoordinator
+from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import MANUFACTURER
@@ -53,8 +54,9 @@ class ArgoEntity(CoordinatorEntity):
 
     @property
     def device_info(self):
+        device_identifier = self._entry.data.get(CONF_CPU_ID, self._entry.entry_id)
         return {
-            "identifiers": {(DOMAIN, self._entry.entry_id)},
+            "identifiers": {(DOMAIN, device_identifier)},
             "name": self._entry.title,
             "model": self._type.name,
             "sw_version": self.coordinator.data.firmware_version
