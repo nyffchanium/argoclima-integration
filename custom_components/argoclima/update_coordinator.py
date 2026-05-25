@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
+MAX_CONSECUTIVE_UPDATE_FAILURES = 3
 
 
 class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
@@ -28,7 +29,30 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
         self._api = client
         self.platforms = []
         self.data = ArgoData(type)
+        self._consecutive_update_failures = 0
 
     async def _async_update(self) -> ArgoData:
         """Update data via library."""
-        return await self._api.async_sync_data(self.data)
+        try:
+            data = await self._api.async_sync_data(self.data)
+        except Exception:
+            self._consecutive_update_failures += 1
+
+            if self._consecutive_update_failures < MAX_CONSECUTIVE_UPDATE_FAILURES:
+                _LOGGER.warning(
+                    "ArgoClimate update failed (%s/%s); keeping last known state",
+                    self._consecutive_update_failures,
+                    MAX_CONSECUTIVE_UPDATE_FAILURES,
+                    exc_info=True,
+                )
+                return self.data
+
+            _LOGGER.warning(
+                "ArgoClimate update failed %s times in a row; marking unavailable",
+                self._consecutive_update_failures,
+                exc_info=True,
+            )
+            raise
+
+        self._consecutive_update_failures = 0
+        return data

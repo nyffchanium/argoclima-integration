@@ -183,10 +183,10 @@ class ArgoDeviceType:
         return self.name
 
     @staticmethod
-    def from_name(name: str) -> "ArgoDeviceType":
+    def from_name(name: str) -> "ArgoDeviceType | None":
         map = {
             ARGO_DEVICE_ULISSE_ECO: ArgoDeviceTypeBuilder(
-                ARGO_DEVICE_ULISSE_ECO, 1001, 10
+                ARGO_DEVICE_ULISSE_ECO, 1001, 60
             )
             .on_off()
             .operation_modes(
@@ -228,7 +228,7 @@ class ArgoDeviceType:
             )
             .build()
         }
-        return map[name] if name in map else None
+        return map.get(name)
 
 
 class ArgoDeviceTypeBuilder:
