@@ -2,7 +2,6 @@ import logging
 from datetime import datetime
 from datetime import time as dt_time
 from typing import Any
-from typing import cast
 
 import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.device_registry as dr
@@ -39,10 +38,10 @@ async def setup_service(hass: HomeAssistant):
             return
         if time is None or weekday is None:
             date = _get_current_datetime()
-        if time is None:
-            time = date.time()
-        if weekday is None:
-            weekday = ArgoWeekday.from_datetime(date)
+            if time is None:
+                time = date.time()
+            if weekday is None:
+                weekday = ArgoWeekday.from_datetime(date)
         coordinator.data.set_current_weekday(weekday)
         coordinator.data.set_time(time.hour, time.minute)
         await coordinator.async_request_refresh()
@@ -72,11 +71,10 @@ async def setup_service(hass: HomeAssistant):
 
     def device(value: Any) -> dr.DeviceEntry:
         """Validate that the device exists."""
-        device_registry = cast(dr.DeviceRegistry, hass.data[dr.DATA_REGISTRY])
-        try:
-            return device_registry.devices[str(value)]
-        except:  # noqa: E722 pylint: disable=bare-except
+        device_entry = dr.async_get(hass).async_get(str(value))
+        if device_entry is None:
             raise vol.Invalid(f"Could not find device with ID {value}")
+        return device_entry
 
     hass.services.async_register(
         DOMAIN,
