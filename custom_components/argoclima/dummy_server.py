@@ -14,11 +14,15 @@ from urllib.parse import urlsplit
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import CONF_HUB_ID
 from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_ROLE
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import DUMMY_SERVER_BIND_HOST
+from custom_components.argoclima.const import DUMMY_SERVER_DEVICE_IDENTIFIER_PREFIX
+from custom_components.argoclima.const import DUMMY_SERVER_UNIQUE_ID_PREFIX
 from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
+from custom_components.argoclima.const import ENTRY_ROLE_HUB
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.data import InvalidResponseFormatError
 from custom_components.argoclima.device_type import ArgoDeviceType
@@ -26,6 +30,7 @@ from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordin
 from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+import homeassistant.helpers.device_registry as dr
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,15 +63,17 @@ class ArgoPushData:
     cpu_id: str
     host: str
     hmi: str | None
+    hub_id: str | None
     device_type: str = ARGO_DEVICE_ULISSE_ECO
 
 
 class ArgoDummyServer:
     """Minimal TCP listener that mimics the Argoclima cloud endpoint."""
 
-    def __init__(self, hass: HomeAssistant, port: int) -> None:
+    def __init__(self, hass: HomeAssistant, port: int, hub_id: str) -> None:
         self._hass = hass
         self._port = port
+        self._hub_id = hub_id
         self._server: asyncio.Server | None = None
         self._connections: set[asyncio.StreamWriter] = set()
 
@@ -155,12 +162,13 @@ class ArgoDummyServer:
             return _ntp_response()
 
         if command == "UI_FLG":
-            push_data = _push_data_from_params(params)
+            push_data = _push_data_from_params(params, self._hub_id)
             if push_data is not None:
                 _LOGGER.info(
-                    "Argoclima UI_FLG push received for CPU_ID %s from %s",
+                    "Argoclima UI_FLG push received for CPU_ID %s from %s via hub %s",
                     push_data.cpu_id,
                     push_data.host,
+                    push_data.hub_id,
                 )
                 await async_handle_push_data(self._hass, push_data)
             else:
@@ -180,8 +188,21 @@ def async_dummy_server_running(hass: HomeAssistant) -> bool:
 
 
 def async_entry_role(entry: ConfigEntry) -> str:
-    """Return the configured entry role, defaulting legacy entries to device."""
+    """Return the configured entry role, defaulting entries to device."""
     return entry.data.get(CONF_ROLE, ENTRY_ROLE_DEVICE)
+
+
+def dummy_server_unique_id(port: int) -> str:
+    """Return the unique id for a dummy server listening on port."""
+    return f"{DUMMY_SERVER_UNIQUE_ID_PREFIX}:{port}"
+
+
+def dummy_server_hub_id(entry: ConfigEntry) -> str:
+    """Return the stable hub device identifier for a dummy server entry."""
+    return entry.data.get(
+        CONF_HUB_ID,
+        f"{DUMMY_SERVER_DEVICE_IDENTIFIER_PREFIX}:{entry.entry_id}",
+    )
 
 
 async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -> None:
@@ -204,6 +225,7 @@ async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -
             push_data.host,
         )
         coordinator.async_update_host(push_data.host)
+        coordinator.async_set_push_updates_enabled(True)
         data = _data_from_hmi(push_data, coordinator.data)
         if data is not None:
             coordinator.async_set_updated_data(data)
@@ -221,6 +243,7 @@ async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -
             "Argoclima push matched entry %s, but entry is not loaded",
             entry.entry_id,
         )
+    _async_update_device_registry_hub(hass, entry, push_data)
 
 
 def _find_device_entry(
@@ -262,6 +285,9 @@ def _async_update_entry_identity(
         changed = True
     if data.get(CONF_HOST) != push_data.host:
         data[CONF_HOST] = push_data.host
+        changed = True
+    if push_data.hub_id is not None and data.get(CONF_HUB_ID) != push_data.hub_id:
+        data[CONF_HUB_ID] = push_data.hub_id
         changed = True
     if data.get(CONF_DEVICE_TYPE) is None:
         data[CONF_DEVICE_TYPE] = push_data.device_type
@@ -320,6 +346,7 @@ async def _async_start_discovery_flow(
             data={
                 CONF_CPU_ID: push_data.cpu_id,
                 CONF_HOST: push_data.host,
+                CONF_HUB_ID: push_data.hub_id,
                 CONF_DEVICE_TYPE: push_data.device_type,
             },
         )
@@ -352,6 +379,86 @@ def _data_from_hmi(
         return current_data
 
     return data
+
+
+def _async_update_device_registry_hub(
+    hass: HomeAssistant, entry: ConfigEntry, push_data: ArgoPushData
+) -> None:
+    if push_data.hub_id is None:
+        return
+
+    device_registry = dr.async_get(hass)
+    hub_device = device_registry.async_get_device(
+        identifiers={(DOMAIN, push_data.hub_id)}
+    )
+    if hub_device is None:
+        return
+
+    hub_entry = _hub_entry_for_id(hass, push_data.hub_id)
+    if hub_entry is None:
+        return
+
+    device = device_registry.async_get_device(
+        identifiers={(DOMAIN, push_data.cpu_id)}
+    ) or device_registry.async_get_device(identifiers={(DOMAIN, entry.entry_id)})
+    if device is None:
+        return
+
+    _move_device_registry_parent(
+        device_registry, device, entry, hub_entry, hub_device.id
+    )
+
+
+def _hub_entry_for_id(hass: HomeAssistant, hub_id: str) -> ConfigEntry | None:
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if (
+            async_entry_role(entry) == ENTRY_ROLE_HUB
+            and dummy_server_hub_id(entry) == hub_id
+        ):
+            return entry
+    return None
+
+
+def _move_device_registry_parent(
+    device_registry: dr.DeviceRegistry,
+    device: dr.DeviceEntry,
+    entry: ConfigEntry,
+    hub_entry: ConfigEntry,
+    hub_device_id: str,
+) -> None:
+    if (
+        device.primary_config_entry == hub_entry.entry_id
+        and device.via_device_id == hub_device_id
+    ):
+        return
+
+    device = device_registry.async_update_device(
+        device.id,
+        add_config_entry_id=hub_entry.entry_id,
+        device_info_type="primary",
+        via_device_id=hub_device_id,
+    )
+    if device is None:
+        return
+
+    if (
+        device.primary_config_entry != hub_entry.entry_id
+        and entry.entry_id in device.config_entries
+        and len(device.config_entries) > 1
+    ):
+        device = device_registry.async_update_device(
+            device.id,
+            remove_config_entry_id=entry.entry_id,
+        )
+        if device is None:
+            return
+
+    device_registry.async_update_device(
+        device.id,
+        add_config_entry_id=hub_entry.entry_id,
+        device_info_type="primary",
+        via_device_id=hub_device_id,
+    )
 
 
 async def _read_http_request(
@@ -460,7 +567,7 @@ def _parse_query(query: str) -> dict[str, str]:
     }
 
 
-def _push_data_from_params(params: dict[str, str]) -> ArgoPushData | None:
+def _push_data_from_params(params: dict[str, str], hub_id: str) -> ArgoPushData | None:
     cpu_id = next(
         (
             params[key].strip()
@@ -480,6 +587,7 @@ def _push_data_from_params(params: dict[str, str]) -> ArgoPushData | None:
         cpu_id=cpu_id,
         host=host,
         hmi=hmi if hmi else None,
+        hub_id=hub_id,
     )
 
 

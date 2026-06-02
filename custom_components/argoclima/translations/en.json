@@ -2,7 +2,8 @@
   "config": {
     "error": {
       "host": "Could not reach host or host is not a supported device.",
-      "invalid_device_type": "Unsupported device type."
+      "invalid_device_type": "Unsupported device type.",
+      "port_in_use": "A dummy server is already configured on this port."
     },
     "step": {
       "user": {
@@ -23,6 +24,7 @@
       "device": {
         "data": {
           "device": "Device type",
+          "hub_id": "Dummy server hub",
           "host": "IP or hostname of the device",
           "name": "Give the device a name"
         },
@@ -42,7 +44,8 @@
   },
   "options": {
     "error": {
-      "host": "Could not reach host or host is not a supported device."
+      "host": "Could not reach host or host is not a supported device.",
+      "port_in_use": "A dummy server is already configured on this port."
     },
     "step": {
       "server": {
@@ -53,6 +56,7 @@
       },
       "user": {
         "data": {
+          "hub_id": "Dummy server hub",
           "host": "IP or hostname of the device",
           "name": "Give the device a name"
         },

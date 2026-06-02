@@ -1,12 +1,14 @@
 import hashlib
 import uuid
 
-from custom_components.argoclima import ArgoDataUpdateCoordinator
+import homeassistant.helpers.device_registry as dr
 from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import CONF_HUB_ID
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import MANUFACTURER
 from custom_components.argoclima.device_type import ArgoDeviceType
+from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -54,8 +56,8 @@ class ArgoEntity(CoordinatorEntity):
 
     @property
     def device_info(self):
-        device_identifier = self._entry.data.get(CONF_CPU_ID, self._entry.entry_id)
-        return {
+        device_identifier = self._entry.data.get(CONF_CPU_ID) or self._entry.entry_id
+        device_info = {
             "identifiers": {(DOMAIN, device_identifier)},
             "name": self._entry.title,
             "model": self._type.name,
@@ -64,3 +66,16 @@ class ArgoEntity(CoordinatorEntity):
             else None,
             "manufacturer": MANUFACTURER,
         }
+        if (hub_id := self._entry.data.get(CONF_HUB_ID)) and _hub_device_exists(
+            self.coordinator.hass, hub_id
+        ):
+            device_info["via_device"] = (DOMAIN, hub_id)
+        return device_info
+
+
+def _hub_device_exists(hass, hub_id: str) -> bool:
+    device_registry = dr.async_get(hass)
+    return (
+        device_registry.async_get_device(identifiers={(DOMAIN, hub_id)})
+        is not None
+    )

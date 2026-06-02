@@ -2,7 +2,8 @@
   "config": {
     "error": {
       "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
-      "invalid_device_type": "Nicht unterstützter Gerätetyp."
+      "invalid_device_type": "Nicht unterstützter Gerätetyp.",
+      "port_in_use": "Auf diesem Port ist bereits ein Dummy Server konfiguriert."
     },
     "step": {
       "user": {
@@ -23,6 +24,7 @@
       "device": {
         "data": {
           "device": "Gerätetyp",
+          "hub_id": "Dummy-Server-Hub",
           "host": "IP oder Hostname des Geräts",
           "name": "Gib dem Gerät einen Namen"
         },
@@ -42,7 +44,8 @@
   },
   "options": {
     "error": {
-      "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät."
+      "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
+      "port_in_use": "Auf diesem Port ist bereits ein Dummy Server konfiguriert."
     },
     "step": {
       "server": {
@@ -53,6 +56,7 @@
       },
       "user": {
         "data": {
+          "hub_id": "Dummy-Server-Hub",
           "host": "IP oder Hostname des Geräts",
           "name": "Gib dem Gerät einen Namen"
         },

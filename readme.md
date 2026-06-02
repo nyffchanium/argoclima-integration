@@ -90,9 +90,9 @@ Probably more often, but that's what I found.
 
 ## Dummy Server
 
-By default, your device periodically communicates with Argo's server (hardcoded IP `31.14.128.210`). Without this connection, the API this integration uses won't work. The integration includes an "Argoclima Dummy Server" config entry, so you can keep that traffic in your local network. By doing this, you will lose the ability to use the original web UI.
+By default, your device periodically communicates with Argo's server (hardcoded IP `31.14.128.210`). Without this connection, the API this integration uses won't work. The integration includes "Argoclima Dummy Server" hub config entries, so you can keep that traffic in your local network. By doing this, you will lose the ability to use the original web UI.
 
-The dummy server binds to all Home Assistant IPv4 interfaces on the configured port. The default port is `8080`. When devices push status to it, the integration discovers devices by `CPU_ID`, keeps the current device IP updated, and disables scheduled polling while the dummy server is active.
+Each hub listener binds to all Home Assistant IPv4 interfaces on its configured port. The default port is `8080`. When devices push status to a listener, the integration discovers devices by `CPU_ID`, keeps the current device IP updated, and links them under that hub in Home Assistant. Devices associated with a running hub use the push path and pause scheduled polling; hubless devices keep using the direct polling path.
 
 The old Docker image and Go server are no longer required for Home Assistant setups.
 

@@ -6,6 +6,7 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.device_registry as dr
 import voluptuous as vol
+from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.types import ArgoWeekday
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
@@ -24,13 +25,12 @@ async def setup_service(hass: HomeAssistant):
         device: dr.DeviceEntry = call.data.get(ATTR_DEVICE)
         time: dt_time = call.data.get(ATTR_TIME)
         weekday: ArgoWeekday = call.data.get(ATTR_WEEKDAY)
-        entry_id = next(iter(device.config_entries))
-        if entry_id not in hass.data[DOMAIN]:
+        coordinator = _coordinator_for_device(device)
+        if coordinator is None:
             _LOGGER.warning(
                 "Device %s is not loaded.", device.name_by_user or device.name
             )
             return
-        coordinator: ArgoDataUpdateCoordinator = hass.data[DOMAIN][entry_id]
         if not coordinator.last_update_success:
             _LOGGER.warning(
                 "Device %s is not available.", device.name_by_user or device.name
@@ -48,6 +48,26 @@ async def setup_service(hass: HomeAssistant):
 
     def _get_current_datetime() -> datetime:
         return dt_util.utcnow().astimezone(dt_util.get_time_zone(hass.config.time_zone))
+
+    def _coordinator_for_device(
+        device: dr.DeviceEntry,
+    ) -> ArgoDataUpdateCoordinator | None:
+        for entry_id in device.config_entries:
+            coordinator = hass.data.get(DOMAIN, {}).get(entry_id)
+            if isinstance(coordinator, ArgoDataUpdateCoordinator):
+                return coordinator
+        identifiers = {
+            identifier for domain, identifier in device.identifiers if domain == DOMAIN
+        }
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            if (
+                entry.entry_id in identifiers
+                or entry.data.get(CONF_CPU_ID) in identifiers
+            ):
+                coordinator = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+                if isinstance(coordinator, ArgoDataUpdateCoordinator):
+                    return coordinator
+        return None
 
     def weekday(value: Any) -> ArgoWeekday:
         """Validate a weekday."""

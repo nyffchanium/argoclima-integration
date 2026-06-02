@@ -6,6 +6,7 @@ from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import ARGO_DEVICES
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import CONF_CPU_ID
+from custom_components.argoclima.const import CONF_HUB_ID
 from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_NAME
 from custom_components.argoclima.const import CONF_PORT
@@ -13,16 +14,20 @@ from custom_components.argoclima.const import CONF_ROLE
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import DUMMY_SERVER_DEFAULT_PORT
 from custom_components.argoclima.const import DUMMY_SERVER_TITLE
-from custom_components.argoclima.const import DUMMY_SERVER_UNIQUE_ID
 from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
-from custom_components.argoclima.const import ENTRY_ROLE_SERVER
+from custom_components.argoclima.const import ENTRY_ROLE_HUB
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
+from custom_components.argoclima.dummy_server import async_entry_role
+from custom_components.argoclima.dummy_server import dummy_server_hub_id
+from custom_components.argoclima.dummy_server import dummy_server_unique_id
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
+
+NO_HUB_ID = "__no_hub__"
 
 
 async def async_test_host(
@@ -56,9 +61,6 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input: dict[str, Any] = None) -> FlowResult:
         """Handle a flow initialized by the user."""
-        if _server_entry_exists(self.hass):
-            return await self.async_step_device(user_input)
-
         return self.async_show_menu(
             step_id="user",
             menu_options=["server", "device"],
@@ -66,24 +68,31 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_server(self, user_input: dict[str, Any] = None) -> FlowResult:
         """Create the dummy server entry."""
-        if _server_entry_exists(self.hass):
-            return self.async_abort(reason="already_configured")
-        await self.async_set_unique_id(DUMMY_SERVER_UNIQUE_ID)
-        self._abort_if_unique_id_configured()
+        self._errors = {}
 
         if user_input is not None:
+            port = user_input[CONF_PORT]
+            if _server_port_exists(self.hass, port):
+                self._errors["base"] = "port_in_use"
+                return self._show_server_form(user_input)
+
+            await self.async_set_unique_id(dummy_server_unique_id(port))
+            self._abort_if_unique_id_configured()
             return self.async_create_entry(
-                title=DUMMY_SERVER_TITLE,
+                title=_server_title(port),
                 data={
-                    CONF_ROLE: ENTRY_ROLE_SERVER,
-                    CONF_PORT: user_input[CONF_PORT],
+                    CONF_ROLE: ENTRY_ROLE_HUB,
+                    CONF_PORT: port,
                 },
             )
 
+        return self._show_server_form(user_input)
+
+    def _show_server_form(self, user_input: dict[str, Any]) -> FlowResult:
         return self.async_show_form(
             step_id="server",
             data_schema=_server_schema(user_input),
-            errors={},
+            errors=self._errors,
         )
 
     async def async_step_device(self, user_input: dict[str, Any] = None) -> FlowResult:
@@ -97,13 +106,16 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self.hass, device_type, user_input[CONF_HOST]
                 )
                 if host_ok:
+                    data = {
+                        CONF_ROLE: ENTRY_ROLE_DEVICE,
+                        CONF_DEVICE_TYPE: user_input[CONF_DEVICE_TYPE],
+                        CONF_HOST: user_input[CONF_HOST],
+                    }
+                    if hub_id := _selected_hub_id(user_input):
+                        data[CONF_HUB_ID] = hub_id
                     return self.async_create_entry(
                         title=user_input[CONF_NAME],
-                        data={
-                            CONF_ROLE: ENTRY_ROLE_DEVICE,
-                            CONF_DEVICE_TYPE: user_input[CONF_DEVICE_TYPE],
-                            CONF_HOST: user_input[CONF_HOST],
-                        },
+                        data=data,
                     )
                 self._errors["base"] = "host"
             else:
@@ -126,6 +138,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_ROLE: ENTRY_ROLE_DEVICE,
                 CONF_CPU_ID: cpu_id,
                 CONF_HOST: discovery_info[CONF_HOST],
+                CONF_HUB_ID: discovery_info.get(CONF_HUB_ID),
                 CONF_DEVICE_TYPE: discovery_info[CONF_DEVICE_TYPE],
             }
         )
@@ -142,6 +155,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_ROLE: ENTRY_ROLE_DEVICE,
                     CONF_CPU_ID: self._discovery_info[CONF_CPU_ID],
                     CONF_HOST: user_input[CONF_HOST],
+                    CONF_HUB_ID: self._discovery_info.get(CONF_HUB_ID),
                     CONF_DEVICE_TYPE: user_input[CONF_DEVICE_TYPE],
                 },
             )
@@ -154,18 +168,26 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 return user_input[key]
             return default
 
+        schema = {
+            vol.Required(
+                CONF_DEVICE_TYPE,
+                default=default(CONF_DEVICE_TYPE, ARGO_DEVICE_ULISSE_ECO),
+            ): vol.In(ARGO_DEVICES),
+            vol.Required(CONF_NAME, default=default(CONF_NAME)): str,
+            vol.Required(CONF_HOST, default=default(CONF_HOST)): str,
+        }
+        hub_options = _hub_options(self.hass)
+        if hub_options:
+            schema[
+                vol.Optional(
+                    CONF_HUB_ID,
+                    default=default(CONF_HUB_ID, NO_HUB_ID),
+                )
+            ] = vol.In(hub_options)
+
         return self.async_show_form(
             step_id="device",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_DEVICE_TYPE,
-                        default=default(CONF_DEVICE_TYPE, ARGO_DEVICE_ULISSE_ECO),
-                    ): vol.In(ARGO_DEVICES),
-                    vol.Required(CONF_NAME, default=default(CONF_NAME)): str,
-                    vol.Required(CONF_HOST, default=default(CONF_HOST)): str,
-                }
-            ),
+            data_schema=vol.Schema(schema),
             errors=self._errors,
         )
 
@@ -211,7 +233,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_user(self, user_input: dict[str, Any] = None) -> FlowResult:
         """Handle a flow initialized by the user."""
-        if self.data.get(CONF_ROLE) == ENTRY_ROLE_SERVER:
+        if async_entry_role(self._config_entry) == ENTRY_ROLE_HUB:
             return await self.async_step_server(user_input)
 
         if user_input is not None:
@@ -221,6 +243,10 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
             )
             if host_ok:
                 self.data.update({CONF_HOST: user_input[CONF_HOST]})
+                if hub_id := _selected_hub_id(user_input):
+                    self.data[CONF_HUB_ID] = hub_id
+                else:
+                    self.data.pop(CONF_HUB_ID, None)
                 self.hass.config_entries.async_update_entry(
                     self._config_entry,
                     data=self.data,
@@ -238,39 +264,89 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
                 return user_input[key]
             return self.data.get(key)
 
+        schema = {
+            vol.Required(CONF_HOST, default=default(CONF_HOST)): str,
+        }
+        hub_options = _hub_options(self.hass)
+        if hub_options:
+            schema[
+                vol.Optional(
+                    CONF_HUB_ID,
+                    default=default(CONF_HUB_ID) or NO_HUB_ID,
+                )
+            ] = vol.In(hub_options)
+
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HOST, default=default(CONF_HOST)): str,
-                }
-            ),
+            data_schema=vol.Schema(schema),
             errors=self._errors,
         )
 
     async def async_step_server(self, user_input: dict[str, Any] = None) -> FlowResult:
         """Handle server options."""
+        self._errors = {}
+
         if user_input is not None:
-            self.data.update({CONF_PORT: user_input[CONF_PORT]})
+            port = user_input[CONF_PORT]
+            if _server_port_exists(self.hass, port, self._config_entry.entry_id):
+                self._errors["base"] = "port_in_use"
+                return self._show_server_form()
+
+            self.data.update(
+                {
+                    CONF_ROLE: ENTRY_ROLE_HUB,
+                    CONF_PORT: port,
+                }
+            )
             self.hass.config_entries.async_update_entry(
                 self._config_entry,
                 data=self.data,
+                title=_server_title(port),
+                unique_id=dummy_server_unique_id(port),
             )
             return self.async_create_entry(title="", data={})
 
+        return self._show_server_form()
+
+    def _show_server_form(self) -> FlowResult:
         return self.async_show_form(
             step_id="server",
             data_schema=_server_schema(self.data),
-            errors={},
+            errors=self._errors,
         )
 
 
-def _server_entry_exists(hass: HomeAssistant) -> bool:
+def _server_port_exists(
+    hass: HomeAssistant, port: int, exclude_entry_id: str | None = None
+) -> bool:
     return any(
-        entry.data.get(CONF_ROLE) == ENTRY_ROLE_SERVER
-        or entry.unique_id == DUMMY_SERVER_UNIQUE_ID
+        async_entry_role(entry) == ENTRY_ROLE_HUB
+        and entry.entry_id != exclude_entry_id
+        and entry.data.get(CONF_PORT, DUMMY_SERVER_DEFAULT_PORT) == port
         for entry in hass.config_entries.async_entries(DOMAIN)
     )
+
+
+def _server_title(port: int) -> str:
+    return f"{DUMMY_SERVER_TITLE} ({port})"
+
+
+def _hub_options(hass: HomeAssistant) -> dict[str, str]:
+    options = {
+        dummy_server_hub_id(entry): entry.title
+        for entry in hass.config_entries.async_entries(DOMAIN)
+        if async_entry_role(entry) == ENTRY_ROLE_HUB
+    }
+    if not options:
+        return {}
+    return {NO_HUB_ID: "No dummy server hub", **options}
+
+
+def _selected_hub_id(user_input: dict[str, Any]) -> str | None:
+    hub_id = user_input.get(CONF_HUB_ID)
+    if hub_id in (None, NO_HUB_ID):
+        return None
+    return hub_id
 
 
 def _server_schema(user_input: dict[str, Any] | None) -> vol.Schema:
