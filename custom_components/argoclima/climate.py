@@ -1,10 +1,11 @@
 from collections.abc import Callable
 
-from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.data import ArgoFanSpeed
 from custom_components.argoclima.data import ArgoOperationMode
 from custom_components.argoclima.device_type import InvalidOperationError
 from custom_components.argoclima.entity import ArgoEntity
+from custom_components.argoclima.runtime import ArgoRuntimeDevice
+from custom_components.argoclima.runtime import runtime_devices_for_entry
 from custom_components.argoclima.types import ArgoUnit
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import ClimateEntityFeature
@@ -22,13 +23,14 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_devices: Callable[[list[ClimateEntity]], None],
 ):
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices([ArgoEntityClimate(coordinator, entry)])
+    async_add_devices(
+        [ArgoEntityClimate(device) for device in runtime_devices_for_entry(hass, entry)]
+    )
 
 
 class ArgoEntityClimate(ArgoEntity, ClimateEntity):
-    def __init__(self, coordinator, entry: ConfigEntry):
-        ArgoEntity.__init__(self, "Climate", coordinator, entry)
+    def __init__(self, device: ArgoRuntimeDevice):
+        ArgoEntity.__init__(self, "Climate", device)
         ClimateEntity.__init__(self)
 
     @property

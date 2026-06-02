@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import CONF_DEVICES
 from custom_components.argoclima.const import CONF_HUB_ID
 from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_ROLE
@@ -23,19 +24,19 @@ from custom_components.argoclima.const import DUMMY_SERVER_DEVICE_IDENTIFIER_PRE
 from custom_components.argoclima.const import DUMMY_SERVER_UNIQUE_ID_PREFIX
 from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
 from custom_components.argoclima.const import ENTRY_ROLE_HUB
+from custom_components.argoclima.const import HOST_ONLY_CPU_ID_PREFIX
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.data import InvalidResponseFormatError
 from custom_components.argoclima.device_type import ArgoDeviceType
+from custom_components.argoclima.runtime import ArgoHubRuntime
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-import homeassistant.helpers.device_registry as dr
 
 _LOGGER = logging.getLogger(__name__)
 
 DATA_DISCOVERY_IN_FLIGHT_CPU_IDS = "discovery_in_flight_cpu_ids"
-HOST_ONLY_CPU_ID_PREFIX = "host:"
 REQUEST_HEADER_LIMIT = 16 * 1024
 REQUEST_BODY_LIMIT = 16 * 1024
 REQUEST_IDLE_TIMEOUT = 15
@@ -184,7 +185,10 @@ class ArgoDummyServer:
 def async_dummy_server_running(hass: HomeAssistant) -> bool:
     """Return true if a dummy server entry is currently loaded."""
     domain_data = hass.data.get(DOMAIN, {})
-    return any(isinstance(value, ArgoDummyServer) for value in domain_data.values())
+    return any(
+        isinstance(value, ArgoDummyServer) or isinstance(value, ArgoHubRuntime)
+        for value in domain_data.values()
+    )
 
 
 def async_entry_role(entry: ConfigEntry) -> str:
@@ -207,6 +211,9 @@ def dummy_server_hub_id(entry: ConfigEntry) -> str:
 
 async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -> None:
     """Dispatch push data to an existing entry or start a discovery flow."""
+    if _async_handle_hub_child_push(hass, push_data):
+        return
+
     entry = _find_device_entry(hass, push_data)
     if entry is None:
         _LOGGER.info(
@@ -243,7 +250,6 @@ async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -
             "Argoclima push matched entry %s, but entry is not loaded",
             entry.entry_id,
         )
-    _async_update_device_registry_hub(hass, entry, push_data)
 
 
 def _find_device_entry(
@@ -305,6 +311,92 @@ def _async_update_entry_identity(
             data=data,
             unique_id=push_data.cpu_id,
         )
+
+
+def _async_handle_hub_child_push(
+    hass: HomeAssistant, push_data: ArgoPushData
+) -> bool:
+    if push_data.hub_id is None:
+        return False
+
+    hub_entry = _hub_entry_for_id(hass, push_data.hub_id)
+    if hub_entry is None:
+        return False
+
+    devices = hub_entry.data.get(CONF_DEVICES, {})
+    device_id = _hub_device_id_for_push(devices, push_data)
+    if device_id is None:
+        return False
+
+    device_data = {
+        **devices[device_id],
+        CONF_ROLE: ENTRY_ROLE_DEVICE,
+        CONF_CPU_ID: push_data.cpu_id,
+        CONF_HOST: push_data.host,
+        CONF_HUB_ID: push_data.hub_id,
+        CONF_DEVICE_TYPE: devices[device_id].get(
+            CONF_DEVICE_TYPE, push_data.device_type
+        ),
+    }
+    _async_update_hub_device(hass, hub_entry, device_data)
+
+    runtime = hass.data.get(DOMAIN, {}).get(hub_entry.entry_id)
+    if not isinstance(runtime, ArgoHubRuntime):
+        return True
+
+    device = runtime.devices.get(push_data.cpu_id) or runtime.devices.get(device_id)
+    if device is None:
+        return True
+
+    if device_id != push_data.cpu_id:
+        runtime.devices.pop(device_id, None)
+        runtime.devices[push_data.cpu_id] = device
+
+    device.data = device_data
+    device.coordinator.async_update_host(push_data.host)
+    device.coordinator.async_set_push_updates_enabled(True)
+    data = _data_from_hmi(push_data, device.coordinator.data)
+    if data is not None:
+        device.coordinator.async_set_updated_data(data)
+    return True
+
+
+def _async_update_hub_device(
+    hass: HomeAssistant, hub_entry: ConfigEntry, device_data: dict
+) -> None:
+    devices = dict(hub_entry.data.get(CONF_DEVICES, {}))
+    device_id = device_data[CONF_CPU_ID]
+    _remove_host_only_duplicate(devices, device_id, device_data.get(CONF_HOST))
+    devices[device_id] = {**devices.get(device_id, {}), **device_data}
+    hass.config_entries.async_update_entry(
+        hub_entry,
+        data={**hub_entry.data, CONF_DEVICES: devices},
+    )
+
+
+def _hub_device_id_for_push(
+    devices: dict[str, dict], push_data: ArgoPushData
+) -> str | None:
+    if push_data.cpu_id in devices:
+        return push_data.cpu_id
+
+    for device_id, device_data in devices.items():
+        if (
+            device_id.startswith(HOST_ONLY_CPU_ID_PREFIX)
+            and device_data.get(CONF_HOST) == push_data.host
+        ):
+            return device_id
+    return None
+
+
+def _remove_host_only_duplicate(
+    devices: dict[str, dict], device_id: str, host: str | None
+) -> None:
+    if device_id.startswith(HOST_ONLY_CPU_ID_PREFIX) or host is None:
+        return
+    for existing_id, existing_data in list(devices.items()):
+        if existing_id != device_id and existing_data.get(CONF_HOST) == host:
+            devices.pop(existing_id)
 
 
 async def _async_start_discovery_flow(
@@ -381,34 +473,6 @@ def _data_from_hmi(
     return data
 
 
-def _async_update_device_registry_hub(
-    hass: HomeAssistant, entry: ConfigEntry, push_data: ArgoPushData
-) -> None:
-    if push_data.hub_id is None:
-        return
-
-    device_registry = dr.async_get(hass)
-    hub_device = device_registry.async_get_device(
-        identifiers={(DOMAIN, push_data.hub_id)}
-    )
-    if hub_device is None:
-        return
-
-    hub_entry = _hub_entry_for_id(hass, push_data.hub_id)
-    if hub_entry is None:
-        return
-
-    device = device_registry.async_get_device(
-        identifiers={(DOMAIN, push_data.cpu_id)}
-    ) or device_registry.async_get_device(identifiers={(DOMAIN, entry.entry_id)})
-    if device is None:
-        return
-
-    _move_device_registry_parent(
-        device_registry, device, entry, hub_entry, hub_device.id
-    )
-
-
 def _hub_entry_for_id(hass: HomeAssistant, hub_id: str) -> ConfigEntry | None:
     for entry in hass.config_entries.async_entries(DOMAIN):
         if (
@@ -417,48 +481,6 @@ def _hub_entry_for_id(hass: HomeAssistant, hub_id: str) -> ConfigEntry | None:
         ):
             return entry
     return None
-
-
-def _move_device_registry_parent(
-    device_registry: dr.DeviceRegistry,
-    device: dr.DeviceEntry,
-    entry: ConfigEntry,
-    hub_entry: ConfigEntry,
-    hub_device_id: str,
-) -> None:
-    if (
-        device.primary_config_entry == hub_entry.entry_id
-        and device.via_device_id == hub_device_id
-    ):
-        return
-
-    device = device_registry.async_update_device(
-        device.id,
-        add_config_entry_id=hub_entry.entry_id,
-        device_info_type="primary",
-        via_device_id=hub_device_id,
-    )
-    if device is None:
-        return
-
-    if (
-        device.primary_config_entry != hub_entry.entry_id
-        and entry.entry_id in device.config_entries
-        and len(device.config_entries) > 1
-    ):
-        device = device_registry.async_update_device(
-            device.id,
-            remove_config_entry_id=entry.entry_id,
-        )
-        if device is None:
-            return
-
-    device_registry.async_update_device(
-        device.id,
-        add_config_entry_id=hub_entry.entry_id,
-        device_info_type="primary",
-        via_device_id=hub_device_id,
-    )
 
 
 async def _read_http_request(

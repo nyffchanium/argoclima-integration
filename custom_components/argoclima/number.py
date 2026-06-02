@@ -1,8 +1,9 @@
 from collections.abc import Callable
 
-from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.device_type import InvalidOperationError
 from custom_components.argoclima.entity import ArgoEntity
+from custom_components.argoclima.runtime import ArgoRuntimeDevice
+from custom_components.argoclima.runtime import runtime_devices_for_entry
 from homeassistant.components.number import NumberEntity
 from homeassistant.components.number import NumberMode
 from homeassistant.config_entries import ConfigEntry
@@ -16,18 +17,17 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_devices: Callable[[list[NumberEntity]], None],
 ):
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-
-    async_add_devices([ArgoEcoLimitNumber(coordinator, entry)])
+    async_add_devices(
+        [ArgoEcoLimitNumber(device) for device in runtime_devices_for_entry(hass, entry)]
+    )
 
 
 class ArgoEcoLimitNumber(ArgoEntity, NumberEntity):
-    def __init__(self, coordinator, entry: ConfigEntry):
+    def __init__(self, device: ArgoRuntimeDevice):
         ArgoEntity.__init__(
             self,
             "Eco Mode Power Limit",
-            coordinator,
-            entry,
+            device,
             None,
             EntityCategory.CONFIG,
         )

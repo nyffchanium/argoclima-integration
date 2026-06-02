@@ -5,22 +5,23 @@ import homeassistant.helpers.device_registry as dr
 from custom_components.argoclima.api import ArgoApiClient
 from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
+from custom_components.argoclima.const import CONF_DEVICES
 from custom_components.argoclima.const import CONF_HUB_ID
 from custom_components.argoclima.const import CONF_HOST
+from custom_components.argoclima.const import CONF_NAME
 from custom_components.argoclima.const import CONF_PORT
-from custom_components.argoclima.const import CONF_ROLE
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import DUMMY_SERVER_DEFAULT_PORT
-from custom_components.argoclima.const import DUMMY_SERVER_TITLE
 from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
 from custom_components.argoclima.const import ENTRY_ROLE_HUB
-from custom_components.argoclima.const import NAME
 from custom_components.argoclima.const import STARTUP_MESSAGE
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.dummy_server import ArgoDummyServer
 from custom_components.argoclima.dummy_server import async_dummy_server_running
 from custom_components.argoclima.dummy_server import async_entry_role
 from custom_components.argoclima.dummy_server import dummy_server_hub_id
+from custom_components.argoclima.runtime import ArgoHubRuntime
+from custom_components.argoclima.runtime import ArgoRuntimeDevice
 from custom_components.argoclima.service import setup_service
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
@@ -60,26 +61,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     session = async_get_clientsession(hass)
     client = ArgoApiClient(type, host, session)
 
+    has_hub = entry.data.get(CONF_HUB_ID) is not None
     coordinator = ArgoDataUpdateCoordinator(
         hass,
         client,
         type,
         use_polling=not _async_entry_has_running_hub(hass, entry),
     )
-    await coordinator.async_refresh()
 
-    if not coordinator.last_update_success:
-        raise ConfigEntryNotReady
+    if has_hub:
+        coordinator.async_set_updated_data(coordinator.data)
+    else:
+        await coordinator.async_refresh()
+        if not coordinator.last_update_success:
+            raise ConfigEntryNotReady
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     coordinator.platforms.extend(type.platforms)
     await hass.config_entries.async_forward_entry_setups(entry, type.platforms)
-
-    if hub_id := entry.data.get(CONF_HUB_ID):
-        _async_update_device_registry_hub(
-            hass, hub_id, _async_hub_device_id(hass, hub_id)
-        )
 
     entry.add_update_listener(async_reload_entry)
 
@@ -98,9 +98,11 @@ async def _async_setup_hub_entry(hass: HomeAssistant, entry: ConfigEntry) -> boo
         )
         raise ConfigEntryNotReady(str(err)) from err
 
-    hass.data[DOMAIN][entry.entry_id] = server
-    hub_device = _async_register_hub_device(hass, entry, hub_id)
-    _async_update_device_registry_hub(hass, hub_id, hub_device.id)
+    runtime = ArgoHubRuntime(server=server, devices={}, platforms=set())
+    hass.data[DOMAIN][entry.entry_id] = runtime
+    _async_setup_hub_devices(hass, entry, runtime)
+    if runtime.platforms:
+        await hass.config_entries.async_forward_entry_setups(entry, runtime.platforms)
     _async_set_push_updates_enabled(hass, True)
     entry.add_update_listener(async_reload_entry)
     return True
@@ -110,14 +112,19 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
     role = async_entry_role(entry)
     if role == ENTRY_ROLE_HUB:
-        server = hass.data[DOMAIN].pop(entry.entry_id, None)
-        if isinstance(server, ArgoDummyServer):
-            await server.async_stop()
-        _async_update_device_registry_hub(hass, dummy_server_hub_id(entry), None)
+        runtime = hass.data[DOMAIN].pop(entry.entry_id, None)
+        if isinstance(runtime, ArgoHubRuntime) and runtime.platforms:
+            await hass.config_entries.async_unload_platforms(entry, runtime.platforms)
+        if isinstance(runtime, ArgoHubRuntime):
+            await runtime.server.async_stop()
+        elif isinstance(runtime, ArgoDummyServer):
+            await runtime.async_stop()
         _async_set_push_updates_enabled(hass, async_dummy_server_running(hass))
         return True
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = hass.data[DOMAIN].get(entry.entry_id)
+    if coordinator is None:
+        return True
     type: ArgoDeviceType = ArgoDeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
     unloaded = all(
         await asyncio.gather(
@@ -134,6 +141,32 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unloaded
 
 
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow a hub child device to be removed from the UI."""
+    if async_entry_role(entry) != ENTRY_ROLE_HUB:
+        return False
+
+    device_id = _hub_child_device_id(entry, device_entry)
+    if device_id is None:
+        return False
+
+    devices = dict(entry.data.get(CONF_DEVICES, {}))
+    devices.pop(device_id)
+    hass.config_entries.async_update_entry(
+        entry,
+        data={**entry.data, CONF_DEVICES: devices},
+    )
+
+    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    if isinstance(runtime, ArgoHubRuntime):
+        runtime.devices.pop(device_id, None)
+        hass.config_entries.async_schedule_reload(entry.entry_id)
+
+    return True
+
+
 def _async_set_push_updates_enabled(hass: HomeAssistant, enabled: bool) -> None:
     for entry_id, value in hass.data.get(DOMAIN, {}).items():
         if isinstance(value, ArgoDataUpdateCoordinator):
@@ -143,6 +176,9 @@ def _async_set_push_updates_enabled(hass: HomeAssistant, enabled: bool) -> None:
                 and entry is not None
                 and _async_entry_has_running_hub(hass, entry)
             )
+        elif isinstance(value, ArgoHubRuntime):
+            for device in value.devices.values():
+                device.coordinator.async_set_push_updates_enabled(enabled)
 
 
 def _async_entry_has_running_hub(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -157,142 +193,49 @@ def _async_hub_running(hass: HomeAssistant, hub_id: str) -> bool:
             continue
         if dummy_server_hub_id(entry) != hub_id:
             continue
-        return isinstance(
-            hass.data.get(DOMAIN, {}).get(entry.entry_id), ArgoDummyServer
+        runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+        return isinstance(runtime, ArgoHubRuntime) or isinstance(
+            runtime, ArgoDummyServer
         )
     return False
 
 
-def _async_register_hub_device(hass: HomeAssistant, entry: ConfigEntry, hub_id: str):
-    """Register the dummy server as the hub parent for pushed devices."""
-    device_registry = dr.async_get(hass)
-    return device_registry.async_get_or_create(
-        config_entry_id=entry.entry_id,
-        entry_type=dr.DeviceEntryType.SERVICE,
-        identifiers={(DOMAIN, hub_id)},
-        manufacturer=NAME,
-        name=entry.title or DUMMY_SERVER_TITLE,
-        model="Dummy Server",
-    )
-
-
-def _async_update_device_registry_hub(
-    hass: HomeAssistant, hub_id: str, hub_device_id: str | None
-) -> None:
-    """Link actual Argoclima devices through the dummy server hub."""
-    device_registry = dr.async_get(hass)
-    hub_entry = _async_hub_entry_for_id(hass, hub_id)
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if async_entry_role(entry) != ENTRY_ROLE_DEVICE:
-            continue
-        if entry.data.get(CONF_HUB_ID) != hub_id:
-            continue
-
-        device_identifier = entry.data.get(CONF_CPU_ID) or entry.entry_id
-        device = device_registry.async_get_device(
-            identifiers={(DOMAIN, device_identifier)}
-        ) or device_registry.async_get_device(identifiers={(DOMAIN, entry.entry_id)})
-        if device is None:
-            continue
-
-        if hub_entry is None or hub_device_id is None:
-            _async_restore_device_registry_parent(device_registry, device, entry)
-        else:
-            _async_move_device_registry_parent(
-                device_registry, device, entry, hub_entry, hub_device_id
-            )
-
-
-def _async_hub_entry_for_id(hass: HomeAssistant, hub_id: str) -> ConfigEntry | None:
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if (
-            async_entry_role(entry) == ENTRY_ROLE_HUB
-            and dummy_server_hub_id(entry) == hub_id
-        ):
-            return entry
+def _hub_child_device_id(entry: ConfigEntry, device_entry: dr.DeviceEntry) -> str | None:
+    devices = entry.data.get(CONF_DEVICES, {})
+    for domain, identifier in device_entry.identifiers:
+        if domain == DOMAIN and identifier in devices:
+            return identifier
     return None
 
 
-def _async_hub_device_id(hass: HomeAssistant, hub_id: str) -> str | None:
-    device_registry = dr.async_get(hass)
-    hub_device = device_registry.async_get_device(identifiers={(DOMAIN, hub_id)})
-    return None if hub_device is None else hub_device.id
-
-
-def _async_move_device_registry_parent(
-    device_registry: dr.DeviceRegistry,
-    device: dr.DeviceEntry,
-    entry: ConfigEntry,
-    hub_entry: ConfigEntry,
-    hub_device_id: str,
+def _async_setup_hub_devices(
+    hass: HomeAssistant, entry: ConfigEntry, runtime: ArgoHubRuntime
 ) -> None:
-    """Make the hub the primary registry owner for a child device."""
-    if (
-        device.primary_config_entry == hub_entry.entry_id
-        and device.via_device_id == hub_device_id
-    ):
-        return
-
-    device = device_registry.async_update_device(
-        device.id,
-        add_config_entry_id=hub_entry.entry_id,
-        device_info_type="primary",
-        via_device_id=hub_device_id,
-    )
-    if device is None:
-        return
-
-    if (
-        device.primary_config_entry != hub_entry.entry_id
-        and entry.entry_id in device.config_entries
-        and len(device.config_entries) > 1
-    ):
-        device = device_registry.async_update_device(
-            device.id,
-            remove_config_entry_id=entry.entry_id,
+    session = async_get_clientsession(hass)
+    for device_data in entry.data.get(CONF_DEVICES, {}).values():
+        device_id = device_data.get(CONF_CPU_ID)
+        host = device_data.get(CONF_HOST)
+        if device_id is None or host is None:
+            continue
+        device_type = ArgoDeviceType.from_name(device_data.get(CONF_DEVICE_TYPE))
+        if device_type is None:
+            continue
+        client = ArgoApiClient(device_type, host, session)
+        coordinator = ArgoDataUpdateCoordinator(
+            hass,
+            client,
+            device_type,
+            use_polling=False,
         )
-        if device is None:
-            return
-
-    device_registry.async_update_device(
-        device.id,
-        add_config_entry_id=hub_entry.entry_id,
-        device_info_type="primary",
-        via_device_id=hub_device_id,
-    )
-
-
-def _async_restore_device_registry_parent(
-    device_registry: dr.DeviceRegistry, device: dr.DeviceEntry, entry: ConfigEntry
-) -> None:
-    """Move a child device back to its own entry when its hub is unloaded."""
-    device = device_registry.async_update_device(
-        device.id,
-        add_config_entry_id=entry.entry_id,
-        device_info_type="primary",
-    )
-    if device is None:
-        return
-
-    if (
-        device.primary_config_entry is not None
-        and entry.entry_id != device.primary_config_entry
-        and len(device.config_entries) > 1
-    ):
-        device = device_registry.async_update_device(
-            device.id,
-            remove_config_entry_id=device.primary_config_entry,
-            via_device_id=None,
+        coordinator.async_set_updated_data(coordinator.data)
+        runtime.devices[device_id] = ArgoRuntimeDevice(
+            entry_id=entry.entry_id,
+            title=device_data.get(CONF_NAME, entry.title),
+            data=device_data,
+            type=device_type,
+            coordinator=coordinator,
         )
-        if device is None:
-            return
-
-    device_registry.async_update_device(
-        device.id,
-        add_config_entry_id=entry.entry_id,
-        device_info_type="primary",
-        via_device_id=None,
-    )
+        runtime.platforms.update(device_type.platforms)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:

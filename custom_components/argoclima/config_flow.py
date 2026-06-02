@@ -6,6 +6,7 @@ from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import ARGO_DEVICES
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import CONF_CPU_ID
+from custom_components.argoclima.const import CONF_DEVICES
 from custom_components.argoclima.const import CONF_HUB_ID
 from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_NAME
@@ -16,6 +17,7 @@ from custom_components.argoclima.const import DUMMY_SERVER_DEFAULT_PORT
 from custom_components.argoclima.const import DUMMY_SERVER_TITLE
 from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
 from custom_components.argoclima.const import ENTRY_ROLE_HUB
+from custom_components.argoclima.const import HOST_ONLY_CPU_ID_PREFIX
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.dummy_server import async_entry_role
@@ -112,7 +114,15 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_HOST: user_input[CONF_HOST],
                     }
                     if hub_id := _selected_hub_id(user_input):
-                        data[CONF_HUB_ID] = hub_id
+                        return self._async_add_device_to_hub(
+                            hub_id,
+                            {
+                                **data,
+                                CONF_CPU_ID: _host_only_cpu_id(user_input[CONF_HOST]),
+                                CONF_HUB_ID: hub_id,
+                                CONF_NAME: user_input[CONF_NAME],
+                            },
+                        )
                     return self.async_create_entry(
                         title=user_input[CONF_NAME],
                         data=data,
@@ -149,6 +159,9 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Confirm a discovered device."""
         if user_input is not None:
+            if self._discovery_info.get(CONF_HUB_ID) is not None:
+                return self._async_add_discovered_device_to_hub(user_input)
+
             return self.async_create_entry(
                 title=user_input[CONF_NAME],
                 data={
@@ -161,6 +174,31 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         return self._show_discovery_form(user_input)
+
+    def _async_add_device_to_hub(
+        self, hub_id: str, device_data: dict[str, Any]
+    ) -> FlowResult:
+        hub_entry = _hub_entry_for_id(self.hass, hub_id)
+        if hub_entry is None:
+            return self.async_abort(reason="hub_not_found")
+
+        _async_update_hub_device(self.hass, hub_entry, device_data)
+        return self.async_abort(reason="device_added")
+
+    def _async_add_discovered_device_to_hub(
+        self, user_input: dict[str, Any]
+    ) -> FlowResult:
+        return self._async_add_device_to_hub(
+            self._discovery_info[CONF_HUB_ID],
+            {
+                CONF_ROLE: ENTRY_ROLE_DEVICE,
+                CONF_CPU_ID: self._discovery_info[CONF_CPU_ID],
+                CONF_HOST: user_input[CONF_HOST],
+                CONF_HUB_ID: self._discovery_info[CONF_HUB_ID],
+                CONF_DEVICE_TYPE: user_input[CONF_DEVICE_TYPE],
+                CONF_NAME: user_input[CONF_NAME],
+            },
+        )
 
     def _show_device_form(self, user_input: dict[str, Any]) -> FlowResult:
         def default(key: str, default: str = None):
@@ -342,11 +380,53 @@ def _hub_options(hass: HomeAssistant) -> dict[str, str]:
     return {NO_HUB_ID: "No dummy server hub", **options}
 
 
+def _hub_entry_for_id(
+    hass: HomeAssistant, hub_id: str
+) -> config_entries.ConfigEntry | None:
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if (
+            async_entry_role(entry) == ENTRY_ROLE_HUB
+            and dummy_server_hub_id(entry) == hub_id
+        ):
+            return entry
+    return None
+
+
+def _async_update_hub_device(
+    hass: HomeAssistant,
+    hub_entry: config_entries.ConfigEntry,
+    device_data: dict[str, Any],
+) -> None:
+    devices = dict(hub_entry.data.get(CONF_DEVICES, {}))
+    device_id = device_data[CONF_CPU_ID]
+    _remove_host_only_duplicate(devices, device_id, device_data.get(CONF_HOST))
+    devices[device_id] = {**devices.get(device_id, {}), **device_data}
+    hass.config_entries.async_update_entry(
+        hub_entry,
+        data={**hub_entry.data, CONF_DEVICES: devices},
+    )
+    hass.config_entries.async_schedule_reload(hub_entry.entry_id)
+
+
 def _selected_hub_id(user_input: dict[str, Any]) -> str | None:
     hub_id = user_input.get(CONF_HUB_ID)
     if hub_id in (None, NO_HUB_ID):
         return None
     return hub_id
+
+
+def _host_only_cpu_id(host: str) -> str:
+    return f"{HOST_ONLY_CPU_ID_PREFIX}{host}"
+
+
+def _remove_host_only_duplicate(
+    devices: dict[str, dict[str, Any]], device_id: str, host: str | None
+) -> None:
+    if device_id.startswith(HOST_ONLY_CPU_ID_PREFIX) or host is None:
+        return
+    for existing_id, existing_data in list(devices.items()):
+        if existing_id != device_id and existing_data.get(CONF_HOST) == host:
+            devices.pop(existing_id)
 
 
 def _server_schema(user_input: dict[str, Any] | None) -> vol.Schema:

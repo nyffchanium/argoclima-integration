@@ -1,10 +1,9 @@
 from collections.abc import Callable
 
-from custom_components.argoclima.const import CONF_DEVICE_TYPE
-from custom_components.argoclima.const import DOMAIN
-from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.device_type import InvalidOperationError
 from custom_components.argoclima.entity import ArgoEntity
+from custom_components.argoclima.runtime import ArgoRuntimeDevice
+from custom_components.argoclima.runtime import runtime_devices_for_entry
 from custom_components.argoclima.types import ArgoTimerType
 from custom_components.argoclima.types import ArgoUnit
 from homeassistant.components.select import SelectEntity
@@ -18,23 +17,20 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_devices: Callable[[list[SelectEntity]], None],
 ):
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-
     entities = []
-    type = ArgoDeviceType.from_name(entry.data[CONF_DEVICE_TYPE])
-
-    if type.unit:
-        entities.append(ArgoUnitSelect(coordinator, entry))
-    if type.timer:
-        entities.append(ArgoTimerSelect(coordinator, entry))
+    for device in runtime_devices_for_entry(hass, entry):
+        if device.type.unit:
+            entities.append(ArgoUnitSelect(device))
+        if device.type.timer:
+            entities.append(ArgoTimerSelect(device))
 
     async_add_devices(entities)
 
 
 class ArgoUnitSelect(ArgoEntity, SelectEntity):
-    def __init__(self, coordinator, entry: ConfigEntry):
+    def __init__(self, device: ArgoRuntimeDevice):
         ArgoEntity.__init__(
-            self, "Display Unit", coordinator, entry, None, EntityCategory.CONFIG
+            self, "Display Unit", device, None, EntityCategory.CONFIG
         )
         SelectEntity.__init__(self)
 
@@ -61,9 +57,9 @@ class ArgoUnitSelect(ArgoEntity, SelectEntity):
 
 
 class ArgoTimerSelect(ArgoEntity, SelectEntity):
-    def __init__(self, coordinator, entry: ConfigEntry):
+    def __init__(self, device: ArgoRuntimeDevice):
         ArgoEntity.__init__(
-            self, "Active Timer", coordinator, entry, None, EntityCategory.CONFIG
+            self, "Active Timer", device, None, EntityCategory.CONFIG
         )
         SelectEntity.__init__(self)
 

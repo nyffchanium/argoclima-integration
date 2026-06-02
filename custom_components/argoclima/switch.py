@@ -1,10 +1,9 @@
 from collections.abc import Callable
 
-from custom_components.argoclima.const import CONF_DEVICE_TYPE
-from custom_components.argoclima.const import DOMAIN
-from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.device_type import InvalidOperationError
 from custom_components.argoclima.entity import ArgoEntity
+from custom_components.argoclima.runtime import ArgoRuntimeDevice
+from custom_components.argoclima.runtime import runtime_devices_for_entry
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -17,26 +16,22 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_devices: Callable[[list[SwitchEntity]], None],
 ):
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-
     entities = []
-    type = ArgoDeviceType.from_name(entry.data[CONF_DEVICE_TYPE])
-
-    if type.device_lights:
-        entities.append(ArgoDeviceLightSwitch(coordinator, entry))
-    if type.remote_temperature:
-        entities.append(ArgoRemoteTemperatureSwitch(coordinator, entry))
+    for device in runtime_devices_for_entry(hass, entry):
+        if device.type.device_lights:
+            entities.append(ArgoDeviceLightSwitch(device))
+        if device.type.remote_temperature:
+            entities.append(ArgoRemoteTemperatureSwitch(device))
 
     async_add_devices(entities)
 
 
 class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
-    def __init__(self, coordinator, entry: ConfigEntry):
+    def __init__(self, device: ArgoRuntimeDevice):
         ArgoEntity.__init__(
             self,
             "Device Light",
-            coordinator,
-            entry,
+            device,
             SwitchDeviceClass.SWITCH,
             EntityCategory.CONFIG,
         )
@@ -66,12 +61,11 @@ class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
 
 
 class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
-    def __init__(self, coordinator, entry: ConfigEntry):
+    def __init__(self, device: ArgoRuntimeDevice):
         ArgoEntity.__init__(
             self,
             "Use Remote Temperature",
-            coordinator,
-            entry,
+            device,
             SwitchDeviceClass.SWITCH,
             EntityCategory.CONFIG,
         )

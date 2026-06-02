@@ -8,6 +8,7 @@ import homeassistant.helpers.device_registry as dr
 import voluptuous as vol
 from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import DOMAIN
+from custom_components.argoclima.runtime import ArgoHubRuntime
 from custom_components.argoclima.types import ArgoWeekday
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.core import HomeAssistant
@@ -53,9 +54,13 @@ async def setup_service(hass: HomeAssistant):
         device: dr.DeviceEntry,
     ) -> ArgoDataUpdateCoordinator | None:
         for entry_id in device.config_entries:
-            coordinator = hass.data.get(DOMAIN, {}).get(entry_id)
-            if isinstance(coordinator, ArgoDataUpdateCoordinator):
-                return coordinator
+            runtime = hass.data.get(DOMAIN, {}).get(entry_id)
+            if isinstance(runtime, ArgoDataUpdateCoordinator):
+                return runtime
+            if isinstance(runtime, ArgoHubRuntime):
+                coordinator = _coordinator_from_hub_runtime(runtime, device)
+                if coordinator is not None:
+                    return coordinator
         identifiers = {
             identifier for domain, identifier in device.identifiers if domain == DOMAIN
         }
@@ -67,6 +72,22 @@ async def setup_service(hass: HomeAssistant):
                 coordinator = hass.data.get(DOMAIN, {}).get(entry.entry_id)
                 if isinstance(coordinator, ArgoDataUpdateCoordinator):
                     return coordinator
+        for runtime in hass.data.get(DOMAIN, {}).values():
+            if isinstance(runtime, ArgoHubRuntime):
+                coordinator = _coordinator_from_hub_runtime(runtime, device)
+                if coordinator is not None:
+                    return coordinator
+        return None
+
+    def _coordinator_from_hub_runtime(
+        runtime: ArgoHubRuntime, device: dr.DeviceEntry
+    ) -> ArgoDataUpdateCoordinator | None:
+        identifiers = {
+            identifier for domain, identifier in device.identifiers if domain == DOMAIN
+        }
+        for runtime_device in runtime.devices.values():
+            if runtime_device.data.get(CONF_CPU_ID) in identifiers:
+                return runtime_device.coordinator
         return None
 
     def weekday(value: Any) -> ArgoWeekday:

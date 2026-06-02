@@ -1,5 +1,9 @@
 {
   "config": {
+    "abort": {
+      "device_added": "Gerät zum Dummy-Server-Hub hinzugefügt.",
+      "hub_not_found": "Der Dummy-Server-Hub für dieses Gerät konnte nicht gefunden werden."
+    },
     "error": {
       "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
       "invalid_device_type": "Nicht unterstützter Gerätetyp.",

@@ -14,9 +14,11 @@ CONF_PORT = "port"
 CONF_ROLE = "role"
 CONF_CPU_ID = "cpu_id"
 CONF_HUB_ID = "hub_id"
+CONF_DEVICES = "devices"
 
 ENTRY_ROLE_DEVICE = "device"
 ENTRY_ROLE_HUB = "hub"
+HOST_ONLY_CPU_ID_PREFIX = "host:"
 
 DUMMY_SERVER_TITLE = "Argoclima Dummy Server"
 DUMMY_SERVER_BIND_HOST = "0.0.0.0"
