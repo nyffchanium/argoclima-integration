@@ -81,7 +81,7 @@ async def setup_service(hass: HomeAssistant):
     hass.services.async_register(
         DOMAIN,
         "set_time",
-        verify_domain_control(hass, DOMAIN)(_set_time),
+        verify_domain_control(DOMAIN)(_set_time),
         schema=vol.Schema(
             {
                 vol.Required(ATTR_DEVICE): device,
