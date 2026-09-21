@@ -134,6 +134,8 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ## Credits
 
+This is a fork of @nyffchanium's argoclima-integration. If you'd like to support the original author, you can buy them a coffee.
+
 The dummy server has been contributed by [@lallinger](https://github.com/lallinger).
 
 This project was initially generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
