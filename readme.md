@@ -134,7 +134,7 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ## Credits
 
-This is a fork of @nyffchanium's argoclima-integration. If you'd like to support the original author, you can buy them a coffee.
+This is a fork of [@nyffchanium](https://github.com/nyffchanium)'s [argoclima-integration](https://github.com/nyffchanium/argoclima-integration). If you'd like to support the original author, you can [buy them a coffee](https://www.buymeacoffee.com/nyffchanium).
 
 The dummy server has been contributed by [@lallinger](https://github.com/lallinger).
 
