@@ -66,6 +66,26 @@ def _install_dummy_server_dependency_stubs() -> None:
 
     runtime_module.ArgoHubRuntime = ArgoHubRuntime
 
+    # dummy_server.py imports these for hub-child device bookkeeping; the
+    # tests in this file don't exercise that path, so stand-ins that are
+    # merely importable are enough.
+    def _unused_async_entry_role(entry):
+        raise NotImplementedError
+
+    def _unused_async_update_hub_device(hass, hub_entry, device_data):
+        raise NotImplementedError
+
+    def _unused_hub_entry_for_id(hass, hub_id):
+        raise NotImplementedError
+
+    def _unused_match_hub_device_id(devices, cpu_id, host):
+        raise NotImplementedError
+
+    runtime_module.async_entry_role = _unused_async_entry_role
+    runtime_module.async_update_hub_device = _unused_async_update_hub_device
+    runtime_module.hub_entry_for_id = _unused_hub_entry_for_id
+    runtime_module.match_hub_device_id = _unused_match_hub_device_id
+
     update_coordinator_module = types.ModuleType(
         "custom_components.argoclima.update_coordinator"
     )

@@ -3,7 +3,6 @@ import logging
 
 import homeassistant.helpers.device_registry as dr
 from custom_components.argoclima.api import ArgoApiClient
-from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import CONF_DEVICES
 from custom_components.argoclima.const import CONF_HUB_ID
@@ -18,10 +17,10 @@ from custom_components.argoclima.const import STARTUP_MESSAGE
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.dummy_server import ArgoDummyServer
 from custom_components.argoclima.dummy_server import async_dummy_server_running
-from custom_components.argoclima.dummy_server import async_entry_role
-from custom_components.argoclima.dummy_server import dummy_server_hub_id
 from custom_components.argoclima.runtime import ArgoHubRuntime
 from custom_components.argoclima.runtime import ArgoRuntimeDevice
+from custom_components.argoclima.runtime import async_entry_role
+from custom_components.argoclima.runtime import dummy_server_hub_id
 from custom_components.argoclima.service import setup_service
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
@@ -81,7 +80,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     coordinator.platforms.extend(type.platforms)
     await hass.config_entries.async_forward_entry_setups(entry, type.platforms)
 
-    entry.add_update_listener(async_reload_entry)
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
 
@@ -104,7 +103,7 @@ async def _async_setup_hub_entry(hass: HomeAssistant, entry: ConfigEntry) -> boo
     if runtime.platforms:
         await hass.config_entries.async_forward_entry_setups(entry, runtime.platforms)
     _async_set_push_updates_enabled(hass, True)
-    entry.add_update_listener(async_reload_entry)
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
 
 
@@ -152,17 +151,18 @@ async def async_remove_config_entry_device(
     if device_id is None:
         return False
 
+    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    if isinstance(runtime, ArgoHubRuntime):
+        runtime.devices.pop(device_id, None)
+
     devices = dict(entry.data.get(CONF_DEVICES, {}))
     devices.pop(device_id)
+    # This alone reloads the hub entry via the update listener registered
+    # in _async_setup_hub_entry - no separate explicit reload needed.
     hass.config_entries.async_update_entry(
         entry,
         data={**entry.data, CONF_DEVICES: devices},
     )
-
-    runtime = hass.data.get(DOMAIN, {}).get(entry.entry_id)
-    if isinstance(runtime, ArgoHubRuntime):
-        runtime.devices.pop(device_id, None)
-        hass.config_entries.async_schedule_reload(entry.entry_id)
 
     return True
 
@@ -212,10 +212,9 @@ def _async_setup_hub_devices(
     hass: HomeAssistant, entry: ConfigEntry, runtime: ArgoHubRuntime
 ) -> None:
     session = async_get_clientsession(hass)
-    for device_data in entry.data.get(CONF_DEVICES, {}).values():
-        device_id = device_data.get(CONF_CPU_ID)
+    for device_id, device_data in entry.data.get(CONF_DEVICES, {}).items():
         host = device_data.get(CONF_HOST)
-        if device_id is None or host is None:
+        if host is None:
             continue
         device_type = ArgoDeviceType.from_name(device_data.get(CONF_DEVICE_TYPE))
         if device_type is None:
@@ -230,6 +229,7 @@ def _async_setup_hub_devices(
         coordinator.async_set_updated_data(coordinator.data)
         runtime.devices[device_id] = ArgoRuntimeDevice(
             entry_id=entry.entry_id,
+            device_id=device_id,
             title=device_data.get(CONF_NAME, entry.title),
             data=device_data,
             type=device_type,

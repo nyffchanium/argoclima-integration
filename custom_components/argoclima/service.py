@@ -6,7 +6,6 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.device_registry as dr
 import voluptuous as vol
-from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.runtime import ArgoHubRuntime
 from custom_components.argoclima.types import ArgoWeekday
@@ -64,11 +63,11 @@ async def setup_service(hass: HomeAssistant):
         identifiers = {
             identifier for domain, identifier in device.identifiers if domain == DOMAIN
         }
+        # A standalone device's device_info identifier is always its own
+        # entry_id (see runtime.py/entity.py) - stable regardless of
+        # whether/when its CPU_ID becomes known.
         for entry in hass.config_entries.async_entries(DOMAIN):
-            if (
-                entry.entry_id in identifiers
-                or entry.data.get(CONF_CPU_ID) in identifiers
-            ):
+            if entry.entry_id in identifiers:
                 coordinator = hass.data.get(DOMAIN, {}).get(entry.entry_id)
                 if isinstance(coordinator, ArgoDataUpdateCoordinator):
                     return coordinator
@@ -86,7 +85,7 @@ async def setup_service(hass: HomeAssistant):
             identifier for domain, identifier in device.identifiers if domain == DOMAIN
         }
         for runtime_device in runtime.devices.values():
-            if runtime_device.data.get(CONF_CPU_ID) in identifiers:
+            if runtime_device.device_id in identifiers:
                 return runtime_device.coordinator
         return None
 

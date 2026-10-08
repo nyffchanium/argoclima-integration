@@ -20,15 +20,16 @@ from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_ROLE
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import DUMMY_SERVER_BIND_HOST
-from custom_components.argoclima.const import DUMMY_SERVER_DEVICE_IDENTIFIER_PREFIX
-from custom_components.argoclima.const import DUMMY_SERVER_UNIQUE_ID_PREFIX
 from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
-from custom_components.argoclima.const import ENTRY_ROLE_HUB
 from custom_components.argoclima.const import HOST_ONLY_CPU_ID_PREFIX
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.data import InvalidResponseFormatError
 from custom_components.argoclima.device_type import ArgoDeviceType
 from custom_components.argoclima.runtime import ArgoHubRuntime
+from custom_components.argoclima.runtime import async_entry_role
+from custom_components.argoclima.runtime import async_update_hub_device
+from custom_components.argoclima.runtime import hub_entry_for_id
+from custom_components.argoclima.runtime import match_hub_device_id
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY
 from homeassistant.config_entries import ConfigEntry
@@ -195,24 +196,6 @@ def async_dummy_server_running(hass: HomeAssistant) -> bool:
     )
 
 
-def async_entry_role(entry: ConfigEntry) -> str:
-    """Return the configured entry role, defaulting entries to device."""
-    return entry.data.get(CONF_ROLE, ENTRY_ROLE_DEVICE)
-
-
-def dummy_server_unique_id(port: int) -> str:
-    """Return the unique id for a dummy server listening on port."""
-    return f"{DUMMY_SERVER_UNIQUE_ID_PREFIX}:{port}"
-
-
-def dummy_server_hub_id(entry: ConfigEntry) -> str:
-    """Return the stable hub device identifier for a dummy server entry."""
-    return entry.data.get(
-        CONF_HUB_ID,
-        f"{DUMMY_SERVER_DEVICE_IDENTIFIER_PREFIX}:{entry.entry_id}",
-    )
-
-
 async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -> None:
     """Dispatch push data to an existing entry or start a discovery flow."""
     if _async_handle_hub_child_push(hass, push_data):
@@ -323,12 +306,12 @@ def _async_handle_hub_child_push(
     if push_data.hub_id is None:
         return False
 
-    hub_entry = _hub_entry_for_id(hass, push_data.hub_id)
+    hub_entry = hub_entry_for_id(hass, push_data.hub_id)
     if hub_entry is None:
         return False
 
     devices = hub_entry.data.get(CONF_DEVICES, {})
-    device_id = _hub_device_id_for_push(devices, push_data)
+    device_id = match_hub_device_id(devices, push_data.cpu_id, push_data.host)
     if device_id is None:
         return False
 
@@ -342,19 +325,18 @@ def _async_handle_hub_child_push(
             CONF_DEVICE_TYPE, push_data.device_type
         ),
     }
-    _async_update_hub_device(hass, hub_entry, device_data)
+    # device_id is the device's permanent key - it never changes, even
+    # once a device that started out identified only by host (e.g.
+    # manually added) reports its real CPU_ID for the first time.
+    async_update_hub_device(hass, hub_entry, device_data)
 
     runtime = hass.data.get(DOMAIN, {}).get(hub_entry.entry_id)
     if not isinstance(runtime, ArgoHubRuntime):
         return True
 
-    device = runtime.devices.get(push_data.cpu_id) or runtime.devices.get(device_id)
+    device = runtime.devices.get(device_id)
     if device is None:
         return True
-
-    if device_id != push_data.cpu_id:
-        runtime.devices.pop(device_id, None)
-        runtime.devices[push_data.cpu_id] = device
 
     device.data = device_data
     device.coordinator.async_update_host(push_data.host)
@@ -363,44 +345,6 @@ def _async_handle_hub_child_push(
     if data is not None:
         device.coordinator.async_set_updated_data(data)
     return True
-
-
-def _async_update_hub_device(
-    hass: HomeAssistant, hub_entry: ConfigEntry, device_data: dict
-) -> None:
-    devices = dict(hub_entry.data.get(CONF_DEVICES, {}))
-    device_id = device_data[CONF_CPU_ID]
-    _remove_host_only_duplicate(devices, device_id, device_data.get(CONF_HOST))
-    devices[device_id] = {**devices.get(device_id, {}), **device_data}
-    hass.config_entries.async_update_entry(
-        hub_entry,
-        data={**hub_entry.data, CONF_DEVICES: devices},
-    )
-
-
-def _hub_device_id_for_push(
-    devices: dict[str, dict], push_data: ArgoPushData
-) -> str | None:
-    if push_data.cpu_id in devices:
-        return push_data.cpu_id
-
-    for device_id, device_data in devices.items():
-        if (
-            device_id.startswith(HOST_ONLY_CPU_ID_PREFIX)
-            and device_data.get(CONF_HOST) == push_data.host
-        ):
-            return device_id
-    return None
-
-
-def _remove_host_only_duplicate(
-    devices: dict[str, dict], device_id: str, host: str | None
-) -> None:
-    if device_id.startswith(HOST_ONLY_CPU_ID_PREFIX) or host is None:
-        return
-    for existing_id, existing_data in list(devices.items()):
-        if existing_id != device_id and existing_data.get(CONF_HOST) == host:
-            devices.pop(existing_id)
 
 
 async def _async_start_discovery_flow(
@@ -475,16 +419,6 @@ def _data_from_hmi(
         return current_data
 
     return data
-
-
-def _hub_entry_for_id(hass: HomeAssistant, hub_id: str) -> ConfigEntry | None:
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if (
-            async_entry_role(entry) == ENTRY_ROLE_HUB
-            and dummy_server_hub_id(entry) == hub_id
-        ):
-            return entry
-    return None
 
 
 async def _read_http_request(

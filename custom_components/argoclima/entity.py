@@ -1,7 +1,6 @@
 import hashlib
 import uuid
 
-from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import MANUFACTURER
 from custom_components.argoclima.runtime import ArgoRuntimeDevice
@@ -29,10 +28,9 @@ class ArgoEntity(CoordinatorEntity):
 
     @property
     def unique_id(self) -> str:
-        device_identifier = self._device.data.get(CONF_CPU_ID) or self._device.entry_id
         return uuid.UUID(
             hashlib.md5(
-                f"{device_identifier}:{self._entity_name}".encode("utf-8")
+                f"{self._device.device_id}:{self._entity_name}".encode("utf-8")
             ).hexdigest()
         ).hex
 
@@ -54,9 +52,8 @@ class ArgoEntity(CoordinatorEntity):
 
     @property
     def device_info(self):
-        device_identifier = self._device.data.get(CONF_CPU_ID) or self._device.entry_id
         device_info = {
-            "identifiers": {(DOMAIN, device_identifier)},
+            "identifiers": {(DOMAIN, self._device.device_id)},
             "name": self._device.title,
             "model": self._type.name,
             "sw_version": self.coordinator.data.firmware_version
