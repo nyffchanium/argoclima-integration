@@ -112,6 +112,7 @@ class ArgoDummyServer:
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
         self._connections.add(writer)
+        peer_ip = _peer_host(writer)
         try:
             while True:
                 try:
@@ -142,7 +143,7 @@ class ArgoDummyServer:
                     method,
                     _redact_sensitive_text(target),
                 )
-                body = await self._async_response_body(method, target)
+                body = await self._async_response_body(method, target, peer_ip)
                 writer.write(_build_http_response(body))
                 await writer.drain()
                 await asyncio.sleep(REQUEST_FOLLOWUP_DELAY)
@@ -151,7 +152,9 @@ class ArgoDummyServer:
             writer.close()
             await writer.wait_closed()
 
-    async def _async_response_body(self, method: str, target: str) -> str:
+    async def _async_response_body(
+        self, method: str, target: str, peer_ip: str | None
+    ) -> str:
         if method not in {"GET", "POST"}:
             return _fallback_response(method)
 
@@ -163,7 +166,7 @@ class ArgoDummyServer:
             return _ntp_response()
 
         if command == "UI_FLG":
-            push_data = _push_data_from_params(params, self._hub_id)
+            push_data = _push_data_from_params(params, self._hub_id, peer_ip)
             if push_data is not None:
                 _LOGGER.info(
                     "Argoclima UI_FLG push received for CPU_ID %s from %s via hub %s",
@@ -174,7 +177,8 @@ class ArgoDummyServer:
                 await async_handle_push_data(self._hass, push_data)
             else:
                 _LOGGER.warning(
-                    "Argoclima UI_FLG push ignored; required fields missing or invalid. Present fields: %s",
+                    "Argoclima UI_FLG push ignored; required fields missing/invalid "
+                    "or claimed IP did not match connection source. Present fields: %s",
                     sorted(params),
                 )
             return UI_FLG_RESPONSE
@@ -589,7 +593,9 @@ def _parse_query(query: str) -> dict[str, str]:
     }
 
 
-def _push_data_from_params(params: dict[str, str], hub_id: str) -> ArgoPushData | None:
+def _push_data_from_params(
+    params: dict[str, str], hub_id: str, peer_ip: str | None
+) -> ArgoPushData | None:
     cpu_id = next(
         (
             params[key].strip()
@@ -601,6 +607,21 @@ def _push_data_from_params(params: dict[str, str], hub_id: str) -> ArgoPushData 
     host = _valid_host(params.get("IP"))
     if host is None:
         return None
+
+    # The device self-reports its LAN IP in the "IP" query param. Trusting
+    # that value blindly would let anyone on the network claim an arbitrary
+    # IP and redirect control traffic for a device to it. A TCP connection's
+    # source address can't be spoofed without completing the handshake, so
+    # require it to match what the device claims.
+    if peer_ip is None or host != peer_ip:
+        _LOGGER.warning(
+            "Argoclima UI_FLG push ignored; claimed IP %s did not match "
+            "connection source %s",
+            host,
+            peer_ip,
+        )
+        return None
+
     if cpu_id is None:
         cpu_id = f"{HOST_ONLY_CPU_ID_PREFIX}{host}"
 
@@ -617,9 +638,23 @@ def _valid_host(value: str | None) -> str | None:
     if value is None:
         return None
     try:
-        return str(ip_address(value.strip()))
+        parsed = ip_address(value.strip())
     except ValueError:
         return None
+    # Normalize IPv4-mapped IPv6 addresses (e.g. "::ffff:10.0.0.5") so a
+    # peer address read off the socket compares equal to the plain IPv4
+    # form a device reports in its "IP" query param.
+    mapped = getattr(parsed, "ipv4_mapped", None)
+    if mapped is not None:
+        parsed = mapped
+    return str(parsed)
+
+
+def _peer_host(writer: asyncio.StreamWriter) -> str | None:
+    peername = writer.get_extra_info("peername")
+    if not peername:
+        return None
+    return _valid_host(peername[0])
 
 
 def _ntp_response() -> str:
