@@ -1,6 +1,7 @@
 NAME = "Argoclima"
 VERSION = "1.2.0"
-ISSUE_URL = "https://github.com/Gadund/argoclima-integration/issues"
+DOCUMENTATION_URL = "https://github.com/Gadund/argoclima-integration"
+ISSUE_URL = f"{DOCUMENTATION_URL}/issues"
 
 DOMAIN = "argoclima"
 DOMAIN_DATA = f"{DOMAIN}_data"

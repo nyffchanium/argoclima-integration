@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+import homeassistant.helpers.config_validation as cv
 import homeassistant.helpers.device_registry as dr
 import homeassistant.helpers.entity_registry as er
 from custom_components.argoclima.api import ArgoApiClient
@@ -34,6 +35,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: Config):

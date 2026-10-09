@@ -11,6 +11,7 @@ from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_NAME
 from custom_components.argoclima.const import CONF_PORT
 from custom_components.argoclima.const import CONF_ROLE
+from custom_components.argoclima.const import DOCUMENTATION_URL
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import DUMMY_SERVER_DEFAULT_PORT
 from custom_components.argoclima.const import DUMMY_SERVER_TITLE
@@ -226,6 +227,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="device",
             data_schema=vol.Schema(schema),
             errors=self._errors,
+            description_placeholders={"docs_url": DOCUMENTATION_URL},
         )
 
     def _show_discovery_form(self, user_input: dict[str, Any]) -> FlowResult:
@@ -317,6 +319,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
             step_id="user",
             data_schema=vol.Schema(schema),
             errors=self._errors,
+            description_placeholders={"docs_url": DOCUMENTATION_URL},
         )
 
     async def async_step_server(self, user_input: dict[str, Any] = None) -> FlowResult:
