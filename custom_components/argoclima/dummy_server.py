@@ -512,7 +512,7 @@ def _redact_sensitive_text(value: str) -> str:
     for key in SENSITIVE_KEYS:
         redacted = re.sub(
             rf"({re.escape(key)}=)[^&\s]*",
-            rf"\1<redacted>",
+            r"\1<redacted>",
             redacted,
             flags=re.IGNORECASE,
         )

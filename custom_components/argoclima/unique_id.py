@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from typing import Collection
+from collections.abc import Collection
 
 # Every entity name passed to ArgoEntity.__init__. These are also part of
 # the legacy unique_id formats, so renaming one orphans its entities.

@@ -18,6 +18,36 @@ _LOGGER = logging.getLogger(__name__)
 ATTR_DEVICE = "device"
 ATTR_TIME = "time"
 ATTR_WEEKDAY = "weekday"
+WEEKDAY_NAMES = (
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+)
+
+
+def _weekday(value: Any) -> ArgoWeekday:
+    """Validate a weekday, given by number (0 = sunday) or name."""
+    value: str = str(value).lower()
+    for number, name in enumerate(WEEKDAY_NAMES):
+        if value in (str(number), name):
+            return ArgoWeekday(number)
+    raise vol.Invalid("Invalid weekday")
+
+
+def _coordinator_from_hub_runtime(
+    runtime: ArgoHubRuntime, device: dr.DeviceEntry
+) -> ArgoDataUpdateCoordinator | None:
+    identifiers = {
+        identifier for domain, identifier in device.identifiers if domain == DOMAIN
+    }
+    for runtime_device in runtime.devices.values():
+        if runtime_device.device_id in identifiers:
+            return runtime_device.coordinator
+    return None
 
 
 async def setup_service(hass: HomeAssistant):
@@ -78,37 +108,6 @@ async def setup_service(hass: HomeAssistant):
                     return coordinator
         return None
 
-    def _coordinator_from_hub_runtime(
-        runtime: ArgoHubRuntime, device: dr.DeviceEntry
-    ) -> ArgoDataUpdateCoordinator | None:
-        identifiers = {
-            identifier for domain, identifier in device.identifiers if domain == DOMAIN
-        }
-        for runtime_device in runtime.devices.values():
-            if runtime_device.device_id in identifiers:
-                return runtime_device.coordinator
-        return None
-
-    def weekday(value: Any) -> ArgoWeekday:
-        """Validate a weekday."""
-        value: str = str(value).lower()
-        if value in ["0", "sunday"]:
-            return ArgoWeekday(0)
-        elif value in ["1", "monday"]:
-            return ArgoWeekday(1)
-        elif value in ["2", "tuesday"]:
-            return ArgoWeekday(2)
-        elif value in ["3", "wednesday"]:
-            return ArgoWeekday(3)
-        elif value in ["4", "thursday"]:
-            return ArgoWeekday(4)
-        elif value in ["5", "friday"]:
-            return ArgoWeekday(5)
-        elif value in ["6", "saturday"]:
-            return ArgoWeekday(6)
-        else:
-            raise vol.Invalid("Invalid weekday")
-
     def device(value: Any) -> dr.DeviceEntry:
         """Validate that the device exists."""
         device_entry = dr.async_get(hass).async_get(str(value))
@@ -124,7 +123,7 @@ async def setup_service(hass: HomeAssistant):
             {
                 vol.Required(ATTR_DEVICE): device,
                 vol.Optional(ATTR_TIME): cv.time,
-                vol.Optional(ATTR_WEEKDAY): weekday,
+                vol.Optional(ATTR_WEEKDAY): _weekday,
             }
         ),
     )
