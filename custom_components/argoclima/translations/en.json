@@ -10,7 +10,8 @@
       "host": "Could not reach host or host is not a supported device.",
       "invalid_device_type": "Unsupported device type.",
       "port_in_use": "A dummy server is already configured on this port.",
-      "invalid_ip": "Invalid IP address."
+      "invalid_ip": "Invalid IP address.",
+      "port_unavailable": "The port is already used by another application."
     },
     "step": {
       "user": {
@@ -54,7 +55,8 @@
     "error": {
       "host": "Could not reach host or host is not a supported device.",
       "port_in_use": "A dummy server is already configured on this port.",
-      "invalid_ip": "Invalid IP address."
+      "invalid_ip": "Invalid IP address.",
+      "port_unavailable": "The port is already used by another application."
     },
     "step": {
       "server": {

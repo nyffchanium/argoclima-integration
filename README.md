@@ -73,7 +73,7 @@ By default, the device stays connected to Argo's cloud server (`31.14.128.210`),
 
 All traffic stays in your local network. The official Argo web app no longer works while the dummy server is in use.
 
-1. Go to **Settings → Devices & services → Add integration → Argoclima**, choose **Set up Argoclima Dummy Server** and pick a port (default `8080`).
+1. Go to **Settings → Devices & services → Add integration → Argoclima**, choose **Set up Argoclima Dummy Server** and pick a port (default `8239`).
 2. On your router, redirect (DNAT) the devices' traffic for `31.14.128.210:80` to `<Home Assistant IP>:<port>`. If the devices and Home Assistant are in the same subnet, an additional hairpin NAT rule and the dummy server's **NAT gateway** option are needed. See the **[DNAT guide](docs/dnat.md)** for step-by-step instructions for OPNsense, pfSense, UniFi, FortiGate, MikroTik, OpenWrt and Linux.
 3. Each device shows up as a discovered device as soon as it reports to the dummy server. Confirm it and give it a name.
 

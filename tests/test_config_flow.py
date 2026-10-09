@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Generator
 from unittest.mock import patch
 
@@ -6,6 +7,7 @@ from homeassistant.config_entries import SOURCE_USER
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
+from custom_components.argoclima.config_flow import _async_port_available
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import CONF_HOST
@@ -29,7 +31,13 @@ DEVICE_INPUT = {
 
 @pytest.fixture(autouse=True)
 def skip_setup() -> Generator[None]:
-    with patch("custom_components.argoclima.async_setup_entry", return_value=True):
+    with (
+        patch("custom_components.argoclima.async_setup_entry", return_value=True),
+        patch(
+            "custom_components.argoclima.config_flow._async_port_available",
+            return_value=True,
+        ),
+    ):
         yield
 
 
@@ -154,3 +162,28 @@ async def test_change_nat_gateway_in_options(hass: HomeAssistant) -> None:
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert CONF_NAT_GATEWAY not in entry.data
+
+
+async def test_dummy_server_port_used_by_other_application(hass: HomeAssistant) -> None:
+    result = await start_flow(hass, "server")
+
+    with patch(
+        "custom_components.argoclima.config_flow._async_port_available",
+        return_value=False,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_PORT: 8081}
+        )
+
+    assert result["errors"] == {"base": "port_unavailable"}
+
+
+async def test_port_available(socket_enabled: None) -> None:
+    server = await asyncio.start_server(lambda r, w: w.close(), "0.0.0.0", 0)
+    used_port = server.sockets[0].getsockname()[1]
+    try:
+        assert not await _async_port_available(used_port)
+    finally:
+        server.close()
+        await server.wait_closed()
+    assert await _async_port_available(used_port)

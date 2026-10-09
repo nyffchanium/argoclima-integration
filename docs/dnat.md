@@ -36,12 +36,12 @@ Every guide below creates the same rule:
 | Protocol               | TCP                                                      |
 | Source                 | Your Argo devices' IP addresses                          |
 | Destination            | `31.14.128.210`, port `80`                               |
-| Redirect to            | Your Home Assistant IP, dummy server port (default `8080`) |
+| Redirect to            | Your Home Assistant IP, dummy server port (default `8239`) |
 | Source NAT/masquerade  | Off                                                      |
 
 If your firewall blocks traffic between the two networks, also allow TCP from the Argo devices to Home Assistant on the dummy server port. Many routers create this rule for you.
 
-The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.168.10.20` for Home Assistant and port `8080`. In the same-subnet case, Home Assistant would be `192.168.30.20` and the router `192.168.30.1`.
+The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.168.10.20` for Home Assistant and port `8239`. In the same-subnet case, Home Assistant would be `192.168.30.20` and the router `192.168.30.1`.
 
 ## Router guides
 
@@ -51,7 +51,7 @@ The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.
 2. Interface: the interface of the Argo network. Protocol: TCP.
 3. Source: an alias with your Argo devices (**Firewall → Aliases**, type Host(s)).
 4. Destination: Single host or network `31.14.128.210/32`, port range from/to `HTTP`.
-5. Redirect target IP: `192.168.10.20`, redirect target port: `8080`.
+5. Redirect target IP: `192.168.10.20`, redirect target port: `8239`.
 6. Filter rule association: **Add associated filter rule** (or **Pass**).
 7. Save and **Apply changes**.
 
@@ -61,7 +61,7 @@ The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.
 2. Interface: the interface of the Argo network. Protocol: TCP.
 3. Source: your Argo devices (an alias under **Firewall → Aliases**).
 4. Destination: Single host `31.14.128.210`, port range `HTTP`.
-5. Redirect target IP: `192.168.10.20`, redirect target port: `8080`.
+5. Redirect target IP: `192.168.10.20`, redirect target port: `8239`.
 6. Filter rule association: **Add associated filter rule**.
 7. Save and **Apply Changes**.
 
@@ -73,8 +73,8 @@ Requires a UniFi gateway and a recent UniFi Network version with custom NAT rule
 2. Type: **Destination NAT**. Interface: the network of your Argo devices. Protocol: TCP.
 3. Source: your Argo devices' IP addresses.
 4. Destination: `31.14.128.210`, port `80`.
-5. Translated IP address: `192.168.10.20`, translated port: `8080`.
-6. Make sure no firewall policy blocks the Argo network from reaching Home Assistant on port `8080`.
+5. Translated IP address: `192.168.10.20`, translated port: `8239`.
+6. Make sure no firewall policy blocks the Argo network from reaching Home Assistant on port `8239`.
 
 ### Fortinet FortiGate
 
@@ -82,7 +82,7 @@ Requires a UniFi gateway and a recent UniFi Network version with custom NAT rule
    - Interface: the interface of the Argo network
    - External IP address: `31.14.128.210`
    - Mapped IP address: `192.168.10.20`
-   - Port forwarding: enabled, protocol TCP, external port `80`, mapped port `8080`
+   - Port forwarding: enabled, protocol TCP, external port `80`, mapped port `8239`
 2. **Policy & Objects → Firewall Policy → Create New**:
    - Incoming interface: the Argo network; outgoing interface: the Home Assistant network
    - Source: an address group with your Argo devices
@@ -98,7 +98,7 @@ add list=argo address=192.168.30.90
 add list=argo address=192.168.30.91
 /ip firewall nat
 add chain=dstnat src-address-list=argo dst-address=31.14.128.210 protocol=tcp dst-port=80 \
-    action=dst-nat to-addresses=192.168.10.20 to-ports=8080 comment="Argo dummy server"
+    action=dst-nat to-addresses=192.168.10.20 to-ports=8239 comment="Argo dummy server"
 ```
 
 Make sure no `srcnat`/masquerade rule applies to this traffic; a typical masquerade rule limited to `out-interface=WAN` doesn't.
@@ -117,7 +117,7 @@ config redirect
 	option src_dport '80'
 	option dest 'lan'
 	option dest_ip '192.168.10.20'
-	option dest_port '8080'
+	option dest_port '8239'
 	option proto 'tcp'
 ```
 
@@ -129,7 +129,7 @@ Add one section per device, or use an IP set.
 table ip argo {
 	chain prerouting {
 		type nat hook prerouting priority dstnat;
-		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr 31.14.128.210 tcp dport 80 dnat to 192.168.10.20:8080
+		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr 31.14.128.210 tcp dport 80 dnat to 192.168.10.20:8239
 	}
 }
 ```
@@ -152,11 +152,11 @@ Limit the rule to your Argo devices: the dummy server trusts every report that c
 
 Then, in Home Assistant, open the dummy server's options (**Settings → Devices & services → Argoclima → Argoclima Dummy Server → Configure**) and enter the router's IP address in this subnet (e.g. `192.168.30.1`) as **NAT gateway**.
 
-**OPNsense:** **Firewall → NAT → Source NAT** (called **Outbound** before 25.7). Set the mode to **Hybrid**, add a rule with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8080`, translation: **Interface address**.
+**OPNsense:** **Firewall → NAT → Source NAT** (called **Outbound** before 25.7). Set the mode to **Hybrid**, add a rule with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8239`, translation: **Interface address**.
 
-**pfSense:** **Firewall → NAT → Outbound**. Set the mode to **Hybrid Outbound NAT**, add a mapping with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8080`, translation: **Interface Address**.
+**pfSense:** **Firewall → NAT → Outbound**. Set the mode to **Hybrid Outbound NAT**, add a mapping with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8239`, translation: **Interface Address**.
 
-**Ubiquiti UniFi:** create a second NAT policy of type **Source NAT** (or **Masquerade**) with source: your Argo devices, destination `192.168.30.20` port `8080`, translated IP: the gateway's address in this network.
+**Ubiquiti UniFi:** create a second NAT policy of type **Source NAT** (or **Masquerade**) with source: your Argo devices, destination `192.168.30.20` port `8239`, translated IP: the gateway's address in this network.
 
 **Fortinet FortiGate:** use the Argo network as both incoming and outgoing interface in the firewall policy and **enable NAT** (outgoing interface address).
 
@@ -164,7 +164,7 @@ Then, in Home Assistant, open the dummy server's options (**Settings → Devices
 
 ```
 /ip firewall nat
-add chain=srcnat src-address-list=argo dst-address=192.168.30.20 protocol=tcp dst-port=8080 \
+add chain=srcnat src-address-list=argo dst-address=192.168.30.20 protocol=tcp dst-port=8239 \
     action=masquerade comment="Argo dummy server hairpin"
 ```
 
@@ -176,7 +176,7 @@ config nat
 	option src 'lan'
 	option src_ip '192.168.30.90'
 	option dest_ip '192.168.30.20'
-	option dest_port '8080'
+	option dest_port '8239'
 	option proto 'tcp'
 	option target 'MASQUERADE'
 ```
@@ -187,7 +187,7 @@ config nat
 table ip argo {
 	chain postrouting {
 		type nat hook postrouting priority srcnat;
-		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr 192.168.30.20 tcp dport 8080 masquerade
+		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr 192.168.30.20 tcp dport 8239 masquerade
 	}
 }
 ```

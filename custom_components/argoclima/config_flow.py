@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from ipaddress import ip_address
 from typing import Any
 
@@ -26,6 +27,7 @@ from .const import CONF_PORT
 from .const import CONF_ROLE
 from .const import DOCUMENTATION_URL
 from .const import DOMAIN
+from .const import DUMMY_SERVER_BIND_HOST
 from .const import DUMMY_SERVER_DEFAULT_PORT
 from .const import DUMMY_SERVER_TITLE
 from .const import ENTRY_ROLE_DEVICE
@@ -83,7 +85,7 @@ class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             port = user_input[CONF_PORT]
-            self._errors = _validate_server_input(self.hass, user_input)
+            self._errors = await _async_validate_server_input(self.hass, user_input)
             if self._errors:
                 return self._show_server_form(user_input)
 
@@ -342,8 +344,8 @@ class ArgoOptionsFlowHandler(OptionsFlow):
 
         if user_input is not None:
             port = user_input[CONF_PORT]
-            self._errors = _validate_server_input(
-                self.hass, user_input, self.config_entry.entry_id
+            self._errors = await _async_validate_server_input(
+                self.hass, user_input, self.config_entry
             )
             if self._errors:
                 return self._show_server_form(user_input)
@@ -417,17 +419,33 @@ def _server_schema(user_input: dict[str, Any] | None) -> vol.Schema:
     )
 
 
-def _validate_server_input(
-    hass: HomeAssistant, user_input: dict[str, Any], exclude_entry_id: str | None = None
+async def _async_validate_server_input(
+    hass: HomeAssistant, user_input: dict[str, Any], entry: ConfigEntry | None = None
 ) -> dict[str, str]:
-    if _server_port_exists(hass, user_input[CONF_PORT], exclude_entry_id):
+    port = user_input[CONF_PORT]
+    if _server_port_exists(hass, port, entry.entry_id if entry else None):
         return {"base": "port_in_use"}
+    port_changed = entry is None or entry.data.get(CONF_PORT) != port
+    if port_changed and not await _async_port_available(port):
+        return {"base": "port_unavailable"}
     if nat_gateway := user_input.get(CONF_NAT_GATEWAY, "").strip():
         try:
             ip_address(nat_gateway)
         except ValueError:
             return {CONF_NAT_GATEWAY: "invalid_ip"}
     return {}
+
+
+async def _async_port_available(port: int) -> bool:
+    try:
+        server = await asyncio.start_server(
+            lambda reader, writer: writer.close(), DUMMY_SERVER_BIND_HOST, port
+        )
+    except OSError:
+        return False
+    server.close()
+    await server.wait_closed()
+    return True
 
 
 def _server_data(data: dict[str, Any], user_input: dict[str, Any]) -> dict[str, Any]:
