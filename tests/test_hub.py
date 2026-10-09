@@ -12,6 +12,7 @@ from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import CONF_DEVICES
 from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_NAME
+from custom_components.argoclima.const import CONF_NAT_GATEWAY
 from custom_components.argoclima.const import CONF_PORT
 from custom_components.argoclima.const import CONF_ROLE
 from custom_components.argoclima.const import DOMAIN
@@ -88,3 +89,27 @@ async def test_unload_hub(hass: HomeAssistant, hub: MockConfigEntry) -> None:
 
     assert await hass.config_entries.async_unload(hub.entry_id)
     assert hub.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_push_through_nat_gateway(hass: HomeAssistant) -> None:
+    hub = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_ROLE: ENTRY_ROLE_HUB,
+            CONF_PORT: 8080,
+            CONF_NAT_GATEWAY: "192.168.1.1",
+        },
+    )
+    hub.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(hub.entry_id)
+    await hass.async_block_till_done()
+
+    server = hass.data[DOMAIN][hub.entry_id].server
+    body = await server._async_response_body(
+        "GET", f"/?CM=UI_FLG&IP={HOST}&CPU_ID={CPU_ID}", "192.168.1.1"
+    )
+    await hass.async_block_till_done()
+
+    assert body.startswith("{|1|0|")
+    [flow] = hass.config_entries.flow.async_progress_by_handler(DOMAIN)
+    assert flow["context"]["unique_id"] == CPU_ID

@@ -10,6 +10,7 @@ CONF_ROLE = "role"
 CONF_CPU_ID = "cpu_id"
 CONF_HUB_ID = "hub_id"
 CONF_DEVICES = "devices"
+CONF_NAT_GATEWAY = "nat_gateway"
 
 ENTRY_ROLE_DEVICE = "device"
 ENTRY_ROLE_HUB = "hub"

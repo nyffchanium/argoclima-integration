@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ipaddress import ip_address
 from typing import Any
 
 import aiohttp
@@ -20,6 +21,7 @@ from .const import CONF_DEVICE_TYPE
 from .const import CONF_HOST
 from .const import CONF_HUB_ID
 from .const import CONF_NAME
+from .const import CONF_NAT_GATEWAY
 from .const import CONF_PORT
 from .const import CONF_ROLE
 from .const import DOCUMENTATION_URL
@@ -81,18 +83,15 @@ class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             port = user_input[CONF_PORT]
-            if _server_port_exists(self.hass, port):
-                self._errors["base"] = "port_in_use"
+            self._errors = _validate_server_input(self.hass, user_input)
+            if self._errors:
                 return self._show_server_form(user_input)
 
             await self.async_set_unique_id(dummy_server_unique_id(port))
             self._abort_if_unique_id_configured()
             return self.async_create_entry(
                 title=_server_title(port),
-                data={
-                    CONF_ROLE: ENTRY_ROLE_HUB,
-                    CONF_PORT: port,
-                },
+                data=_server_data({CONF_ROLE: ENTRY_ROLE_HUB}, user_input),
             )
 
         return self._show_server_form(user_input)
@@ -343,15 +342,14 @@ class ArgoOptionsFlowHandler(OptionsFlow):
 
         if user_input is not None:
             port = user_input[CONF_PORT]
-            if _server_port_exists(self.hass, port, self.config_entry.entry_id):
-                self._errors["base"] = "port_in_use"
-                return self._show_server_form()
+            self._errors = _validate_server_input(
+                self.hass, user_input, self.config_entry.entry_id
+            )
+            if self._errors:
+                return self._show_server_form(user_input)
 
-            self.data.update(
-                {
-                    CONF_ROLE: ENTRY_ROLE_HUB,
-                    CONF_PORT: port,
-                }
+            self.data = _server_data(
+                {**self.data, CONF_ROLE: ENTRY_ROLE_HUB}, user_input
             )
             self.hass.config_entries.async_update_entry(
                 self.config_entry,
@@ -361,12 +359,12 @@ class ArgoOptionsFlowHandler(OptionsFlow):
             )
             return self.async_create_entry(title="", data={})
 
-        return self._show_server_form()
+        return self._show_server_form(self.data)
 
-    def _show_server_form(self) -> ConfigFlowResult:
+    def _show_server_form(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         return self.async_show_form(
             step_id="server",
-            data_schema=_server_schema(self.data),
+            data_schema=_server_schema(user_input),
             errors=self._errors,
         )
 
@@ -405,15 +403,37 @@ def _selected_hub_id(user_input: dict[str, Any]) -> str | None:
 
 
 def _server_schema(user_input: dict[str, Any] | None) -> vol.Schema:
-    port = DUMMY_SERVER_DEFAULT_PORT
-    if user_input is not None and user_input.get(CONF_PORT) is not None:
-        port = user_input[CONF_PORT]
-
+    user_input = user_input or {}
     return vol.Schema(
         {
-            vol.Required(CONF_PORT, default=port): vol.All(
-                vol.Coerce(int),
-                vol.Range(min=1, max=65535),
-            ),
+            vol.Required(
+                CONF_PORT, default=user_input.get(CONF_PORT, DUMMY_SERVER_DEFAULT_PORT)
+            ): vol.All(vol.Coerce(int), vol.Range(min=1, max=65535)),
+            vol.Optional(
+                CONF_NAT_GATEWAY,
+                description={"suggested_value": user_input.get(CONF_NAT_GATEWAY)},
+            ): str,
         }
     )
+
+
+def _validate_server_input(
+    hass: HomeAssistant, user_input: dict[str, Any], exclude_entry_id: str | None = None
+) -> dict[str, str]:
+    if _server_port_exists(hass, user_input[CONF_PORT], exclude_entry_id):
+        return {"base": "port_in_use"}
+    if nat_gateway := user_input.get(CONF_NAT_GATEWAY, "").strip():
+        try:
+            ip_address(nat_gateway)
+        except ValueError:
+            return {CONF_NAT_GATEWAY: "invalid_ip"}
+    return {}
+
+
+def _server_data(data: dict[str, Any], user_input: dict[str, Any]) -> dict[str, Any]:
+    data = {**data, CONF_PORT: user_input[CONF_PORT]}
+    if nat_gateway := user_input.get(CONF_NAT_GATEWAY, "").strip():
+        data[CONF_NAT_GATEWAY] = nat_gateway
+    else:
+        data.pop(CONF_NAT_GATEWAY, None)
+    return data

@@ -16,6 +16,7 @@ from .const import CONF_DEVICES
 from .const import CONF_HOST
 from .const import CONF_HUB_ID
 from .const import CONF_NAME
+from .const import CONF_NAT_GATEWAY
 from .const import CONF_PORT
 from .const import DOMAIN
 from .const import DUMMY_SERVER_DEFAULT_PORT
@@ -85,7 +86,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _async_setup_hub_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hub_id = dummy_server_hub_id(entry)
     port = entry.data.get(CONF_PORT, DUMMY_SERVER_DEFAULT_PORT)
-    server = ArgoDummyServer(hass, port, hub_id)
+    server = ArgoDummyServer(hass, port, hub_id, entry.data.get(CONF_NAT_GATEWAY))
     try:
         await server.async_start()
     except OSError as err:

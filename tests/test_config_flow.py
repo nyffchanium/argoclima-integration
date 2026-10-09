@@ -10,6 +10,7 @@ from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import CONF_NAME
+from custom_components.argoclima.const import CONF_NAT_GATEWAY
 from custom_components.argoclima.const import CONF_PORT
 from custom_components.argoclima.const import CONF_ROLE
 from custom_components.argoclima.const import DOMAIN
@@ -121,3 +122,35 @@ async def test_change_host_in_options(hass: HomeAssistant) -> None:
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.data[CONF_HOST] == "192.168.1.51"
+
+
+async def test_add_dummy_server_with_nat_gateway(hass: HomeAssistant) -> None:
+    result = await start_flow(hass, "server")
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_PORT: 8081, CONF_NAT_GATEWAY: "not-an-ip"}
+    )
+    assert result["errors"] == {CONF_NAT_GATEWAY: "invalid_ip"}
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_PORT: 8081, CONF_NAT_GATEWAY: " 192.168.1.1 "}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_NAT_GATEWAY] == "192.168.1.1"
+
+
+async def test_change_nat_gateway_in_options(hass: HomeAssistant) -> None:
+    result = await start_flow(hass, "server")
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_PORT: 8081, CONF_NAT_GATEWAY: "192.168.1.1"}
+    )
+    entry = result["result"]
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["step_id"] == "server"
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_PORT: 8081, CONF_NAT_GATEWAY: ""}
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert CONF_NAT_GATEWAY not in entry.data

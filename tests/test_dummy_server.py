@@ -48,6 +48,16 @@ def test_rejects_push_from_unknown_source() -> None:
     assert _push_data_from_params(PARAMS, HUB_ID, None) is None
 
 
+def test_accepts_push_through_nat_gateway() -> None:
+    push_data = _push_data_from_params(PARAMS, HUB_ID, "192.168.1.1", "192.168.1.1")
+
+    assert push_data.host == HOST
+
+
+def test_rejects_push_from_other_ip_with_nat_gateway() -> None:
+    assert _push_data_from_params(PARAMS, HUB_ID, "192.168.1.99", "192.168.1.1") is None
+
+
 def test_accepts_ipv4_mapped_peer_address() -> None:
     peer = _valid_host(f"::ffff:{HOST}")
 

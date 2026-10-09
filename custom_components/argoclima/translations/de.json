@@ -9,7 +9,8 @@
     "error": {
       "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
       "invalid_device_type": "Nicht unterstützter Gerätetyp.",
-      "port_in_use": "Auf diesem Port ist bereits ein Dummy Server konfiguriert."
+      "port_in_use": "Auf diesem Port ist bereits ein Dummy Server konfiguriert.",
+      "invalid_ip": "Ungültige IP-Adresse."
     },
     "step": {
       "user": {
@@ -22,9 +23,10 @@
       },
       "server": {
         "data": {
-          "port": "Server-Port"
+          "port": "Server-Port",
+          "nat_gateway": "NAT-Gateway (optional)"
         },
-        "description": "Der Listener bindet auf diesem Port an alle IPv4-Schnittstellen. Konfiguriere DNAT auf deinem Router, um den Cloud-Traffic des Geräts auf diesen Port weiterzuleiten.",
+        "description": "Der Listener bindet auf diesem Port an alle IPv4-Schnittstellen. Konfiguriere DNAT auf deinem Router, um den Cloud-Traffic des Geräts auf diesen Port weiterzuleiten. Nur wenn Home Assistant und die Geräte im selben Subnetz sind: Trage die IP-Adresse deines Routers ein, der diesen Verkehr dann zusätzlich per Source-NAT (Hairpin-NAT) umschreiben muss.",
         "title": "Argoclima Dummy Server"
       },
       "device": {
@@ -51,12 +53,14 @@
   "options": {
     "error": {
       "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
-      "port_in_use": "Auf diesem Port ist bereits ein Dummy Server konfiguriert."
+      "port_in_use": "Auf diesem Port ist bereits ein Dummy Server konfiguriert.",
+      "invalid_ip": "Ungültige IP-Adresse."
     },
     "step": {
       "server": {
         "data": {
-          "port": "Server-Port"
+          "port": "Server-Port",
+          "nat_gateway": "NAT-Gateway (optional)"
         },
         "description": "Eine Änderung des Ports lädt den Listener neu."
       },

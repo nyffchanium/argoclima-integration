@@ -75,10 +75,17 @@ class ArgoPushData:
 class ArgoDummyServer:
     """Minimal TCP listener that mimics the Argoclima cloud endpoint."""
 
-    def __init__(self, hass: HomeAssistant, port: int, hub_id: str) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        port: int,
+        hub_id: str,
+        nat_gateway: str | None = None,
+    ) -> None:
         self._hass = hass
         self._port = port
         self._hub_id = hub_id
+        self._nat_gateway = _valid_host(nat_gateway)
         self._server: asyncio.Server | None = None
         self._connections: set[asyncio.StreamWriter] = set()
 
@@ -183,7 +190,9 @@ class ArgoDummyServer:
             return _ntp_response()
 
         if command == "UI_FLG":
-            push_data = _push_data_from_params(params, self._hub_id, peer_ip)
+            push_data = _push_data_from_params(
+                params, self._hub_id, peer_ip, self._nat_gateway
+            )
             if push_data is not None:
                 _LOGGER.info(
                     "Argoclima UI_FLG push received for CPU_ID %s from %s via hub %s",
@@ -538,7 +547,10 @@ def _parse_query(query: str) -> dict[str, str]:
 
 
 def _push_data_from_params(
-    params: dict[str, str], hub_id: str, peer_ip: str | None
+    params: dict[str, str],
+    hub_id: str,
+    peer_ip: str | None,
+    nat_gateway: str | None = None,
 ) -> ArgoPushData | None:
     cpu_id = next(
         (
@@ -553,11 +565,14 @@ def _push_data_from_params(
         return None
 
     # Only trust the reported IP if it matches the connection source, otherwise
-    # anyone on the network could redirect control traffic for a device.
-    if peer_ip is None or host != peer_ip:
+    # anyone on the network could redirect control traffic for a device. With
+    # hairpin NAT all devices connect through the router, whose NAT rule is
+    # expected to only match the Argo devices.
+    if peer_ip is None or (host != peer_ip and peer_ip != nat_gateway):
         _LOGGER.warning(
             "Argoclima UI_FLG push ignored; claimed IP %s did not match "
-            "connection source %s",
+            "connection source %s. If Home Assistant and the device share a "
+            "subnet, set the NAT gateway in the dummy server options",
             host,
             peer_ip,
         )

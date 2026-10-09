@@ -9,7 +9,8 @@
     "error": {
       "host": "Could not reach host or host is not a supported device.",
       "invalid_device_type": "Unsupported device type.",
-      "port_in_use": "A dummy server is already configured on this port."
+      "port_in_use": "A dummy server is already configured on this port.",
+      "invalid_ip": "Invalid IP address."
     },
     "step": {
       "user": {
@@ -22,9 +23,10 @@
       },
       "server": {
         "data": {
-          "port": "Server port"
+          "port": "Server port",
+          "nat_gateway": "NAT gateway (optional)"
         },
-        "description": "The listener binds to all IPv4 interfaces on this port. Configure DNAT on your router to forward device cloud traffic to this port.",
+        "description": "The listener binds to all IPv4 interfaces on this port. Configure DNAT on your router to forward device cloud traffic to this port. Only if Home Assistant and the devices are in the same subnet: enter the IP address of your router, which then also has to apply source NAT (hairpin NAT) to this traffic.",
         "title": "Argoclima Dummy Server"
       },
       "device": {
@@ -51,12 +53,14 @@
   "options": {
     "error": {
       "host": "Could not reach host or host is not a supported device.",
-      "port_in_use": "A dummy server is already configured on this port."
+      "port_in_use": "A dummy server is already configured on this port.",
+      "invalid_ip": "Invalid IP address."
     },
     "step": {
       "server": {
         "data": {
-          "port": "Server port"
+          "port": "Server port",
+          "nat_gateway": "NAT gateway (optional)"
         },
         "description": "Changing the port reloads the listener."
       },

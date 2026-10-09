@@ -8,12 +8,19 @@ The Argo devices have the address of Argo's cloud server (`31.14.128.210`, port 
 
 **Your router must support DNAT for traffic from your local network.** Port forwarding that only applies to traffic coming from the internet is not enough. Most consumer routers, including the AVM FRITZ!Box, can't do this.
 
-**The Argo devices and Home Assistant must be in different subnets** (for example separate VLANs), so their traffic passes through the router.
+**Check whether the Argo devices and Home Assistant are in the same subnet.** This decides which rules you need:
+
+| Setup                                                   | Rules                                                                 |
+| ------------------------------------------------------- | --------------------------------------------------------------------- |
+| Different subnets (e.g. devices in their own VLAN)      | DNAT rule                                                             |
+| Same subnet (e.g. both in `192.168.30.0/24`)            | DNAT rule, [hairpin NAT rule](#same-subnet-hairpin-nat) and the NAT gateway option |
 
 <details>
-<summary>Why different subnets?</summary>
+<summary>Why does the same subnet need more?</summary>
 
-If both are in the same subnet, the router only rewrites the device's request; Home Assistant then answers the device directly instead of through the router. The device expects the answer from `31.14.128.210`, ignores it, and the connection never completes. The usual fix, additional source NAT ("hairpin NAT"), makes all requests appear to come from the router. The dummy server rejects those, because it only accepts a device report from the IP address the device claims to have.
+The router only rewrites the device's request. Home Assistant sees the device in its own subnet and answers it directly instead of through the router. The device expects the answer from `31.14.128.210`, ignores it, and the connection never completes. A second rule (source NAT, "hairpin NAT") makes the router the sender, so the answer goes back through the router as well.
+
+The dummy server normally only accepts a device report from the IP address the device claims to have. With hairpin NAT, all reports come from the router instead, so you tell the dummy server to trust it.
 
 </details>
 
@@ -34,7 +41,7 @@ Every guide below creates the same rule:
 
 If your firewall blocks traffic between the two networks, also allow TCP from the Argo devices to Home Assistant on the dummy server port. Many routers create this rule for you.
 
-The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.168.10.20` for Home Assistant and port `8080`.
+The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.168.10.20` for Home Assistant and port `8080`. In the same-subnet case, Home Assistant would be `192.168.30.20` and the router `192.168.30.1`.
 
 ## Router guides
 
@@ -129,6 +136,62 @@ table ip argo {
 
 Your forward chain must allow the redirected traffic, and no masquerade rule may apply to it.
 
+## Same subnet: hairpin NAT
+
+Only needed if the Argo devices and Home Assistant are in the same subnet. Add this rule in addition to the DNAT rule above:
+
+| Setting       | Value                                                   |
+| ------------- | ------------------------------------------------------- |
+| Interface     | The network of your Argo devices and Home Assistant     |
+| Protocol      | TCP                                                     |
+| Source        | Your Argo devices' IP addresses                         |
+| Destination   | Your Home Assistant IP, dummy server port               |
+| Translation   | Source NAT to the router's address (masquerade)         |
+
+Limit the rule to your Argo devices: the dummy server trusts every report that comes from the router.
+
+Then, in Home Assistant, open the dummy server's options (**Settings → Devices & services → Argoclima → Argoclima Dummy Server → Configure**) and enter the router's IP address in this subnet (e.g. `192.168.30.1`) as **NAT gateway**.
+
+**OPNsense:** **Firewall → NAT → Source NAT** (called **Outbound** before 25.7). Set the mode to **Hybrid**, add a rule with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8080`, translation: **Interface address**.
+
+**pfSense:** **Firewall → NAT → Outbound**. Set the mode to **Hybrid Outbound NAT**, add a mapping with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8080`, translation: **Interface Address**.
+
+**Ubiquiti UniFi:** create a second NAT policy of type **Source NAT** (or **Masquerade**) with source: your Argo devices, destination `192.168.30.20` port `8080`, translated IP: the gateway's address in this network.
+
+**Fortinet FortiGate:** use the Argo network as both incoming and outgoing interface in the firewall policy and **enable NAT** (outgoing interface address).
+
+**MikroTik RouterOS:**
+
+```
+/ip firewall nat
+add chain=srcnat src-address-list=argo dst-address=192.168.30.20 protocol=tcp dst-port=8080 \
+    action=masquerade comment="Argo dummy server hairpin"
+```
+
+**OpenWrt:**
+
+```
+config nat
+	option name 'Argo dummy server hairpin'
+	option src 'lan'
+	option src_ip '192.168.30.90'
+	option dest_ip '192.168.30.20'
+	option dest_port '8080'
+	option proto 'tcp'
+	option target 'MASQUERADE'
+```
+
+**Linux (nftables):**
+
+```
+table ip argo {
+	chain postrouting {
+		type nat hook postrouting priority srcnat;
+		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr 192.168.30.20 tcp dport 8080 masquerade
+	}
+}
+```
+
 ## Checking that it works
 
 Enable info logging in `configuration.yaml` and restart Home Assistant:
@@ -144,7 +207,7 @@ Within a few minutes, the log should show `Argoclima UI_FLG push received for CP
 | Log message                                             | Cause                                                                    |
 | ------------------------------------------------------- | ------------------------------------------------------------------------ |
 | Nothing at all                                          | The rule doesn't match or a firewall blocks the traffic.                 |
-| `claimed IP … did not match connection source …`        | Source NAT is applied, or device and Home Assistant share a subnet.      |
+| `claimed IP … did not match connection source …`        | The traffic is source-NATed. If that's your hairpin rule, set the NAT gateway option to the address shown as connection source. |
 | `Failed to start Argoclima dummy server on port …`      | The port is already used by something else; choose another one.         |
 
 ## Contributing
