@@ -1,0 +1,39 @@
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "B007",    # loop control variable not used within loop body
+    "B014",    # exception handler with duplicate exception
+    "C",       # complexity
+    "E",       # pycodestyle
+    "F",       # pyflakes
+    "I",       # isort
+    "ICN001",  # import conventions
+    "PGH004",  # use specific rule codes when using noqa
+    "PLC0414", # useless import alias
+    "SIM",     # flake8-simplify
+    "T20",     # flake8-print
+    "TRY004",  # prefer TypeError for invalid type
+    "RUF006",  # store a reference to asyncio.create_task
+    "UP",      # pyupgrade
+    "W",       # pycodestyle
+]
+ignore = [
+    "E501", # line too long, handled by the formatter
+]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ruff.lint.mccabe]
+max-complexity = 25
+
+[tool.ruff.lint.isort]
+force-single-line = true
+known-first-party = ["custom_components.argoclima"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

@@ -1,37 +1,30 @@
-name: "Release"
+name: Release
 
 on:
   release:
     types:
-      - "published"
+      - published
 
 permissions: {}
 
 jobs:
   release:
-    name: "Release"
-    runs-on: "ubuntu-latest"
+    name: Attach integration archive
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: "Checkout the repository"
-        uses: "actions/checkout@v4"
+      - uses: actions/checkout@v5
 
-      - name: "Adjust version number"
-        shell: "bash"
+      - name: Set version from tag
         run: |
           yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
-            "${{ github.workspace }}/custom_components/argoclima/manifest.json"
-          sed -i 's/^VERSION = .*/VERSION = "${{ github.event.release.tag_name }}"/' \
-            "${{ github.workspace }}/custom_components/argoclima/const.py"
+            custom_components/argoclima/manifest.json
 
-      - name: "ZIP the integration directory"
-        shell: "bash"
-        run: |
-          cd "${{ github.workspace }}/custom_components/argoclima"
-          zip argoclima_integration.zip -r ./
+      - name: Create archive
+        working-directory: custom_components/argoclima
+        run: zip -r "$GITHUB_WORKSPACE/argoclima_integration.zip" .
 
-      - name: "Upload the ZIP file to the release"
-        uses: softprops/action-gh-release@v0.1.15
+      - uses: softprops/action-gh-release@v2
         with:
-          files: ${{ github.workspace }}/custom_components/argoclima/argoclima_integration.zip
+          files: argoclima_integration.zip

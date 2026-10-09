@@ -1,17 +1,12 @@
-# artifacts
-__pycache__
-.pytest*
-*.egg-info
-*/build/*
-*/dist/*
-
-
-# misc
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
 .coverage
-.vscode
 coverage.xml
+.vscode/
 
-
-# Home Assistant configuration
+# Home Assistant instance started by scripts/develop
 config/*
 !config/configuration.yaml
