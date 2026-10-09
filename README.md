@@ -60,18 +60,28 @@ Existing entities are migrated automatically on startup. If you end up with dupl
 
 ## Configuration
 
-Assign the device a static IP address in your router first. The integration addresses the device by IP.
+There are two ways to connect your devices. The dummy server is recommended.
 
-Go to **Settings → Devices & services → Add integration → Argoclima** and choose **Set up device manually**. Select the device type, give it a name and enter its IP address. The IP address can be changed later in the integration options.
+### With the dummy server (recommended)
 
-### Dummy server
+By default, the device stays connected to Argo's cloud server (`31.14.128.210`), and it only works reliably while that server answers. When the server is overloaded, the device keeps dropping its WiFi connection. The built-in dummy server takes the place of Argo's server inside Home Assistant:
 
-By default, the device keeps a connection to Argo's cloud server (`31.14.128.210`). The device and therefore this integration only work reliably while that server answers. The built-in dummy server replaces it, so all traffic stays in your local network. The official Argo web app no longer works while the dummy server is in use.
+- The device no longer depends on Argo's server, which avoids these connection drops.
+- Devices report their state by themselves, so Home Assistant doesn't need to poll them.
+- Devices are discovered automatically; adding several devices needs no extra steps.
+- IP address changes are picked up automatically.
 
-1. Go to **Add integration → Argoclima → Set up Argoclima Dummy Server** and choose a port (default `8080`).
-2. On your router, forward (DNAT) the device's traffic for `31.14.128.210:80` to `<Home Assistant IP>:<port>`. If possible, limit the rule to the IP of your Argo device.
+All traffic stays in your local network. The official Argo web app no longer works while the dummy server is in use.
 
-Devices reporting to the dummy server are discovered automatically and appear under it. They then receive state updates by push instead of being polled.
+1. Go to **Settings → Devices & services → Add integration → Argoclima**, choose **Set up Argoclima Dummy Server** and pick a port (default `8080`).
+2. On your router, forward (DNAT) the devices' traffic for `31.14.128.210:80` to `<Home Assistant IP>:<port>`. If possible, limit the rule to the IP addresses of your Argo devices.
+3. Each device shows up as a discovered device as soon as it reports to the dummy server. Confirm it and give it a name.
+
+### Without the dummy server
+
+Assign the device a static IP address in your router first; the integration addresses the device by IP and polls it every 20 seconds.
+
+Go to **Settings → Devices & services → Add integration → Argoclima**, choose **Set up device manually**, select the device type, give it a name and enter its IP address. The IP address can be changed later in the integration options.
 
 ### Using the remote's temperature sensor
 
@@ -114,7 +124,7 @@ logger:
 Unplug the device for about a minute and try again.
 
 **The connection drops every few seconds.**
-This happens when Argo's server is overloaded: the device resets its WiFi connection when its requests to the server time out. Use the [dummy server](#dummy-server).
+This happens when Argo's server is overloaded: the device resets its WiFi connection when its requests to the server time out. Use the [dummy server](#with-the-dummy-server-recommended).
 
 ## Contributing
 

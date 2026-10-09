@@ -14,7 +14,7 @@
     "step": {
       "user": {
         "menu_options": {
-          "server": "Argoclima Dummy Server einrichten",
+          "server": "Argoclima Dummy Server einrichten (empfohlen)",
           "device": "Gerät manuell einrichten"
         },
         "description": "Richte den integrierten Dummy-Server ein oder füge ein Gerät manuell hinzu.",
