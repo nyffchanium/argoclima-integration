@@ -1,34 +1,41 @@
+from __future__ import annotations
+
 from typing import Any
 
+import aiohttp
 import voluptuous as vol
-from custom_components.argoclima.api import ArgoApiClient
-from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
-from custom_components.argoclima.const import ARGO_DEVICES
-from custom_components.argoclima.const import CONF_DEVICE_TYPE
-from custom_components.argoclima.const import CONF_CPU_ID
-from custom_components.argoclima.const import CONF_HUB_ID
-from custom_components.argoclima.const import CONF_HOST
-from custom_components.argoclima.const import CONF_NAME
-from custom_components.argoclima.const import CONF_PORT
-from custom_components.argoclima.const import CONF_ROLE
-from custom_components.argoclima.const import DOCUMENTATION_URL
-from custom_components.argoclima.const import DOMAIN
-from custom_components.argoclima.const import DUMMY_SERVER_DEFAULT_PORT
-from custom_components.argoclima.const import DUMMY_SERVER_TITLE
-from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
-from custom_components.argoclima.const import ENTRY_ROLE_HUB
-from custom_components.argoclima.data import ArgoData
-from custom_components.argoclima.device_type import ArgoDeviceType
-from custom_components.argoclima.runtime import async_entry_role
-from custom_components.argoclima.runtime import async_update_hub_device
-from custom_components.argoclima.runtime import dummy_server_hub_id
-from custom_components.argoclima.runtime import dummy_server_unique_id
-from custom_components.argoclima.runtime import hub_entry_for_id
-from homeassistant import config_entries
-from homeassistant.core import callback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.config_entries import OptionsFlow
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.core import callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from .api import ArgoApiClient
+from .const import ARGO_DEVICE_ULISSE_ECO
+from .const import ARGO_DEVICES
+from .const import CONF_CPU_ID
+from .const import CONF_DEVICE_TYPE
+from .const import CONF_HOST
+from .const import CONF_HUB_ID
+from .const import CONF_NAME
+from .const import CONF_PORT
+from .const import CONF_ROLE
+from .const import DOCUMENTATION_URL
+from .const import DOMAIN
+from .const import DUMMY_SERVER_DEFAULT_PORT
+from .const import DUMMY_SERVER_TITLE
+from .const import ENTRY_ROLE_DEVICE
+from .const import ENTRY_ROLE_HUB
+from .data import ArgoData
+from .data import InvalidResponseFormatError
+from .device_type import ArgoDeviceType
+from .runtime import async_entry_role
+from .runtime import async_update_hub_device
+from .runtime import dummy_server_hub_id
+from .runtime import dummy_server_unique_id
+from .runtime import hub_entry_for_id
 
 NO_HUB_ID = "__no_hub__"
 
@@ -36,40 +43,39 @@ NO_HUB_ID = "__no_hub__"
 async def async_test_host(
     hass: HomeAssistant, device_type: ArgoDeviceType, host: str
 ) -> bool:
-    """Return true if host seems to be a supported device."""
+    """Return true if host responds like a supported device."""
+    client = ArgoApiClient(device_type, host, async_get_clientsession(hass))
     try:
-        session = async_create_clientsession(hass)
-        client = ArgoApiClient(device_type, host, session)
-        result = await client.async_sync_data(ArgoData(device_type))
-        return result is not None
-    except Exception:  # pylint: disable=broad-except
-        pass
-    return False
+        await client.async_sync_data(ArgoData(device_type))
+    except (aiohttp.ClientError, TimeoutError, InvalidResponseFormatError, ValueError):
+        return False
+    return True
 
 
-class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
-    def __init__(self):
-        """Initialize."""
-        super().__init__()
-        self._errors = {}
+    def __init__(self) -> None:
+        self._errors: dict[str, str] = {}
         self._discovery_info: dict[str, Any] = {}
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry) -> "ArgoOptionsFlowHandler":
-        return ArgoOptionsFlowHandler(config_entry)
+    def async_get_options_flow(config_entry: ConfigEntry) -> ArgoOptionsFlowHandler:
+        return ArgoOptionsFlowHandler()
 
-    async def async_step_user(self, user_input: dict[str, Any] = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         return self.async_show_menu(
             step_id="user",
             menu_options=["server", "device"],
         )
 
-    async def async_step_server(self, user_input: dict[str, Any] = None) -> FlowResult:
+    async def async_step_server(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Create the dummy server entry."""
         self._errors = {}
 
@@ -91,14 +97,16 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self._show_server_form(user_input)
 
-    def _show_server_form(self, user_input: dict[str, Any]) -> FlowResult:
+    def _show_server_form(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         return self.async_show_form(
             step_id="server",
             data_schema=_server_schema(user_input),
             errors=self._errors,
         )
 
-    async def async_step_device(self, user_input: dict[str, Any] = None) -> FlowResult:
+    async def async_step_device(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Handle a manually configured device."""
         self._errors = {}
 
@@ -135,7 +143,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_integration_discovery(
         self, discovery_info: dict[str, Any]
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a device discovered from dummy server push traffic."""
         cpu_id = discovery_info.get(CONF_CPU_ID)
         if cpu_id is None:
@@ -155,8 +163,8 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_discovery_confirm()
 
     async def async_step_discovery_confirm(
-        self, user_input: dict[str, Any] = None
-    ) -> FlowResult:
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Confirm a discovered device."""
         if user_input is not None:
             if self._discovery_info.get(CONF_HUB_ID) is not None:
@@ -177,7 +185,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     def _async_add_device_to_hub(
         self, hub_id: str, device_data: dict[str, Any]
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         hub_entry = hub_entry_for_id(self.hass, hub_id)
         if hub_entry is None:
             return self.async_abort(reason="hub_not_found")
@@ -187,7 +195,7 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     def _async_add_discovered_device_to_hub(
         self, user_input: dict[str, Any]
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         return self._async_add_device_to_hub(
             self._discovery_info[CONF_HUB_ID],
             {
@@ -200,8 +208,8 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    def _show_device_form(self, user_input: dict[str, Any]) -> FlowResult:
-        def default(key: str, default: str = None):
+    def _show_device_form(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+        def default(key: str, default: str | None = None):
             if user_input is not None and user_input.get(key) is not None:
                 return user_input[key]
             return default
@@ -230,8 +238,8 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             description_placeholders={"docs_url": DOCUMENTATION_URL},
         )
 
-    def _show_discovery_form(self, user_input: dict[str, Any]) -> FlowResult:
-        def default(key: str, default: str = None):
+    def _show_discovery_form(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+        def default(key: str, default: str | None = None):
             if user_input is not None and user_input.get(key) is not None:
                 return user_input[key]
             if self._discovery_info.get(key) is not None:
@@ -258,21 +266,22 @@ class ArgoFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize HACS options flow."""
-        super().__init__()
-        self._errors = {}
-        self._config_entry = config_entry
-        self.data = dict(config_entry.data)
+class ArgoOptionsFlowHandler(OptionsFlow):
+    def __init__(self) -> None:
+        self._errors: dict[str, str] = {}
+        self.data: dict[str, Any] = {}
 
-    async def async_step_init(self, user_input: dict[str, Any] = None) -> FlowResult:
-        """Manage the options."""
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        self.data = dict(self.config_entry.data)
         return await self.async_step_user(user_input)
 
-    async def async_step_user(self, user_input: dict[str, Any] = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
-        if async_entry_role(self._config_entry) == ENTRY_ROLE_HUB:
+        if async_entry_role(self.config_entry) == ENTRY_ROLE_HUB:
             return await self.async_step_server(user_input)
 
         if user_input is not None:
@@ -287,7 +296,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
                 else:
                     self.data.pop(CONF_HUB_ID, None)
                 self.hass.config_entries.async_update_entry(
-                    self._config_entry,
+                    self.config_entry,
                     data=self.data,
                 )
                 return self.async_create_entry(title="", data={})
@@ -295,7 +304,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self._async_show_option_form(user_input)
 
-    def _async_show_option_form(self, user_input: dict[str, Any]) -> FlowResult:
+    def _async_show_option_form(self, user_input: dict[str, Any]) -> ConfigFlowResult:
         def default(key: str):
             if user_input is not None and (
                 user_input.get(key) is not None and len(user_input[key]) > 0
@@ -322,13 +331,15 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
             description_placeholders={"docs_url": DOCUMENTATION_URL},
         )
 
-    async def async_step_server(self, user_input: dict[str, Any] = None) -> FlowResult:
+    async def async_step_server(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Handle server options."""
         self._errors = {}
 
         if user_input is not None:
             port = user_input[CONF_PORT]
-            if _server_port_exists(self.hass, port, self._config_entry.entry_id):
+            if _server_port_exists(self.hass, port, self.config_entry.entry_id):
                 self._errors["base"] = "port_in_use"
                 return self._show_server_form()
 
@@ -339,7 +350,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
                 }
             )
             self.hass.config_entries.async_update_entry(
-                self._config_entry,
+                self.config_entry,
                 data=self.data,
                 title=_server_title(port),
                 unique_id=dummy_server_unique_id(port),
@@ -348,7 +359,7 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self._show_server_form()
 
-    def _show_server_form(self) -> FlowResult:
+    def _show_server_form(self) -> ConfigFlowResult:
         return self.async_show_form(
             step_id="server",
             data_schema=_server_schema(self.data),

@@ -1,324 +1,117 @@
-from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
-from custom_components.argoclima.types import ArgoFanSpeed
-from custom_components.argoclima.types import ArgoFlapMode
-from custom_components.argoclima.types import ArgoOperationMode
-from custom_components.argoclima.types import ArgoTimerType
-from homeassistant.components.climate.const import DOMAIN as ENTITY_DOMAIN_CLIMATE
-from homeassistant.components.number import DOMAIN as ENTITY_DOMAIN_NUMBER
-from homeassistant.components.select.const import DOMAIN as ENTITY_DOMAIN_SELECT
-from homeassistant.components.switch import DOMAIN as ENTITY_DOMAIN_SWITCH
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from homeassistant.const import Platform
+
+from .const import ARGO_DEVICE_ULISSE_ECO
+from .types import ArgoFanSpeed
+from .types import ArgoOperationMode
+from .types import ArgoTimerType
 
 
-class InvalidOperationError(Exception):
-    """This operation is not available for this device type"""
-
-
+@dataclass(frozen=True)
 class ArgoDeviceType:
-    def __init__(self, name: str, port: int, update_interval: int) -> None:
-        self._name = name
-        self._port = port
-        self._update_interval = update_interval
-        self._on_off = False
-        self._operation_modes: list[ArgoOperationMode] = []
-        self._operation_mode = False
-        self._eco_mode = False
-        self._turbo_mode = False
-        self._night_mode = False
-        self._preset = False
-        self._target_temperature = False
-        self._target_temperature_min: float = None
-        self._target_temperature_max: float = None
-        self._current_temperature = False
-        self._remote_temperature = False
-        self._fan_speeds: list[ArgoFanSpeed] = []
-        self._fan_speed = False
-        self._flap_modes: list[ArgoFlapMode] = []
-        self._flap_mode = False
-        self._filter_mode = False
-        self._timers: list[ArgoTimerType] = []
-        self._timer = False
-        self._set_time_and_weekday = False
-        self._device_lights = False
-        self._unit = False
-        self._eco_limit = False
-        self._eco_limit_min: float = None
-        self._eco_limit_max: float = None
-        self._firmware = False
-        self._reset = False
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def port(self) -> int:
-        return self._port
-
-    @property
-    def update_interval(self) -> int:
-        return self._update_interval
-
-    @property
-    def on_off(self) -> bool:
-        return self._on_off
-
-    @property
-    def operation_modes(self) -> list[ArgoOperationMode]:
-        return self._operation_modes
+    name: str
+    port: int
+    update_interval: int
+    on_off: bool = False
+    operation_modes: tuple[ArgoOperationMode, ...] = ()
+    fan_speeds: tuple[ArgoFanSpeed, ...] = ()
+    timers: tuple[ArgoTimerType, ...] = ()
+    eco_mode: bool = False
+    turbo_mode: bool = False
+    night_mode: bool = False
+    current_temperature: bool = False
+    target_temperature_range: tuple[int, int] | None = None
+    remote_temperature: bool = False
+    device_lights: bool = False
+    unit: bool = False
+    eco_limit_range: tuple[int, int] | None = None
 
     @property
     def operation_mode(self) -> bool:
-        return self._operation_mode
-
-    @property
-    def eco_mode(self) -> bool:
-        return self._eco_mode
-
-    @property
-    def turbo_mode(self) -> bool:
-        return self._turbo_mode
-
-    @property
-    def night_mode(self) -> bool:
-        return self._night_mode
-
-    @property
-    def preset(self) -> bool:
-        return self._preset
-
-    @property
-    def target_temperature(self) -> bool:
-        return self._target_temperature
-
-    @property
-    def target_temperature_min(self) -> float:
-        return self._target_temperature_min
-
-    @property
-    def target_temperature_max(self) -> float:
-        return self._target_temperature_max
-
-    @property
-    def current_temperature(self) -> bool:
-        return self._current_temperature
-
-    @property
-    def remote_temperature(self) -> bool:
-        return self._remote_temperature
-
-    @property
-    def fan_speeds(self) -> list[ArgoFanSpeed]:
-        return self._fan_speeds
+        return bool(self.operation_modes)
 
     @property
     def fan_speed(self) -> bool:
-        return self._fan_speed
-
-    @property
-    def flap_modes(self) -> list[ArgoFlapMode]:
-        return self._flap_modes
-
-    @property
-    def flap_mode(self) -> bool:
-        return self._flap_mode
-
-    @property
-    def filter_mode(self) -> bool:
-        return self._filter_mode
-
-    @property
-    def timers(self) -> list[ArgoTimerType]:
-        return self._timers
+        return bool(self.fan_speeds)
 
     @property
     def timer(self) -> bool:
-        return self._timer
+        return bool(self.timers)
 
     @property
-    def set_time_and_weekday(self) -> bool:
-        return self._set_time_and_weekday
+    def preset(self) -> bool:
+        return self.eco_mode or self.turbo_mode or self.night_mode
 
     @property
-    def device_lights(self) -> bool:
-        return self._device_lights
+    def target_temperature(self) -> bool:
+        return self.target_temperature_range is not None
 
     @property
-    def unit(self) -> bool:
-        return self._unit
+    def target_temperature_min(self) -> int:
+        return self.target_temperature_range[0]
+
+    @property
+    def target_temperature_max(self) -> int:
+        return self.target_temperature_range[1]
 
     @property
     def eco_limit(self) -> bool:
-        return self._eco_limit
+        return self.eco_limit_range is not None
 
     @property
-    def eco_limit_min(self) -> float:
-        return self._eco_limit_min
+    def eco_limit_min(self) -> int:
+        return self.eco_limit_range[0]
 
     @property
-    def eco_limit_max(self) -> float:
-        return self._eco_limit_max
+    def eco_limit_max(self) -> int:
+        return self.eco_limit_range[1]
 
     @property
-    def firmware(self) -> bool:
-        return self._firmware
-
-    @property
-    def reset(self) -> bool:
-        return self._reset
-
-    @property
-    def platforms(self) -> list[str]:
-        list = []
-        if self._on_off:
-            list.append(ENTITY_DOMAIN_CLIMATE)
-        if self._eco_limit:
-            list.append(ENTITY_DOMAIN_NUMBER)
-        if self._unit or self._timer:
-            list.append(ENTITY_DOMAIN_SELECT)
-        if self._device_lights or self.remote_temperature:
-            list.append(ENTITY_DOMAIN_SWITCH)
-        return list
+    def platforms(self) -> list[Platform]:
+        platforms = []
+        if self.on_off:
+            platforms.append(Platform.CLIMATE)
+        if self.eco_limit:
+            platforms.append(Platform.NUMBER)
+        if self.unit or self.timer:
+            platforms.append(Platform.SELECT)
+        if self.device_lights or self.remote_temperature:
+            platforms.append(Platform.SWITCH)
+        return platforms
 
     def __str__(self) -> str:
         return self.name
 
     @staticmethod
-    def from_name(name: str) -> "ArgoDeviceType | None":
-        map = {
-            ARGO_DEVICE_ULISSE_ECO: ArgoDeviceTypeBuilder(
-                ARGO_DEVICE_ULISSE_ECO, 1001, 60
-            )
-            .on_off()
-            .operation_modes(
-                [
-                    ArgoOperationMode.COOL,
-                    ArgoOperationMode.DRY,
-                    ArgoOperationMode.FAN,
-                    ArgoOperationMode.AUTO,
-                ]
-            )
-            .eco_mode()
-            .turbo_mode()
-            .night_mode()
-            .unit()
-            .current_temperature()
-            .target_temperature(10, 32)
-            .device_lights()
-            .eco_limit(30, 99)
-            .remote_temperature()
-            .fan_speeds(
-                [
-                    ArgoFanSpeed.AUTO,
-                    ArgoFanSpeed.LOWEST,
-                    ArgoFanSpeed.LOW,
-                    ArgoFanSpeed.MEDIUM,
-                    ArgoFanSpeed.HIGH,
-                    ArgoFanSpeed.HIGHER,
-                    ArgoFanSpeed.HIGHEST,
-                ]
-            )
-            .timers(
-                [
-                    ArgoTimerType.NO_TIMER,
-                    ArgoTimerType.DELAY_ON_OFF,
-                    ArgoTimerType.PROFILE_1,
-                    ArgoTimerType.PROFILE_2,
-                    ArgoTimerType.PROFILE_3,
-                ]
-            )
-            .build()
-        }
-        return map.get(name)
+    def from_name(name: str | None) -> ArgoDeviceType | None:
+        return DEVICE_TYPES.get(name)
 
 
-class ArgoDeviceTypeBuilder:
-    def __init__(self, name: str, port: int, update_interval: int) -> None:
-        self._deviceType = ArgoDeviceType(name, port, update_interval)
+ULISSE_ECO = ArgoDeviceType(
+    name=ARGO_DEVICE_ULISSE_ECO,
+    port=1001,
+    update_interval=60,
+    on_off=True,
+    operation_modes=(
+        ArgoOperationMode.COOL,
+        ArgoOperationMode.DRY,
+        ArgoOperationMode.FAN,
+        ArgoOperationMode.AUTO,
+    ),
+    fan_speeds=tuple(ArgoFanSpeed),
+    timers=tuple(ArgoTimerType),
+    eco_mode=True,
+    turbo_mode=True,
+    night_mode=True,
+    current_temperature=True,
+    target_temperature_range=(10, 32),
+    remote_temperature=True,
+    device_lights=True,
+    unit=True,
+    eco_limit_range=(30, 99),
+)
 
-    def build(self) -> ArgoDeviceType:
-        return self._deviceType
-
-    def on_off(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._on_off = True
-        return self
-
-    def operation_modes(
-        self, modes: list[ArgoOperationMode]
-    ) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._operation_modes = modes
-        self._deviceType._operation_mode = True
-        return self
-
-    def eco_mode(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._eco_mode = True
-        self._deviceType._preset = True
-        return self
-
-    def turbo_mode(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._turbo_mode = True
-        self._deviceType._preset = True
-        return self
-
-    def night_mode(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._night_mode = True
-        self._deviceType._preset = True
-        return self
-
-    def target_temperature(self, min: float, max: float) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._target_temperature = True
-        self._deviceType._target_temperature_min = min
-        self._deviceType._target_temperature_max = max
-        return self
-
-    def current_temperature(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._current_temperature = True
-        return self
-
-    def remote_temperature(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._remote_temperature = True
-        return self
-
-    def fan_speeds(self, modes: list[ArgoFanSpeed]) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._fan_speeds = modes
-        self._deviceType._fan_speed = True
-        return self
-
-    def flap_modes(self, modes: list[ArgoFlapMode]) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._flap_modes = modes
-        self._deviceType._flap_mode = True
-        return self
-
-    def filter_mode(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._filter_mode = True
-        return self
-
-    def timers(self, modes: list[ArgoTimerType]) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._timers = modes
-        self._deviceType._timer = True
-        return self
-
-    def set_time_and_weekday(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._set_time_and_weekday = True
-        return self
-
-    def device_lights(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._device_lights = True
-        return self
-
-    def unit(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._unit = True
-        return self
-
-    def eco_limit(self, min: float, max: float) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._eco_limit = True
-        self._deviceType._eco_limit_min = min
-        self._deviceType._eco_limit_max = max
-        return self
-
-    def firmware(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._firmware = True
-        return self
-
-    def reset(self) -> "ArgoDeviceTypeBuilder":
-        self._deviceType._reset = True
-        return self
+DEVICE_TYPES = {device_type.name: device_type for device_type in (ULISSE_ECO,)}

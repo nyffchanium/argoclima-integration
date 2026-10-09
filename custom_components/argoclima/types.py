@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from enum import IntEnum
 from enum import IntFlag
@@ -15,7 +17,7 @@ FAN_HIGHEST = "highest"
 
 
 class UnknownConversionError(Exception):
-    """Unknown type conversion"""
+    """A value has no counterpart in the target representation."""
 
 
 class ValueType(IntEnum):
@@ -24,24 +26,29 @@ class ValueType(IntEnum):
     READ_WRITE = 2
 
 
+def _convert(mapping: dict, value):
+    try:
+        return mapping[value]
+    except KeyError as err:
+        raise UnknownConversionError(value) from err
+
+
 class ArgoUnit(IntEnum):
     CELSIUS = 0
     FAHRENHEIT = 1
 
     def to_ha_unit(self) -> str:
-        if self.value == ArgoUnit.CELSIUS:
-            return UnitOfTemperature.CELSIUS
-        if self.value == ArgoUnit.FAHRENHEIT:
-            return UnitOfTemperature.FAHRENHEIT
-        raise UnknownConversionError
+        return _convert(_UNIT_TO_HA, self)
 
     @staticmethod
-    def from_ha_unit(mode: str) -> "ArgoOperationMode":
-        if mode == UnitOfTemperature.CELSIUS:
-            return ArgoUnit.CELSIUS
-        if mode == UnitOfTemperature.FAHRENHEIT:
-            return ArgoUnit.FAHRENHEIT
-        raise UnknownConversionError
+    def from_ha_unit(unit: str) -> ArgoUnit:
+        return _convert({v: k for k, v in _UNIT_TO_HA.items()}, unit)
+
+
+_UNIT_TO_HA = {
+    ArgoUnit.CELSIUS: UnitOfTemperature.CELSIUS,
+    ArgoUnit.FAHRENHEIT: UnitOfTemperature.FAHRENHEIT,
+}
 
 
 class ArgoOperationMode(IntEnum):
@@ -51,32 +58,21 @@ class ArgoOperationMode(IntEnum):
     FAN = 4
     AUTO = 5
 
-    def to_hvac_mode(self) -> str:
-        if self.value == ArgoOperationMode.COOL:
-            return HVACMode.COOL
-        if self.value == ArgoOperationMode.DRY:
-            return HVACMode.DRY
-        if self.value == ArgoOperationMode.HEAT:
-            return HVACMode.HEAT
-        if self.value == ArgoOperationMode.FAN:
-            return HVACMode.FAN_ONLY
-        if self.value == ArgoOperationMode.AUTO:
-            return HVACMode.AUTO
-        raise UnknownConversionError
+    def to_hvac_mode(self) -> HVACMode:
+        return _convert(_OPERATION_MODE_TO_HVAC, self)
 
     @staticmethod
-    def from_hvac_mode(mode: str) -> "ArgoOperationMode":
-        if mode == HVACMode.COOL:
-            return ArgoOperationMode.COOL
-        if mode == HVACMode.DRY:
-            return ArgoOperationMode.DRY
-        if mode == HVACMode.HEAT:
-            return ArgoOperationMode.HEAT
-        if mode == HVACMode.FAN_ONLY:
-            return ArgoOperationMode.FAN
-        if mode == HVACMode.AUTO:
-            return ArgoOperationMode.AUTO
-        raise UnknownConversionError
+    def from_hvac_mode(mode: str) -> ArgoOperationMode:
+        return _convert({v: k for k, v in _OPERATION_MODE_TO_HVAC.items()}, mode)
+
+
+_OPERATION_MODE_TO_HVAC = {
+    ArgoOperationMode.COOL: HVACMode.COOL,
+    ArgoOperationMode.DRY: HVACMode.DRY,
+    ArgoOperationMode.HEAT: HVACMode.HEAT,
+    ArgoOperationMode.FAN: HVACMode.FAN_ONLY,
+    ArgoOperationMode.AUTO: HVACMode.AUTO,
+}
 
 
 class ArgoFanSpeed(IntEnum):
@@ -89,43 +85,22 @@ class ArgoFanSpeed(IntEnum):
     HIGHEST = 6
 
     def to_ha_string(self) -> str:
-        if self.value == ArgoFanSpeed.AUTO:
-            return FAN_AUTO
-        if self.value == ArgoFanSpeed.LOWEST:
-            return FAN_LOWEST
-        if self.value == ArgoFanSpeed.LOW:
-            return FAN_LOW
-        if self.value == ArgoFanSpeed.MEDIUM:
-            return FAN_MEDIUM
-        if self.value == ArgoFanSpeed.HIGH:
-            return FAN_HIGH
-        if self.value == ArgoFanSpeed.HIGHER:
-            return FAN_HIGHER
-        if self.value == ArgoFanSpeed.HIGHEST:
-            return FAN_HIGHEST
-        raise UnknownConversionError
+        return _convert(_FAN_SPEED_TO_HA, self)
 
     @staticmethod
-    def from_ha_string(string: str) -> "ArgoOperationMode":
-        if string == FAN_AUTO:
-            return ArgoFanSpeed.AUTO
-        if string == FAN_LOWEST:
-            return ArgoFanSpeed.LOWEST
-        if string == FAN_LOW:
-            return ArgoFanSpeed.LOW
-        if string == FAN_MEDIUM:
-            return ArgoFanSpeed.MEDIUM
-        if string == FAN_HIGH:
-            return ArgoFanSpeed.HIGH
-        if string == FAN_HIGHER:
-            return ArgoFanSpeed.HIGHER
-        if string == FAN_HIGHEST:
-            return ArgoFanSpeed.HIGHEST
-        raise UnknownConversionError
+    def from_ha_string(value: str) -> ArgoFanSpeed:
+        return _convert({v: k for k, v in _FAN_SPEED_TO_HA.items()}, value)
 
 
-class ArgoFlapMode(IntEnum):
-    pass
+_FAN_SPEED_TO_HA = {
+    ArgoFanSpeed.AUTO: FAN_AUTO,
+    ArgoFanSpeed.LOWEST: FAN_LOWEST,
+    ArgoFanSpeed.LOW: FAN_LOW,
+    ArgoFanSpeed.MEDIUM: FAN_MEDIUM,
+    ArgoFanSpeed.HIGH: FAN_HIGH,
+    ArgoFanSpeed.HIGHER: FAN_HIGHER,
+    ArgoFanSpeed.HIGHEST: FAN_HIGHEST,
+}
 
 
 class ArgoTimerType(IntEnum):
@@ -152,11 +127,8 @@ class ArgoWeekday(IntEnum):
         return self.name.lower()
 
     @classmethod
-    def from_datetime(cls, date: datetime) -> "ArgoWeekday":
-        val = date.weekday() + 1
-        if val == 7:
-            val = 0
-        return cls(val)
+    def from_datetime(cls, date: datetime) -> ArgoWeekday:
+        return cls((date.weekday() + 1) % 7)
 
 
 class ArgoTimerWeekday(IntFlag):

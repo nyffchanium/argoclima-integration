@@ -1,6 +1,6 @@
 set_time:
   name: Set Time
-  description: Set the internal time of an Arogclima device.
+  description: Set the internal time of an Argoclima device.
   fields:
     device:
       name: Device
@@ -19,7 +19,6 @@ set_time:
       name: Weekday
       description: Weekday to set the device to. Leave empty to use current local weekday.
       required: false
-      default: Monday
       selector:
         select:
           options:

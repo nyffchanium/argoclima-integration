@@ -4,36 +4,37 @@ import asyncio
 import logging
 import re
 from dataclasses import dataclass
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from email.utils import format_datetime
 from ipaddress import ip_address
 from urllib.parse import parse_qsl
 from urllib.parse import urlsplit
 
-from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
-from custom_components.argoclima.const import CONF_CPU_ID
-from custom_components.argoclima.const import CONF_DEVICE_TYPE
-from custom_components.argoclima.const import CONF_DEVICES
-from custom_components.argoclima.const import CONF_HUB_ID
-from custom_components.argoclima.const import CONF_HOST
-from custom_components.argoclima.const import CONF_ROLE
-from custom_components.argoclima.const import DOMAIN
-from custom_components.argoclima.const import DUMMY_SERVER_BIND_HOST
-from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
-from custom_components.argoclima.const import HOST_ONLY_CPU_ID_PREFIX
-from custom_components.argoclima.data import ArgoData
-from custom_components.argoclima.data import InvalidResponseFormatError
-from custom_components.argoclima.device_type import ArgoDeviceType
-from custom_components.argoclima.runtime import ArgoHubRuntime
-from custom_components.argoclima.runtime import async_entry_role
-from custom_components.argoclima.runtime import async_update_hub_device
-from custom_components.argoclima.runtime import hub_entry_for_id
-from custom_components.argoclima.runtime import match_hub_device_id
-from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
+from .const import ARGO_DEVICE_ULISSE_ECO
+from .const import CONF_CPU_ID
+from .const import CONF_DEVICE_TYPE
+from .const import CONF_DEVICES
+from .const import CONF_HOST
+from .const import CONF_HUB_ID
+from .const import CONF_ROLE
+from .const import DOMAIN
+from .const import DUMMY_SERVER_BIND_HOST
+from .const import ENTRY_ROLE_DEVICE
+from .const import HOST_ONLY_CPU_ID_PREFIX
+from .data import ArgoData
+from .data import InvalidResponseFormatError
+from .device_type import ArgoDeviceType
+from .runtime import ArgoHubRuntime
+from .runtime import async_entry_role
+from .runtime import async_update_hub_device
+from .runtime import hub_entry_for_id
+from .runtime import match_hub_device_id
+from .update_coordinator import ArgoDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -189,10 +190,9 @@ class ArgoDummyServer:
 
 def async_dummy_server_running(hass: HomeAssistant) -> bool:
     """Return true if a dummy server entry is currently loaded."""
-    domain_data = hass.data.get(DOMAIN, {})
     return any(
-        isinstance(value, ArgoDummyServer) or isinstance(value, ArgoHubRuntime)
-        for value in domain_data.values()
+        isinstance(value, ArgoHubRuntime)
+        for value in hass.data.get(DOMAIN, {}).values()
     )
 
 
@@ -253,12 +253,9 @@ def _find_device_entry(
             return entry
 
         if (
-            (
-                entry.data.get(CONF_CPU_ID) is None
-                or str(entry.data.get(CONF_CPU_ID)).startswith(HOST_ONLY_CPU_ID_PREFIX)
-            )
-            and entry.data.get(CONF_HOST) == push_data.host
-        ):
+            entry.data.get(CONF_CPU_ID) is None
+            or str(entry.data.get(CONF_CPU_ID)).startswith(HOST_ONLY_CPU_ID_PREFIX)
+        ) and entry.data.get(CONF_HOST) == push_data.host:
             ip_only_match = entry
 
     return ip_only_match
@@ -300,9 +297,7 @@ def _async_update_entry_identity(
         )
 
 
-def _async_handle_hub_child_push(
-    hass: HomeAssistant, push_data: ArgoPushData
-) -> bool:
+def _async_handle_hub_child_push(hass: HomeAssistant, push_data: ArgoPushData) -> bool:
     if push_data.hub_id is None:
         return False
 
@@ -325,9 +320,6 @@ def _async_handle_hub_child_push(
             CONF_DEVICE_TYPE, push_data.device_type
         ),
     }
-    # device_id is the device's permanent key - it never changes, even
-    # once a device that started out identified only by host (e.g.
-    # manually added) reports its real CPU_ID for the first time.
     async_update_hub_device(hass, hub_entry, device_data)
 
     runtime = hass.data.get(DOMAIN, {}).get(hub_entry.entry_id)
@@ -361,14 +353,13 @@ async def _async_start_discovery_flow(
         return
 
     flow_manager = hass.config_entries.flow
-    if hasattr(flow_manager, "async_progress_by_handler"):
-        for flow in flow_manager.async_progress_by_handler(DOMAIN):
-            if flow.get("context", {}).get("unique_id") == push_data.cpu_id:
-                _LOGGER.debug(
-                    "Argoclima discovery flow for CPU_ID %s already in progress",
-                    push_data.cpu_id,
-                )
-                return
+    for flow in flow_manager.async_progress_by_handler(DOMAIN):
+        if flow.get("context", {}).get("unique_id") == push_data.cpu_id:
+            _LOGGER.debug(
+                "Argoclima discovery flow for CPU_ID %s already in progress",
+                push_data.cpu_id,
+            )
+            return
 
     _LOGGER.info(
         "Starting Argoclima discovery flow for CPU_ID %s host %s",
@@ -442,7 +433,9 @@ async def _read_http_request(
                 ) from err
             return None
         except asyncio.LimitOverrunError as err:
-            raise InvalidDummyServerRequest("request headers exceeded stream limit") from err
+            raise InvalidDummyServerRequest(
+                "request headers exceeded stream limit"
+            ) from err
 
         if len(header) > REQUEST_HEADER_LIMIT:
             raise InvalidDummyServerRequest(
@@ -496,7 +489,9 @@ def _content_length(value: str | None) -> int:
     try:
         return int(value)
     except ValueError as err:
-        raise InvalidDummyServerRequest("content-length header was not an integer") from err
+        raise InvalidDummyServerRequest(
+            "content-length header was not an integer"
+        ) from err
 
 
 def _preview_bytes(value: bytes) -> str:
@@ -542,11 +537,8 @@ def _push_data_from_params(
     if host is None:
         return None
 
-    # The device self-reports its LAN IP in the "IP" query param. Trusting
-    # that value blindly would let anyone on the network claim an arbitrary
-    # IP and redirect control traffic for a device to it. A TCP connection's
-    # source address can't be spoofed without completing the handshake, so
-    # require it to match what the device claims.
+    # Only trust the reported IP if it matches the connection source, otherwise
+    # anyone on the network could redirect control traffic for a device.
     if peer_ip is None or host != peer_ip:
         _LOGGER.warning(
             "Argoclima UI_FLG push ignored; claimed IP %s did not match "
@@ -575,9 +567,7 @@ def _valid_host(value: str | None) -> str | None:
         parsed = ip_address(value.strip())
     except ValueError:
         return None
-    # Normalize IPv4-mapped IPv6 addresses (e.g. "::ffff:10.0.0.5") so a
-    # peer address read off the socket compares equal to the plain IPv4
-    # form a device reports in its "IP" query param.
+    # Dual-stack sockets report IPv4 peers as IPv4-mapped IPv6 addresses.
     mapped = getattr(parsed, "ipv4_mapped", None)
     if mapped is not None:
         parsed = mapped
@@ -592,7 +582,7 @@ def _peer_host(writer: asyncio.StreamWriter) -> str | None:
 
 
 def _ntp_response() -> str:
-    return datetime.now(timezone.utc).strftime(
+    return datetime.now(UTC).strftime(
         "NTP %Y-%m-%dT%H:%M:%S+00:00 UI SERVER (M.A.V. srl)"
     )
 
@@ -603,7 +593,7 @@ def _fallback_response(command: str) -> str:
 
 def _build_http_response(body: str) -> bytes:
     encoded_body = body.encode("utf-8")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     headers = (
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/html; charset=UTF-8\r\n"

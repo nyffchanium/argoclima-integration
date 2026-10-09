@@ -15,7 +15,7 @@
           "server": "Argoclima Dummy Server einrichten",
           "device": "Gerät manuell einrichten"
         },
-        "description": "Wähle, ob der integrierte Dummy-Cloud-Listener gestartet oder ein Gerät manuell hinzugefügt werden soll.",
+        "description": "Richte den integrierten Dummy-Server ein oder füge ein Gerät manuell hinzu.",
         "title": "Argoclima"
       },
       "server": {
@@ -61,8 +61,7 @@
       "user": {
         "data": {
           "hub_id": "Dummy-Server-Hub",
-          "host": "IP oder Hostname des Geräts",
-          "name": "Gib dem Gerät einen Namen"
+          "host": "IP oder Hostname des Geräts"
         },
         "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: {docs_url}"
       }

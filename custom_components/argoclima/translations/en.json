@@ -15,7 +15,7 @@
           "server": "Set up Argoclima Dummy Server",
           "device": "Set up device manually"
         },
-        "description": "Choose whether to run the in-tree dummy cloud listener or add a device manually.",
+        "description": "Set up the built-in dummy server or add a device manually.",
         "title": "Argoclima"
       },
       "server": {
@@ -61,8 +61,7 @@
       "user": {
         "data": {
           "hub_id": "Dummy server hub",
-          "host": "IP or hostname of the device",
-          "name": "Give the device a name"
+          "host": "IP or hostname of the device"
         },
         "description": "If you need help with the configuration have a look here: {docs_url}"
       }

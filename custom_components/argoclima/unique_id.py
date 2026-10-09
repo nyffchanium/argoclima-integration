@@ -1,16 +1,10 @@
-"""Entity unique_id helpers.
-
-Kept free of Home Assistant imports so the id formats (current and
-legacy) can be tested directly.
-"""
 from __future__ import annotations
 
 import hashlib
 import uuid
 from collections.abc import Collection
 
-# Every entity name passed to ArgoEntity.__init__. These are also part of
-# the legacy unique_id formats, so renaming one orphans its entities.
+# Part of every unique_id format; renaming one orphans its entities.
 ENTITY_NAMES = (
     "Climate",
     "Device Light",
@@ -38,24 +32,18 @@ def legacy_unique_id_migrations(
 ) -> dict[str, str]:
     """Map legacy unique_ids of a standalone device entry to the current ones.
 
-    Two older formats exist for standalone devices:
-    - nyffchanium/argoclima-integration (up to 1.1.4):
+    Legacy formats:
+    - up to 1.1.4 (nyffchanium/argoclima-integration):
       md5(entry_id + "<title> <entity name>")
-    - interim fork versions: md5("<cpu_id>:<entity name>") once the
-      CPU_ID was known
+    - interim versions: md5("<cpu_id>:<entity name>")
 
-    Only ids present in `registered_ids` are migrated, at most one per
-    entity, and never onto an id that's already registered (that would
-    be rejected by the entity registry - the user already has a current
-    entity in that case, which is left alone).
+    Entities that already have a current unique_id are left untouched.
     """
     migrations = {}
     for name in ENTITY_NAMES:
         new_id = entity_unique_id(entry_id, name)
         if new_id in registered_ids:
             continue
-        # Most recent format first, so the entity the user last had
-        # wins if more than one legacy entity is still registered.
         candidates = []
         if cpu_id:
             candidates.append(entity_unique_id(cpu_id, name))

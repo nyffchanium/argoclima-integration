@@ -5,21 +5,22 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from custom_components.argoclima.const import CONF_CPU_ID
-from custom_components.argoclima.const import CONF_DEVICE_TYPE
-from custom_components.argoclima.const import CONF_DEVICES
-from custom_components.argoclima.const import CONF_HOST
-from custom_components.argoclima.const import CONF_HUB_ID
-from custom_components.argoclima.const import CONF_ROLE
-from custom_components.argoclima.const import DOMAIN
-from custom_components.argoclima.const import DUMMY_SERVER_DEVICE_IDENTIFIER_PREFIX
-from custom_components.argoclima.const import DUMMY_SERVER_UNIQUE_ID_PREFIX
-from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
-from custom_components.argoclima.const import ENTRY_ROLE_HUB
-from custom_components.argoclima.device_type import ArgoDeviceType
-from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
+from .const import CONF_CPU_ID
+from .const import CONF_DEVICE_TYPE
+from .const import CONF_DEVICES
+from .const import CONF_HOST
+from .const import CONF_HUB_ID
+from .const import CONF_ROLE
+from .const import DOMAIN
+from .const import DUMMY_SERVER_DEVICE_IDENTIFIER_PREFIX
+from .const import DUMMY_SERVER_UNIQUE_ID_PREFIX
+from .const import ENTRY_ROLE_DEVICE
+from .const import ENTRY_ROLE_HUB
+from .device_type import ArgoDeviceType
+from .update_coordinator import ArgoDataUpdateCoordinator
 
 
 @dataclass
@@ -57,12 +58,6 @@ def runtime_devices_for_entry(
         return [
             ArgoRuntimeDevice(
                 entry_id=entry.entry_id,
-                # A standalone device's own config entry never gets
-                # recreated, so its entry_id is already a permanent,
-                # unique identity - no need for anything derived from
-                # data that can change later (like the CPU_ID, which
-                # may only become known after this device has already
-                # been set up).
                 device_id=entry.entry_id,
                 title=entry.title,
                 data=entry.data,
@@ -107,20 +102,10 @@ def match_hub_device_id(
     cpu_id: str | None,
     host: str | None,
 ) -> str | None:
-    """Find the permanent device key of an existing hub-child device.
+    """Return the key of the stored hub device matching a CPU_ID or host.
 
-    Each hub-child device keeps one permanent key for its whole
-    lifetime (assigned once, the first time it's added) - that key is
-    what unique_id/device identifiers are built from, so it must never
-    be swapped out later. This only looks the key up; it never
-    allocates a new one (see `async_update_hub_device` for that).
-
-    Matches by CPU_ID first, since that's the device's real identity
-    once it's known. Falls back to matching by host, but only against
-    a device that hasn't been identified by a CPU_ID yet - that's what
-    lets a manually-added device (known only by its IP at first) keep
-    its original key once it starts pushing its real CPU_ID, instead
-    of being treated as a brand new device.
+    A host only matches devices whose CPU_ID is still unknown, so a manually
+    added device keeps its key once it reports its CPU_ID.
     """
     if cpu_id is not None:
         for existing_id, existing in devices.items():
@@ -139,11 +124,9 @@ def match_hub_device_id(
 def async_update_hub_device(
     hass: HomeAssistant, hub_entry: ConfigEntry, device_data: Mapping[str, Any]
 ) -> str:
-    """Create or update a hub-child device record.
+    """Create or update a hub device record and return its key.
 
-    Reuses the device's existing permanent key if one is found (see
-    `match_hub_device_id`), otherwise allocates a new one. Returns the
-    key the device is stored under.
+    The key is the device's permanent identity and never changes once assigned.
     """
     devices = dict(hub_entry.data.get(CONF_DEVICES, {}))
     device_id = (
@@ -164,12 +147,6 @@ def async_update_hub_device(
 def _remove_duplicate_hosts(
     devices: dict[str, dict[str, Any]], device_id: str, host: str | None
 ) -> None:
-    """Drop any other device record pointing at the same host.
-
-    Two different permanent keys should never end up representing the
-    same physical device/host at once; this cleans up the rare case
-    that could otherwise happen (e.g. a stale record left behind).
-    """
     if host is None:
         return
     for existing_id, existing_data in list(devices.items()):

@@ -1,76 +1,41 @@
-from collections.abc import Callable
-
-from custom_components.argoclima.device_type import InvalidOperationError
-from custom_components.argoclima.entity import ArgoEntity
-from custom_components.argoclima.runtime import ArgoRuntimeDevice
-from custom_components.argoclima.runtime import runtime_devices_for_entry
 from homeassistant.components.number import NumberEntity
 from homeassistant.components.number import NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .entity import ArgoEntity
+from .runtime import ArgoRuntimeDevice
+from .runtime import runtime_devices_for_entry
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_devices: Callable[[list[NumberEntity]], None],
-):
-    async_add_devices(
-        [ArgoEcoLimitNumber(device) for device in runtime_devices_for_entry(hass, entry)]
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
+    async_add_entities(
+        ArgoEcoLimitNumber(device)
+        for device in runtime_devices_for_entry(hass, entry)
+        if device.type.eco_limit
     )
 
 
 class ArgoEcoLimitNumber(ArgoEntity, NumberEntity):
-    def __init__(self, device: ArgoRuntimeDevice):
-        ArgoEntity.__init__(
-            self,
-            "Eco Mode Power Limit",
-            device,
-            None,
-            EntityCategory.CONFIG,
-        )
-        NumberEntity.__init__(self)
+    _attr_icon = "mdi:leaf"
+    _attr_mode = NumberMode.BOX
+    _attr_native_step = 1
+    _attr_native_unit_of_measurement = PERCENTAGE
+
+    def __init__(self, device: ArgoRuntimeDevice) -> None:
+        super().__init__("Eco Mode Power Limit", device, None, EntityCategory.CONFIG)
+        self._attr_native_min_value = device.type.eco_limit_min
+        self._attr_native_max_value = device.type.eco_limit_max
 
     @property
-    def icon(self) -> str:
-        return "mdi:leaf"
-
-    @property
-    def native_value(self) -> float:
-        if not self._type.eco_limit:
-            raise InvalidOperationError
+    def native_value(self) -> int | None:
         return self.coordinator.data.eco_limit
 
-    @property
-    def native_min_value(self) -> int:
-        if not self._type.eco_limit:
-            raise InvalidOperationError
-        return self._type.eco_limit_min
-
-    @property
-    def native_max_value(self) -> int:
-        if not self._type.eco_limit:
-            raise InvalidOperationError
-        return self._type.eco_limit_max
-
-    @property
-    def native_step(self) -> int:
-        if not self._type.eco_limit:
-            raise InvalidOperationError
-        return 1
-
-    @property
-    def native_unit_of_measurement(self) -> str:
-        return PERCENTAGE
-
-    @property
-    def mode(self) -> NumberMode:
-        return NumberMode.BOX
-
     async def async_set_native_value(self, value: float) -> None:
-        if not self._type.eco_limit:
-            raise InvalidOperationError
         self.coordinator.data.eco_limit = int(value)
         await self.coordinator.async_request_refresh()

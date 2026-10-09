@@ -1,13 +1,7 @@
-NAME = "Argoclima"
-VERSION = "1.2.0"
-DOCUMENTATION_URL = "https://github.com/Gadund/argoclima-integration"
-ISSUE_URL = f"{DOCUMENTATION_URL}/issues"
-
 DOMAIN = "argoclima"
-DOMAIN_DATA = f"{DOMAIN}_data"
 MANUFACTURER = "Argoclima S.p.A."
+DOCUMENTATION_URL = "https://github.com/Gadund/argoclima-integration"
 
-# Configuration and options
 CONF_DEVICE_TYPE = "device"
 CONF_NAME = "name"
 CONF_HOST = "host"
@@ -27,17 +21,7 @@ DUMMY_SERVER_DEFAULT_PORT = 8080
 DUMMY_SERVER_DEVICE_IDENTIFIER_PREFIX = "dummy_server_hub"
 DUMMY_SERVER_UNIQUE_ID_PREFIX = "dummy_server"
 
-# Internal stuff
 ARGO_DEVICE_ULISSE_ECO = "Ulisse 13 DCI Eco WiFi"
 ARGO_DEVICES = [ARGO_DEVICE_ULISSE_ECO]
-API_UPDATE_ATTEMPTS = 3
 
-STARTUP_MESSAGE = f"""
--------------------------------------------------------------------
-{NAME}
-Version: {VERSION}
-This is a custom integration!
-If you have any issues with this you need to open an issue here:
-{ISSUE_URL}
--------------------------------------------------------------------
-"""
+API_UPDATE_ATTEMPTS = 3
