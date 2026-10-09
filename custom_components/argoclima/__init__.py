@@ -2,7 +2,9 @@ import asyncio
 import logging
 
 import homeassistant.helpers.device_registry as dr
+import homeassistant.helpers.entity_registry as er
 from custom_components.argoclima.api import ArgoApiClient
+from custom_components.argoclima.const import CONF_CPU_ID
 from custom_components.argoclima.const import CONF_DEVICE_TYPE
 from custom_components.argoclima.const import CONF_DEVICES
 from custom_components.argoclima.const import CONF_HUB_ID
@@ -22,6 +24,7 @@ from custom_components.argoclima.runtime import ArgoRuntimeDevice
 from custom_components.argoclima.runtime import async_entry_role
 from custom_components.argoclima.runtime import dummy_server_hub_id
 from custom_components.argoclima.service import setup_service
+from custom_components.argoclima.unique_id import legacy_unique_id_migrations
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -77,6 +80,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
+    _async_migrate_legacy_unique_ids(hass, entry)
     coordinator.platforms.extend(type.platforms)
     await hass.config_entries.async_forward_entry_setups(entry, type.platforms)
 
@@ -165,6 +169,36 @@ async def async_remove_config_entry_device(
     )
 
     return True
+
+
+def _async_migrate_legacy_unique_ids(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Move entities of older versions onto the current unique_id format.
+
+    Keeps entity ids, history, names and areas when switching over from
+    nyffchanium/argoclima-integration or an earlier fork version. Only
+    standalone device entries need this - hub entries didn't exist there.
+    """
+    registry = er.async_get(hass)
+    registry_entries = er.async_entries_for_config_entry(registry, entry.entry_id)
+    migrations = legacy_unique_id_migrations(
+        entry.entry_id,
+        entry.title,
+        entry.data.get(CONF_CPU_ID),
+        {registry_entry.unique_id for registry_entry in registry_entries},
+    )
+    for registry_entry in registry_entries:
+        new_unique_id = migrations.get(registry_entry.unique_id)
+        if new_unique_id is None:
+            continue
+        _LOGGER.info(
+            "Migrating unique_id of %s from %s to %s",
+            registry_entry.entity_id,
+            registry_entry.unique_id,
+            new_unique_id,
+        )
+        registry.async_update_entity(
+            registry_entry.entity_id, new_unique_id=new_unique_id
+        )
 
 
 def _async_set_push_updates_enabled(hass: HomeAssistant, enabled: bool) -> None:

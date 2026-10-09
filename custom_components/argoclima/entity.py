@@ -1,9 +1,7 @@
-import hashlib
-import uuid
-
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import MANUFACTURER
 from custom_components.argoclima.runtime import ArgoRuntimeDevice
+from custom_components.argoclima.unique_id import entity_unique_id
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -28,11 +26,7 @@ class ArgoEntity(CoordinatorEntity):
 
     @property
     def unique_id(self) -> str:
-        return uuid.UUID(
-            hashlib.md5(
-                f"{self._device.device_id}:{self._entity_name}".encode("utf-8")
-            ).hexdigest()
-        ).hex
+        return entity_unique_id(self._device.device_id, self._entity_name)
 
     @property
     def available(self) -> bool:
