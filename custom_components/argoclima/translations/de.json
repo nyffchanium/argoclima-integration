@@ -32,7 +32,7 @@
           "host": "IP oder Hostname des Geräts",
           "name": "Gib dem Gerät einen Namen"
         },
-        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: https://github.com/nyffchanium/argoclima-integration",
+        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: https://github.com/Gadund/argoclima-integration",
         "title": "Argoclima"
       },
       "discovery_confirm": {
@@ -64,7 +64,7 @@
           "host": "IP oder Hostname des Geräts",
           "name": "Gib dem Gerät einen Namen"
         },
-        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: https://github.com/nyffchanium/argoclima-integration"
+        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: https://github.com/Gadund/argoclima-integration"
       }
     }
   }

@@ -22,6 +22,8 @@ jobs:
         run: |
           yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
             "${{ github.workspace }}/custom_components/argoclima/manifest.json"
+          sed -i 's/^VERSION = .*/VERSION = "${{ github.event.release.tag_name }}"/' \
+            "${{ github.workspace }}/custom_components/argoclima/const.py"
 
       - name: "ZIP the integration directory"
         shell: "bash"

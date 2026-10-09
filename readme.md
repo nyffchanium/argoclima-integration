@@ -8,14 +8,15 @@
 
 [![hacs][hacsbadge]][hacs]
 [![Project Maintenance][maintenance-shield]][user_profile]
-[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 [![Discord][discord-shield]][discord]
 [![Community Forum][forum-shield]][forum]
 
 # Home Assistant Integration for Argoclima (Argo) climate control devices
 
-This is an unofficial Home Assistant integration I wrote for my Argo Ulisse Eco WiFi, using the undocumented API used by the webapp.
+This is an unofficial Home Assistant integration for the Argo Ulisse Eco WiFi, using the undocumented API used by the webapp. It was originally written by [@nyffchanium](https://github.com/nyffchanium).
+
+> **Maintained fork.** The [original repository][argoclima] is no longer actively maintained and stopped working with Home Assistant 2026.10. This fork includes the open pull requests of the original and keeps it working. See [Switching from the original integration](#switching-from-the-original-integration).
 
 ## Supported devices and features
 
@@ -51,13 +52,39 @@ At the moment, only the device I own is supported. There is a good chance that o
 
 ## Installation
 
+### HACS
+
+1. In HACS, open the menu (⋮) -> "Custom repositories".
+2. Add `https://github.com/Gadund/argoclima-integration` with type "Integration".
+3. Search for "Argoclima", download it and restart Home Assistant.
+4. In the HA UI go to "Settings" -> "Devices & services", click "Add integration" and search for "Argoclima".
+
+### Manual
+
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 2. If you do not have a `custom_components` directory (folder) there, you need to create it.
 3. In the `custom_components` directory (folder) create a new folder called `argoclima`.
 4. Download _all_ the files from the `custom_components/argoclima/` directory (folder) in this repository.
 5. Place the files you downloaded in the new directory (folder) you created.
 6. Restart Home Assistant
-7. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Argoclima"
+7. In the HA UI go to "Settings" -> "Devices & services", click "Add integration" and search for "Argoclima"
+
+### Switching from the original integration
+
+Your existing devices and entities are kept - no need to set anything up again.
+
+1. In HACS, remove the original Argoclima integration. This only removes its files; your devices stay configured in Home Assistant.
+2. Add this repository as described under [HACS](#hacs), download it and restart Home Assistant.
+
+Existing entities are migrated automatically, keeping their entity ids, history, names, areas and automations. If you end up with duplicated entities (ending in `_2`) instead, please [open an issue](https://github.com/Gadund/argoclima-integration/issues) and include the log with this enabled in `configuration.yaml`:
+
+```yaml
+logger:
+  logs:
+    custom_components.argoclima: info
+```
+
+As a last resort, deleting the integration and adding your devices again always works, but loses history and requires adjusting automations.
 
 ## Adding your device to Home Assistant
 
@@ -142,24 +169,22 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [black]: https://github.com/psf/black
 [black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
 [project-status-shield]: https://img.shields.io/badge/project%20status-released-brightgreen.svg?style=for-the-badge
-[buymecoffee]: https://www.buymeacoffee.com/nyffchanium
-[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
-[commits-shield]: https://img.shields.io/github/commit-activity/y/nyffchanium/argoclima-integration.svg?style=for-the-badge
-[commits]: https://github.com/nyffchanium/argoclima-integration/commits/master
+[commits-shield]: https://img.shields.io/github/commit-activity/y/Gadund/argoclima-integration.svg?style=for-the-badge
+[commits]: https://github.com/Gadund/argoclima-integration/commits/master
 [hacs]: https://hacs.xyz
-[hacsbadge]: https://img.shields.io/badge/HACS-Default-brightgreen.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
 [discord]: https://discord.gg/Qa5fW2R
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
 [exampleimg]: example.png
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
 [forum]: https://community.home-assistant.io/
-[license]: https://github.com/nyffchanium/argoclima-integration/blob/master/LICENSE
-[license-shield]: https://img.shields.io/github/license/nyffchanium/argoclima-integration.svg?style=for-the-badge
+[license]: https://github.com/Gadund/argoclima-integration/blob/master/LICENSE
+[license-shield]: https://img.shields.io/github/license/Gadund/argoclima-integration.svg?style=for-the-badge
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/badge/maintainer-%40nyffchanium-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/nyffchanium/argoclima-integration.svg?style=for-the-badge
-[releases]: https://github.com/nyffchanium/argoclima-integration/releases
-[user_profile]: https://github.com/nyffchanium
+[maintenance-shield]: https://img.shields.io/badge/maintainer-%40Gadund-blue.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/release/Gadund/argoclima-integration.svg?style=for-the-badge
+[releases]: https://github.com/Gadund/argoclima-integration/releases
+[user_profile]: https://github.com/Gadund
 [cookie_cutter]: https://github.com/oncleben31/cookiecutter-homeassistant-custom-component
 [integration_blueprint]: https://github.com/custom-components/integration_blueprint

@@ -8,10 +8,11 @@
 
 [![hacs][hacsbadge]][hacs]
 [![Project Maintenance][maintenance-shield]][user_profile]
-[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 [![Discord][discord-shield]][discord]
 [![Community Forum][forum-shield]][forum]
+
+> **Maintained fork** of [@nyffchanium](https://github.com/nyffchanium)'s [argoclima-integration][argoclima], which is no longer actively maintained and stopped working with Home Assistant 2026.10. Switching from the original keeps your devices and entities - see the [README](https://github.com/Gadund/argoclima-integration#switching-from-the-original-integration).
 
 ## Supported devices and features
 
@@ -50,7 +51,7 @@ At the moment, only the device I own is supported. There is a good chance that o
 ## Installation
 
 1. Click install.
-1. In the HA UI go to "Configuration" -> "Integrations" click "+" and search for "Argoclima".
+1. In the HA UI go to "Settings" -> "Devices & services", click "Add integration" and search for "Argoclima".
 
 {% endif %}
 
@@ -65,7 +66,7 @@ Follow the instructions provided with the device to connect it to your network. 
 ### Configuration
 
 Select your device type, give it a name and enter the IP. The IP can be changed later.\
-![configuration](https://raw.githubusercontent.com/nyffchanium/argoclima-integration/master/config.png)
+![configuration](https://raw.githubusercontent.com/Gadund/argoclima-integration/master/config.png)
 
 ## Using the Remote Sensor
 
@@ -123,6 +124,8 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 
 ## Credits
 
+This is a fork of [@nyffchanium](https://github.com/nyffchanium)'s [argoclima-integration](https://github.com/nyffchanium/argoclima-integration). If you'd like to support the original author, you can [buy them a coffee](https://www.buymeacoffee.com/nyffchanium).
+
 The dummy server has been contributed by [@lallinger](https://github.com/lallinger).
 
 This project was initially generated from [@oncleben31](https://github.com/oncleben31)'s [Home Assistant Custom Component Cookiecutter][cookie_cutter] template.
@@ -135,24 +138,22 @@ Code template was mainly taken from [@Ludeeus](https://github.com/ludeeus)'s [in
 [black]: https://github.com/psf/black
 [black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
 [project-status-shield]: https://img.shields.io/badge/project%20status-released-brightgreen.svg?style=for-the-badge
-[buymecoffee]: https://www.buymeacoffee.com/nyffchanium
-[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
-[commits-shield]: https://img.shields.io/github/commit-activity/y/nyffchanium/argoclima-integration.svg?style=for-the-badge
-[commits]: https://github.com/nyffchanium/argoclima-integration/commits/master
+[commits-shield]: https://img.shields.io/github/commit-activity/y/Gadund/argoclima-integration.svg?style=for-the-badge
+[commits]: https://github.com/Gadund/argoclima-integration/commits/master
 [hacs]: https://hacs.xyz
-[hacsbadge]: https://img.shields.io/badge/HACS-Default-brightgreen.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
 [discord]: https://discord.gg/Qa5fW2R
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
 [exampleimg]: example.png
 [forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
 [forum]: https://community.home-assistant.io/
-[license]: https://github.com/nyffchanium/argoclima-integration/blob/master/LICENSE
-[license-shield]: https://img.shields.io/github/license/nyffchanium/argoclima-integration.svg?style=for-the-badge
+[license]: https://github.com/Gadund/argoclima-integration/blob/master/LICENSE
+[license-shield]: https://img.shields.io/github/license/Gadund/argoclima-integration.svg?style=for-the-badge
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/badge/maintainer-%40nyffchanium-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/nyffchanium/argoclima-integration.svg?style=for-the-badge
-[releases]: https://github.com/nyffchanium/argoclima-integration/releases
-[user_profile]: https://github.com/nyffchanium
+[maintenance-shield]: https://img.shields.io/badge/maintainer-%40Gadund-blue.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/release/Gadund/argoclima-integration.svg?style=for-the-badge
+[releases]: https://github.com/Gadund/argoclima-integration/releases
+[user_profile]: https://github.com/Gadund
 [cookie_cutter]: https://github.com/oncleben31/cookiecutter-homeassistant-custom-component
 [integration_blueprint]: https://github.com/custom-components/integration_blueprint
