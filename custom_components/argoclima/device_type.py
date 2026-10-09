@@ -93,7 +93,7 @@ class ArgoDeviceType:
 ULISSE_ECO = ArgoDeviceType(
     name=ARGO_DEVICE_ULISSE_ECO,
     port=1001,
-    update_interval=60,
+    update_interval=30,
     on_off=True,
     operation_modes=(
         ArgoOperationMode.COOL,

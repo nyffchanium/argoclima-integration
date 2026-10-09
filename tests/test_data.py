@@ -26,6 +26,26 @@ def test_parse_response() -> None:
     assert data.unit is ArgoUnit.CELSIUS
 
 
+def test_parse_response_from_device() -> None:
+    data = ArgoData(ULISSE_ECO)
+    data.parse_response_parameter_string(
+        "180,226,0,4,3,0,1,0,0,0,0,0,0,0,101,0,101,0,0,0,0,N,75,1416,0,"
+        "N,N,N,N,N,N,N,N,N,N,N,N,N,N"
+    )
+
+    assert data.target_temp == 18.0
+    assert data.temp == 22.6
+    assert data.operating is False
+    assert data.mode is ArgoOperationMode.FAN
+    assert data.fan is ArgoFanSpeed.MEDIUM
+    assert data.remote_temperature is True
+    assert data.eco is False
+    assert data.light is False
+    assert data.eco_limit == 75
+    assert data.firmware_version == 1416
+    assert data.unit is ArgoUnit.CELSIUS
+
+
 def test_values_are_none_before_first_response() -> None:
     data = ArgoData(ULISSE_ECO)
 
