@@ -1,55 +1,51 @@
----
-name: "Bug report"
-description: "Report a bug with the integration"
-labels: "Bug"
+name: Bug report
+description: Report a problem with the integration
+labels: bug
 body:
-- type: markdown
-  attributes:
-    value: Before you open a new issue, search through the existing issues to see if others have had the same problem.
-- type: textarea
-  attributes:
-    label: "System Health details"
-    description: "Paste the data from the System Health card in Home Assistant (https://www.home-assistant.io/more-info/system-health#github-issues)"
-  validations:
-    required: true
-- type: checkboxes
-  attributes:
-    label: Checklist
-    options:
-      - label: I have enabled debug logging for my installation.
-        required: true
-      - label: I have filled out the issue template to the best of my ability.
-        required: true
-      - label: This issue only contains 1 issue (if you have multiple issues, open one issue for each issue).
-        required: true
-      - label: This issue is not a duplicate issue of any [previous issues](https://github.com/Gadund/argoclima-integration/issues?q=is%3Aissue+label%3A%22Bug%22+)..
-        required: true
-- type: textarea
-  attributes:
-    label: "Describe the issue"
-    description: "A clear and concise description of what the issue is."
-  validations:
-    required: true
-- type: textarea
-  attributes:
-    label: Reproduction steps
-    description: "Without steps to reproduce, it will be hard to fix. It is very important that you fill out this part. Issues without it will be closed."
-    value: |
-      1.
-      2.
-      3.
-      ...
-  validations:
-    required: true
-- type: textarea
-  attributes:
-    label: "Debug logs"
-    description: "To enable debug logs check this https://www.home-assistant.io/integrations/logger/, this **needs** to include _everything_ from startup of Home Assistant to the point where you encounter the issue."
-    render: text
-  validations:
-    required: true
-
-- type: textarea
-  attributes:
-    label: "Diagnostics dump"
-    description: "Drag the diagnostics dump file here. (see https://www.home-assistant.io/integrations/diagnostics/ for info)"
+  - type: markdown
+    attributes:
+      value: Please search the [existing issues](https://github.com/Gadund/argoclima-integration/issues) first.
+  - type: input
+    attributes:
+      label: Integration version
+      placeholder: "1.2.0"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.10.0"
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Setup
+      options:
+        - Device only (polling)
+        - Device with dummy server
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Describe the issue
+      description: What happened, and what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+  - type: textarea
+    attributes:
+      label: Debug logs
+      description: |
+        Enable debug logging, reproduce the issue and paste the relevant log lines:
+        ```yaml
+        logger:
+          logs:
+            custom_components.argoclima: debug
+        ```
+      render: text

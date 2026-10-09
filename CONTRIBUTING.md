@@ -1,87 +1,43 @@
-# Contribution guidelines
+# Contributing
 
-Contributing to this project should be as easy and transparent as possible, whether it's:
+Bug reports, device support and pull requests are welcome.
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
+## Reporting issues
 
-## Github is used for everything
+Use the [issue templates](https://github.com/Gadund/argoclima-integration/issues/new/choose) and include debug logs:
 
-Github is used to host code, to track issues and feature requests, as well as accept pull requests.
-
-Pull requests are the best way to propose changes to the codebase.
-
-1. Fork the repo and create your branch from `master`.
-2. If you've changed something, update the documentation.
-3. Make sure your code lints (using `scripts/lint`).
-4. Test you contribution.
-5. Issue that pull request!
-
-## Any contributions you make will be under the MIT Software License
-
-In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
-
-## Report bugs using Github's [issues](../../issues)
-
-GitHub issues are used to track public bugs.
-Report a bug by [opening a new issue](../../issues/new/choose); it's that easy!
-
-## Write bug reports with detail, background, and sample code
-
-**Great Bug Reports** tend to have:
-
-- A quick summary and/or background
-- Steps to reproduce
-  - Be specific!
-  - Give sample code if you can.
-- What you expected would happen
-- What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
-
-People *love* thorough bug reports. I'm not even kidding.
-
-## Use a Consistent Coding Style
-
-Use [black](https://github.com/ambv/black) to make sure the code follows the style.
-
-Or use the `pre-commit` settings implemented in this repository
-(see deicated section below).
-
-## Test your code modification
-
-This custom component is based on [integration_blueprint template](https://github.com/ludeeus/integration_blueprint).
-
-It comes with development environment in a container, easy to launch
-if you use Visual Studio Code. With this container you will have a stand alone
-Home Assistant instance running and already configured with the included
-[`configuration.yaml`](./config/configuration.yaml)
-file.
-
-You can use the `pre-commit` settings implemented in this repository to have
-linting tool checking your contributions (see deicated section below).
-
-## Pre-commit
-
-You can use the [pre-commit](https://pre-commit.com/) settings included in the
-repostory to have code style and linting checks.
-
-With `pre-commit` tool already installed,
-activate the settings of the repository:
-
-```console
-$ pre-commit install
+```yaml
+logger:
+  logs:
+    custom_components.argoclima: debug
 ```
 
-Now the pre-commit tests will be done every time you commit.
+## Development
 
-You can run the tests on all repository file with the command:
+Requires Python 3.14.
 
-```console
-$ pre-commit run --all-files
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+scripts/setup          # install Home Assistant, test and lint dependencies
+scripts/develop        # run a local Home Assistant on http://localhost:8123 with this integration
 ```
 
-## License
+Before opening a pull request:
 
-By contributing, you agree that your contributions will be licensed under its MIT License.
+```bash
+scripts/lint           # ruff check --fix and ruff format
+pytest                 # run the test suite
+```
+
+The same checks, plus hassfest and HACS validation, run on every pull request.
+
+Optionally, install the [pre-commit](https://pre-commit.com/) hooks with `pre-commit install`.
+
+## Pull requests
+
+1. Fork the repository and branch off `master`.
+2. Add or update tests for your change.
+3. Update the README if behavior or setup changes.
+
+Contributions are licensed under the [MIT License](LICENSE).
