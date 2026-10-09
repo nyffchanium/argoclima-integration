@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import re
 from dataclasses import dataclass
@@ -156,10 +157,15 @@ class ArgoDummyServer:
                 writer.write(_build_http_response(body))
                 await writer.drain()
                 await asyncio.sleep(REQUEST_FOLLOWUP_DELAY)
+        except ConnectionError:
+            _LOGGER.debug("Argoclima dummy server connection closed by peer")
+        except Exception:
+            _LOGGER.exception("Argoclima dummy server failed to handle a request")
         finally:
             self._connections.discard(writer)
             writer.close()
-            await writer.wait_closed()
+            with contextlib.suppress(ConnectionError):
+                await writer.wait_closed()
 
     async def _async_response_body(
         self, method: str, target: str, peer_ip: str | None
@@ -167,8 +173,10 @@ class ArgoDummyServer:
         if method not in {"GET", "POST"}:
             return _fallback_response(method)
 
-        query = urlsplit(target).query
-        params = _parse_query(query)
+        try:
+            params = _parse_query(urlsplit(target).query)
+        except ValueError:
+            return _fallback_response("")
         command = params.get("CM", "").upper()
 
         if command == "UI_NTP":

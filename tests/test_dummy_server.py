@@ -1,8 +1,13 @@
 import asyncio
+import logging
+import socket
+import struct
 
+import pytest
 from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY
 from homeassistant.core import HomeAssistant
 
+from custom_components.argoclima import dummy_server
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.dummy_server import MAX_CONNECTIONS
 from custom_components.argoclima.dummy_server import ArgoDummyServer
@@ -107,3 +112,59 @@ async def test_connection_limit(hass: HomeAssistant, socket_enabled: None) -> No
         for _, writer in connections:
             writer.close()
         await server.async_stop()
+
+
+MALFORMED_REQUESTS = [
+    b"\r\n\r\n",
+    b"GARBAGE\r\n\r\n",
+    b"GET http://[ HTTP/1.1\r\n\r\n",
+    b"GET /?CM=UI_FLG&IP=999.1.1.1 HTTP/1.1\r\n\r\n",
+    b"GET /?CM=UI_FLG&HMI=1,2,3 HTTP/1.1\r\n\r\n",
+    b"POST / HTTP/1.1\r\nContent-Length: abc\r\n\r\n",
+    b"POST / HTTP/1.1\r\nContent-Length: 999999\r\n\r\n",
+    b"GET /" + b"A" * 70_000 + b" HTTP/1.1\r\n\r\n",
+    b"\xff\xfe\x00\x01 / HTTP/1.1\r\n\r\n",
+    b"GET /?CM=UI_FLG",
+]
+
+
+async def test_survives_malformed_and_aborted_requests(
+    hass: HomeAssistant,
+    socket_enabled: None,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(dummy_server, "REQUEST_FOLLOWUP_DELAY", 0)
+    server = ArgoDummyServer(hass, 0, HUB_ID)
+    await server.async_start()
+    port = server._server.sockets[0].getsockname()[1]
+
+    async def send(payload: bytes, reset: bool = False) -> bytes:
+        reader, writer = await asyncio.open_connection("127.0.0.1", port)
+        writer.write(payload)
+        await writer.drain()
+        if reset:
+            sock = writer.get_extra_info("socket")
+            sock.setsockopt(
+                socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0)
+            )
+            writer.close()
+            return b""
+        writer.write_eof()
+        response = await asyncio.wait_for(reader.read(), timeout=5)
+        writer.close()
+        return response
+
+    try:
+        for payload in MALFORMED_REQUESTS:
+            await send(payload)
+            await send(payload, reset=True)
+        await asyncio.sleep(0.2)
+
+        response = await send(b"GET /?CM=UI_NTP HTTP/1.1\r\n\r\n")
+        assert response.startswith(b"HTTP/1.1 200 OK")
+        assert b"NTP " in response
+    finally:
+        await server.async_stop()
+
+    assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
