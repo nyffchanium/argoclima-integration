@@ -113,8 +113,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Credits
 
 - [@nyffchanium](https://github.com/nyffchanium) wrote the original integration. You can [buy them a coffee](https://www.buymeacoffee.com/nyffchanium).
+- [@0SkillAllLuck](https://github.com/0SkillAllLuck) built the dummy server into the integration, including device discovery and push updates.
+- [@SaphiraDraco](https://github.com/SaphiraDraco) made polling more robust and modernized the `set_time` action.
+- [@soft-song3425](https://github.com/soft-song3425) fixed compatibility with Home Assistant 2026.10.
+- [@pimeys](https://github.com/pimeys) replaced deprecated Home Assistant APIs.
 - [@lallinger](https://github.com/lallinger) contributed the original dummy server.
-- Thanks to everyone who contributed pull requests to the original repository.
 
 [upstream]: https://github.com/nyffchanium/argoclima-integration
 [issues]: https://github.com/Gadund/argoclima-integration/issues
