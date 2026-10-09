@@ -90,6 +90,16 @@ The remote sends the temperature roughly every 6 minutes and whenever the displa
 - Write-only settings (time, weekday) can't be confirmed and are sent once.
 - Eco, turbo and night mode can be combined on the remote but are exposed as mutually exclusive presets.
 
+## Security
+
+The Argo device API and its cloud protocol have no authentication or encryption: anyone in your local network can control the device directly, with or without this integration. Keep your Argo devices in a trusted network.
+
+- Never expose the dummy server port to the internet, and limit the DNAT rule to your Argo devices.
+- The dummy server only accepts a device report if the IP address it claims matches the address it connects from.
+- The cloud credentials the device sends along are never stored and are removed from logs.
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
 ## Troubleshooting
 
 To get debug logs, add this to `configuration.yaml` and restart:

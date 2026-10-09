@@ -160,6 +160,10 @@ class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
                 CONF_DEVICE_TYPE: discovery_info[CONF_DEVICE_TYPE],
             }
         )
+        host = discovery_info[CONF_HOST]
+        if self._async_in_progress(match_context={CONF_HOST: host}):
+            return self.async_abort(reason="already_in_progress")
+        self.context[CONF_HOST] = host
         return await self.async_step_discovery_confirm()
 
     async def async_step_discovery_confirm(

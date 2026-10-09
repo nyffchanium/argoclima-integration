@@ -1,7 +1,11 @@
+import asyncio
+
 from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY
 from homeassistant.core import HomeAssistant
 
 from custom_components.argoclima.const import DOMAIN
+from custom_components.argoclima.dummy_server import MAX_CONNECTIONS
+from custom_components.argoclima.dummy_server import ArgoDummyServer
 from custom_components.argoclima.dummy_server import ArgoPushData
 from custom_components.argoclima.dummy_server import _peer_host
 from custom_components.argoclima.dummy_server import _push_data_from_params
@@ -74,3 +78,32 @@ async def test_unknown_device_starts_discovery(hass: HomeAssistant) -> None:
     assert flow["context"]["source"] == SOURCE_INTEGRATION_DISCOVERY
     assert flow["context"]["unique_id"] == "ABC123"
     assert flow["step_id"] == "discovery_confirm"
+
+
+async def test_one_discovery_per_host(hass: HomeAssistant) -> None:
+    for cpu_id in ("ABC123", "DEF456"):
+        await async_handle_push_data(
+            hass, ArgoPushData(cpu_id=cpu_id, host=HOST, hmi=None, hub_id=None)
+        )
+    await hass.async_block_till_done()
+
+    assert len(hass.config_entries.flow.async_progress_by_handler(DOMAIN)) == 1
+
+
+async def test_connection_limit(hass: HomeAssistant, socket_enabled: None) -> None:
+    server = ArgoDummyServer(hass, 0, HUB_ID)
+    await server.async_start()
+    port = server._server.sockets[0].getsockname()[1]
+    connections = []
+    try:
+        for _ in range(MAX_CONNECTIONS):
+            connections.append(await asyncio.open_connection("127.0.0.1", port))
+        await asyncio.sleep(0.1)
+
+        reader, writer = await asyncio.open_connection("127.0.0.1", port)
+        assert await asyncio.wait_for(reader.read(), timeout=2) == b""
+        writer.close()
+    finally:
+        for _, writer in connections:
+            writer.close()
+        await server.async_stop()

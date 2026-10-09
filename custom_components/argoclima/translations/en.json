@@ -2,7 +2,9 @@
   "config": {
     "abort": {
       "device_added": "Device added to the dummy server hub.",
-      "hub_not_found": "The dummy server hub for this device could not be found."
+      "hub_not_found": "The dummy server hub for this device could not be found.",
+      "already_in_progress": "A discovery for this device is already in progress.",
+      "missing_cpu_id": "The device did not report a CPU ID."
     },
     "error": {
       "host": "Could not reach host or host is not a supported device.",

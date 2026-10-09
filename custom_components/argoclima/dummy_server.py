@@ -43,6 +43,7 @@ REQUEST_HEADER_LIMIT = 16 * 1024
 REQUEST_BODY_LIMIT = 16 * 1024
 REQUEST_IDLE_TIMEOUT = 15
 REQUEST_FOLLOWUP_DELAY = 1
+MAX_CONNECTIONS = 32
 CPU_ID_KEYS = ("CPU_ID", "SERIAL")
 SENSITIVE_KEYS = {"SETUP", "USN", "PSW"}
 
@@ -113,6 +114,12 @@ class ArgoDummyServer:
     async def _handle_client(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
+        if len(self._connections) >= MAX_CONNECTIONS:
+            _LOGGER.warning("Argoclima dummy server connection limit reached")
+            writer.close()
+            await writer.wait_closed()
+            return
+
         self._connections.add(writer)
         peer_ip = _peer_host(writer)
         try:

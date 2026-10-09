@@ -2,7 +2,9 @@
   "config": {
     "abort": {
       "device_added": "Gerät zum Dummy-Server-Hub hinzugefügt.",
-      "hub_not_found": "Der Dummy-Server-Hub für dieses Gerät konnte nicht gefunden werden."
+      "hub_not_found": "Der Dummy-Server-Hub für dieses Gerät konnte nicht gefunden werden.",
+      "already_in_progress": "Für dieses Gerät läuft bereits eine Einrichtung.",
+      "missing_cpu_id": "Das Gerät hat keine CPU-ID gemeldet."
     },
     "error": {
       "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
