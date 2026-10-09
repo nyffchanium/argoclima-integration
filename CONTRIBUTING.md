@@ -1,6 +1,6 @@
 # Contributing
 
-Bug reports, device support and pull requests are welcome.
+Bug reports, device support and pull requests are welcome. Router guides for the [DNAT setup](docs/dnat.md) are especially appreciated.
 
 ## Reporting issues
 
