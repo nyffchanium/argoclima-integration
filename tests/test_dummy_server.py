@@ -178,3 +178,41 @@ async def test_survives_malformed_and_aborted_requests(
         await server.async_stop()
 
     assert not [r for r in caplog.records if r.levelno >= logging.ERROR]
+
+
+UI_RT_BODY = (
+    b"CM=UI_RT&USN=user&PSW=secret&CPU_ID=ABC123&DEL=1"
+    b"&DATA=WiFi_Psw=wifisecret|UserName=user|Password=secret|"
+)
+
+
+async def test_answers_ui_rt_post_without_logging_credentials(
+    hass: HomeAssistant,
+    socket_enabled: None,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    caplog.set_level(logging.DEBUG, logger="custom_components.argoclima")
+    monkeypatch.setattr(dummy_server, "REQUEST_FOLLOWUP_DELAY", 0)
+    server = ArgoDummyServer(hass, 0, HUB_ID)
+    await server.async_start()
+    port = server._server.sockets[0].getsockname()[1]
+    try:
+        reader, writer = await asyncio.open_connection("127.0.0.1", port)
+        writer.write(
+            b"POST /UI/UI.php HTTP/1.1\r\n"
+            b"Content-Type: application/x-www-form-urlencoded\r\n"
+            b"Content-Length: "
+            + str(len(UI_RT_BODY)).encode()
+            + b"\r\n\r\n"
+            + UI_RT_BODY
+        )
+        writer.write_eof()
+        response = await asyncio.wait_for(reader.read(), timeout=5)
+        writer.close()
+    finally:
+        await server.async_stop()
+
+    assert response.endswith(b"\r\n\r\n|}|}")
+    assert "CM=UI_RT" in caplog.text
+    assert "secret" not in caplog.text

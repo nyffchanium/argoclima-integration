@@ -49,6 +49,7 @@ CPU_ID_KEYS = ("CPU_ID", "SERIAL")
 SENSITIVE_KEYS = {"SETUP", "USN", "PSW"}
 
 UI_FLG_RESPONSE = "{|1|0|1|0|0|0|N,N,N,N,1,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N,N|}[|0|||]ACN_FREE <br>\t\t"
+UI_RT_RESPONSE = "|}|}"
 FALLBACK_RESPONSE = "ERROR: Command unknow.. {command}<br>"
 
 
@@ -154,13 +155,16 @@ class ArgoDummyServer:
                 if request is None:
                     break
 
-                method, target = request
+                method, target, body_command = request
                 _LOGGER.debug(
-                    "Argoclima dummy server request: %s %s",
+                    "Argoclima dummy server request: %s %s%s",
                     method,
                     _redact_sensitive_text(target),
+                    f" (CM={body_command})" if body_command else "",
                 )
-                body = await self._async_response_body(method, target, peer_ip)
+                body = await self._async_response_body(
+                    method, target, peer_ip, body_command
+                )
                 writer.write(_build_http_response(body))
                 await writer.drain()
                 await asyncio.sleep(REQUEST_FOLLOWUP_DELAY)
@@ -175,7 +179,7 @@ class ArgoDummyServer:
                 await writer.wait_closed()
 
     async def _async_response_body(
-        self, method: str, target: str, peer_ip: str | None
+        self, method: str, target: str, peer_ip: str | None, body_command: str = ""
     ) -> str:
         if method not in {"GET", "POST"}:
             return _fallback_response(method)
@@ -184,10 +188,13 @@ class ArgoDummyServer:
             params = _parse_query(urlsplit(target).query)
         except ValueError:
             return _fallback_response("")
-        command = params.get("CM", "").upper()
+        command = (params.get("CM") or body_command).upper()
 
         if command == "UI_NTP":
             return _ntp_response()
+
+        if command == "UI_RT":
+            return UI_RT_RESPONSE
 
         if command == "UI_FLG":
             push_data = _push_data_from_params(
@@ -438,7 +445,7 @@ def _data_from_hmi(
 
 async def _read_http_request(
     reader: asyncio.StreamReader,
-) -> tuple[str, str] | None:
+) -> tuple[str, str, str] | None:
     while True:
         try:
             header = await asyncio.wait_for(
@@ -493,18 +500,31 @@ async def _read_http_request(
     if content_length > REQUEST_BODY_LIMIT:
         raise InvalidDummyServerRequest("request body exceeded configured limit")
 
+    body_command = ""
     if content_length > 0:
         try:
-            await asyncio.wait_for(
+            body = await asyncio.wait_for(
                 reader.readexactly(content_length), timeout=REQUEST_IDLE_TIMEOUT
             )
         except asyncio.IncompleteReadError as err:
             raise InvalidDummyServerRequest(
-                "connection closed before request body completed",
-                _preview_bytes(err.partial),
+                "connection closed before request body completed"
             ) from err
+        body_command = _body_command(body)
 
-    return request_line[0].upper(), request_line[1]
+    return request_line[0].upper(), request_line[1], body_command
+
+
+def _body_command(body: bytes) -> str:
+    """Return the CM parameter of a form-encoded body.
+
+    Everything else is discarded: the body contains the device's WiFi and
+    cloud credentials in clear text and must never be stored or logged.
+    """
+    for key, value in parse_qsl(body.decode("iso-8859-1"), keep_blank_values=True):
+        if key.upper() == "CM":
+            return value.strip().upper()
+    return ""
 
 
 def _content_length(value: str | None) -> int:
