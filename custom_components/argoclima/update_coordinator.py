@@ -1,12 +1,15 @@
 import logging
 from datetime import timedelta
 
+import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .api import ArgoApiClient
 from .const import DOMAIN
 from .data import ArgoData
+from .data import InvalidResponseFormatError
 from .device_type import ArgoDeviceType
 
 _LOGGER = logging.getLogger(__package__)
@@ -55,23 +58,27 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
     async def _async_update(self) -> ArgoData:
         try:
             data = await self._api.async_sync_data(self.data)
-        except Exception:
+        except (
+            aiohttp.ClientError,
+            TimeoutError,
+            InvalidResponseFormatError,
+            ValueError,
+        ) as err:
             self._consecutive_update_failures += 1
+            reason = str(err) or type(err).__name__
             if self._consecutive_update_failures < MAX_CONSECUTIVE_UPDATE_FAILURES:
-                _LOGGER.warning(
-                    "Argoclima update failed (%s/%s), keeping last known state",
+                _LOGGER.debug(
+                    "Argoclima device %s did not respond (%s/%s), keeping last state: %s",
+                    self._api.host,
                     self._consecutive_update_failures,
                     MAX_CONSECUTIVE_UPDATE_FAILURES,
-                    exc_info=True,
+                    reason,
                 )
                 return self.data
-
-            _LOGGER.warning(
-                "Argoclima update failed %s times in a row, marking unavailable",
-                self._consecutive_update_failures,
-                exc_info=True,
-            )
-            raise
+            raise UpdateFailed(
+                f"Argoclima device {self._api.host} did not respond "
+                f"{self._consecutive_update_failures} times in a row: {reason}"
+            ) from err
 
         self._consecutive_update_failures = 0
         return data
