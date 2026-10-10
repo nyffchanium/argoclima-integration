@@ -31,7 +31,8 @@ Other WiFi models likely use the same API. If you own one, please [open an issue
 | Device light                   | `switch`                   |
 | Use remote temperature         | `switch`                   |
 | Set time and weekday           | `argoclima.set_time` action |
-| Firmware version               | device info                |
+| Firmware versions              | device info                |
+| Firmware update check          | `update` (optional)        |
 
 Flap and filter mode, timer configuration and device reset are not implemented.
 
@@ -66,7 +67,7 @@ There are two ways to connect your devices. The dummy server is recommended.
 
 By default, the device stays connected to Argo's cloud server (`31.14.128.210`), and it only works reliably while that server answers. When the server is overloaded, the device keeps dropping its WiFi connection. The built-in dummy server takes the place of Argo's server inside Home Assistant:
 
-- The device no longer depends on Argo's server, which avoids these connection drops.
+- The device no longer depends on Argo's server, which avoids these connection drops. It keeps working without internet access and if Argo ever shuts its servers down.
 - Devices report their state by themselves about every 12 seconds, so changes made on the device or the remote show up faster than with polling (every 15 seconds), and Home Assistant doesn't need to poll them.
 - Devices are discovered automatically; adding several devices needs no extra steps.
 - IP address changes are picked up automatically.
@@ -92,6 +93,14 @@ The temperature sensor in the remote can be used instead of the one in the devic
 3. Turn on **Use Remote Temperature** in Home Assistant. Enabling remote temperature mode on the remote itself (hold the fan button for 2 seconds; the user icon appears) may also be required.
 
 The remote sends the temperature roughly every 6 minutes and whenever the displayed value changes.
+
+## Firmware updates
+
+The device info shows the firmware of the device and, with the dummy server, of its WiFi module.
+
+To be notified about new firmware, enable the **Firmware** (and **WiFi Firmware**) update entities of a device; they are disabled by default. Home Assistant then checks the latest versions on Argo's server once a day. The check doesn't send any credentials or device information.
+
+Updates can't be installed from Home Assistant. Install them with the official Argo web app; if you use the dummy server, disable the DNAT rule while updating and enable it again afterwards. Argo publishes updates very rarely: as of October 2026, the latest versions are `01416` for the device and `00003` for the WiFi module.
 
 ## Limitations
 
