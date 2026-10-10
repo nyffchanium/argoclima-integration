@@ -31,6 +31,7 @@ Other WiFi models likely use the same API. If you own one, please [open an issue
 | Device light                   | `switch`                   |
 | Use remote temperature         | `switch`                   |
 | Set time and weekday           | `argoclima.set_time` action |
+| Connection and last contact    | `binary_sensor`            |
 | Firmware versions              | device info                |
 | Firmware update check          | `update` (optional)        |
 

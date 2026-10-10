@@ -44,6 +44,9 @@ async def async_get_config_entry_diagnostics(
                 "type": device.type.name,
                 "push_updates": device.coordinator.update_interval is None,
                 "last_update_success": device.coordinator.last_update_success,
+                "last_seen": device.coordinator.last_seen.isoformat()
+                if device.coordinator.last_seen
+                else None,
                 "state": device.coordinator.data.as_dict()
                 if device.coordinator.data
                 else None,

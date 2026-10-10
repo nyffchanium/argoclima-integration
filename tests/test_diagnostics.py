@@ -30,6 +30,7 @@ async def test_diagnostics(
     [device] = diagnostics["devices"]
     assert device["type"] == "Ulisse 13 DCI Eco WiFi"
     assert device["push_updates"] is False
+    assert device["last_seen"] is not None
     assert device["state"]["mode"] == "cool"
     assert device["state"]["temperature"] == 23.5
     assert device["state"]["firmware_version"] == 1416
