@@ -3,6 +3,7 @@ from datetime import timedelta
 
 import aiohttp
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
@@ -15,6 +16,7 @@ from .device_type import ArgoDeviceType
 _LOGGER = logging.getLogger(__package__)
 
 MAX_CONSECUTIVE_UPDATE_FAILURES = 3
+REQUEST_REFRESH_COOLDOWN = 1
 
 
 class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
@@ -33,6 +35,9 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
             name=DOMAIN,
             update_interval=self._polling_interval if use_polling else None,
             update_method=self._async_update,
+            request_refresh_debouncer=Debouncer(
+                hass, _LOGGER, cooldown=REQUEST_REFRESH_COOLDOWN, immediate=True
+            ),
         )
         self._api = client
         self.platforms = []

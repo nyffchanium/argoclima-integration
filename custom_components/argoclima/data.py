@@ -60,9 +60,12 @@ class ArgoDataValue:
     def request_value(self, value: int) -> None:
         if self._type == ValueType.READ_ONLY:
             raise ValueError("Read-only value can't be written")
-        if self._value != value:
-            self._requested_value = value
-            self._pending_change = True
+        current = self._requested_value if self._pending_change else self._value
+        if value == current:
+            return
+        self._requested_value = value
+        self._pending_change = True
+        self._change_try_counter_enabled = False
 
     def requested_value_as_string(self) -> str:
         return str(int(self._requested_value))

@@ -38,11 +38,11 @@ class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         self.coordinator.data.light = True
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self.coordinator.data.light = False
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
 
 class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
@@ -62,8 +62,8 @@ class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         self.coordinator.data.remote_temperature = True
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self.coordinator.data.remote_temperature = False
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()

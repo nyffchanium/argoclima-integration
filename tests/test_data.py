@@ -74,6 +74,19 @@ def test_pending_change_is_sent_until_confirmed() -> None:
     assert data.to_parameter_string().split(",")[0] == "N"
 
 
+def test_reverting_an_unconfirmed_change_is_sent() -> None:
+    data = ArgoData(ULISSE_ECO)
+    data.parse_response_parameter_string(device_response({11: 0}))
+
+    data.light = True
+    data.to_parameter_string()
+    data.parse_response_parameter_string(device_response({11: 0}))
+    data.light = False
+
+    assert data.light is False
+    assert data.to_parameter_string().split(",")[11] == "0"
+
+
 def test_unconfirmed_change_is_given_up() -> None:
     data = ArgoData(ULISSE_ECO)
     data.parse_response_parameter_string(device_response())

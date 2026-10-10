@@ -102,11 +102,11 @@ class ArgoClimate(ArgoEntity, ClimateEntity):
 
     async def async_turn_on(self) -> None:
         self.coordinator.data.operating = True
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
     async def async_turn_off(self) -> None:
         self.coordinator.data.operating = False
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         data = self.coordinator.data
@@ -115,20 +115,20 @@ class ArgoClimate(ArgoEntity, ClimateEntity):
         else:
             data.operating = True
             data.mode = ArgoOperationMode.from_hvac_mode(hvac_mode)
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         data = self.coordinator.data
         data.eco = preset_mode == PRESET_ECO
         data.turbo = preset_mode == PRESET_BOOST
         data.night = preset_mode == PRESET_SLEEP
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         self.coordinator.data.fan = ArgoFanSpeed.from_ha_string(fan_mode)
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
             self.coordinator.data.target_temp = temperature
-            await self.coordinator.async_request_refresh()
+            await self._async_send_changes()

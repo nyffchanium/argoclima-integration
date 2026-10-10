@@ -25,6 +25,11 @@ class ArgoEntity(CoordinatorEntity[ArgoDataUpdateCoordinator]):
         self._attr_device_class = device_class
         self._attr_entity_category = entity_category
 
+    async def _async_send_changes(self) -> None:
+        """Show requested changes right away and send them to the device."""
+        self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
+
     @property
     def available(self) -> bool:
         return self.coordinator.last_update_success

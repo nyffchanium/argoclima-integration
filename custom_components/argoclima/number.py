@@ -38,4 +38,4 @@ class ArgoEcoLimitNumber(ArgoEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         self.coordinator.data.eco_limit = int(value)
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()

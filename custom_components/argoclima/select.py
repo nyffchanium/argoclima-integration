@@ -36,7 +36,7 @@ class ArgoUnitSelect(ArgoEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         self.coordinator.data.unit = ArgoUnit.from_ha_unit(option)
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
 
 
 class ArgoTimerSelect(ArgoEntity, SelectEntity):
@@ -51,4 +51,4 @@ class ArgoTimerSelect(ArgoEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         self.coordinator.data.timer = ArgoTimerType[option.upper()]
-        await self.coordinator.async_request_refresh()
+        await self._async_send_changes()
