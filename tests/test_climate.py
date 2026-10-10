@@ -13,7 +13,7 @@ from homeassistant.const import SERVICE_TURN_OFF
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-ENTITY_ID = "climate.living_room_climate"
+ENTITY_ID = "climate.living_room"
 
 
 async def setup(hass: HomeAssistant, entry: MockConfigEntry) -> None:

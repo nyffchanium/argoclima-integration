@@ -23,6 +23,8 @@ def firmware_label(data: ArgoData | None) -> str | None:
 
 
 class ArgoEntity(CoordinatorEntity[ArgoDataUpdateCoordinator]):
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         entity_name: str,
@@ -34,7 +36,7 @@ class ArgoEntity(CoordinatorEntity[ArgoDataUpdateCoordinator]):
         self._type = device.type
         self._device = device
         self._attr_unique_id = entity_unique_id(device.device_id, entity_name)
-        self._attr_name = f"{device.title} {entity_name}"
+        self._attr_translation_key = entity_name.lower().replace(" ", "_")
         self._attr_device_class = device_class
         self._attr_entity_category = entity_category
 

@@ -121,6 +121,8 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Troubleshooting
 
+When reporting a problem, attach the diagnostics: **Settings → Devices & services → Argoclima → ⋮ → Download diagnostics**. IP addresses and device ids are removed from the file.
+
 To get debug logs, add this to `configuration.yaml` and restart:
 
 ```yaml

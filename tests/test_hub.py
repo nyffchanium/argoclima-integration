@@ -6,6 +6,10 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.components.diagnostics import (
+    get_diagnostics_for_config_entry,
+)
+from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import CONF_CPU_ID
@@ -78,7 +82,7 @@ async def test_push_updates_hub_device(
     )
     await hass.async_block_till_done()
 
-    state = hass.states.get("climate.living_room_climate")
+    state = hass.states.get("climate.living_room")
     assert state.state == "cool"
     assert state.attributes["current_temperature"] == 23.5
 
@@ -162,3 +166,18 @@ async def test_unconfirmed_change_is_resent_on_push(
     await hass.async_block_till_done()
 
     assert sent_requests and sent_requests[-1].split(",")[11] == "0"
+
+
+async def test_diagnostics_redact_device_addresses(
+    hass: HomeAssistant, hub: MockConfigEntry, hass_client: ClientSessionGenerator
+) -> None:
+    hub.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(hub.entry_id)
+    await hass.async_block_till_done()
+
+    diagnostics = await get_diagnostics_for_config_entry(hass, hass_client, hub)
+
+    assert HOST not in str(diagnostics)
+    assert CPU_ID not in str(diagnostics)
+    assert diagnostics["dummy_server"]["running"] is False
+    assert len(diagnostics["devices"]) == 1

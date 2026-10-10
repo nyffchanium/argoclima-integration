@@ -91,6 +91,14 @@ class ArgoDummyServer:
         self._server: asyncio.Server | None = None
         self._connections: set[asyncio.StreamWriter] = set()
 
+    @property
+    def running(self) -> bool:
+        return self._server is not None
+
+    @property
+    def connection_count(self) -> int:
+        return len(self._connections)
+
     async def async_start(self) -> None:
         """Start the listener."""
         self._server = await asyncio.start_server(

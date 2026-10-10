@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from enum import IntEnum
+from typing import Any
+
 from .const import API_UPDATE_ATTEMPTS
 from .device_type import ArgoDeviceType
 from .types import ArgoFanSpeed
@@ -251,6 +254,31 @@ class ArgoData:
 
     def is_update_pending(self) -> bool:
         return any(val.pending_change for val in self._values)
+
+    def as_dict(self) -> dict[str, Any]:
+        """Return the known state, e.g. for diagnostics."""
+
+        def name(value: IntEnum | None) -> str | None:
+            return value.name.lower() if value is not None else None
+
+        return {
+            "operating": self.operating,
+            "mode": name(self.mode),
+            "target_temperature": self.target_temp,
+            "temperature": self.temp,
+            "fan": name(self.fan),
+            "eco": self.eco,
+            "turbo": self.turbo,
+            "night": self.night,
+            "light": self.light,
+            "remote_temperature": self.remote_temperature,
+            "timer": name(self.timer),
+            "eco_limit": self.eco_limit,
+            "unit": name(self.unit),
+            "firmware_version": self.firmware_version,
+            "wifi_firmware_version": self.wifi_firmware_version,
+            "update_pending": self.is_update_pending(),
+        }
 
     @property
     def target_temp(self) -> float:

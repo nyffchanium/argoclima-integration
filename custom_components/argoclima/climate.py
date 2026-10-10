@@ -35,6 +35,7 @@ class ArgoClimate(ArgoEntity, ClimateEntity):
 
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__("Climate", device)
+        self._attr_name = None
         device_type = device.type
 
         features = ClimateEntityFeature.TURN_ON | ClimateEntityFeature.TURN_OFF

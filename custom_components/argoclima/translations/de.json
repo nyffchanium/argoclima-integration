@@ -74,5 +74,101 @@
         "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: {docs_url}"
       }
     }
+  },
+  "entity": {
+    "climate": {
+      "climate": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Automatisch",
+              "lowest": "Sehr niedrig",
+              "low": "Niedrig",
+              "medium": "Mittel",
+              "high": "Hoch",
+              "higher": "Sehr hoch",
+              "highest": "Maximal"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "eco_mode_power_limit": {
+        "name": "Eco-Leistungsgrenze"
+      }
+    },
+    "select": {
+      "display_unit": {
+        "name": "Anzeigeeinheit"
+      },
+      "active_timer": {
+        "name": "Aktiver Timer",
+        "state": {
+          "no_timer": "Kein Timer",
+          "delay_on_off": "Verzögertes Ein/Aus",
+          "profile_1": "Profil 1",
+          "profile_2": "Profil 2",
+          "profile_3": "Profil 3"
+        }
+      }
+    },
+    "switch": {
+      "device_light": {
+        "name": "Gerätebeleuchtung"
+      },
+      "use_remote_temperature": {
+        "name": "Temperatur der Fernbedienung verwenden"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      },
+      "wifi_firmware": {
+        "name": "WLAN-Firmware"
+      }
+    }
+  },
+  "services": {
+    "set_time": {
+      "name": "Uhrzeit setzen",
+      "description": "Setzt die interne Uhrzeit und den Wochentag eines Argoclima-Geräts.",
+      "fields": {
+        "device": {
+          "name": "Gerät",
+          "description": "Das Gerät, dessen Uhrzeit gesetzt wird."
+        },
+        "time": {
+          "name": "Uhrzeit",
+          "description": "Leer lassen, um die aktuelle lokale Uhrzeit zu verwenden."
+        },
+        "weekday": {
+          "name": "Wochentag",
+          "description": "Leer lassen, um den aktuellen lokalen Wochentag zu verwenden."
+        }
+      }
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "monday": "Montag",
+        "tuesday": "Dienstag",
+        "wednesday": "Mittwoch",
+        "thursday": "Donnerstag",
+        "friday": "Freitag",
+        "saturday": "Samstag",
+        "sunday": "Sonntag"
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_loaded": {
+      "message": "Gerät {device} ist nicht geladen."
+    },
+    "device_unavailable": {
+      "message": "Gerät {device} ist nicht verfügbar."
+    }
   }
 }

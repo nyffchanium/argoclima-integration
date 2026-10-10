@@ -58,9 +58,17 @@ async def setup_service(hass: HomeAssistant) -> None:
         device_name = device_entry.name_by_user or device_entry.name
         coordinator = _coordinator_for_device(hass, device_entry)
         if coordinator is None:
-            raise ServiceValidationError(f"Device {device_name} is not loaded")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="device_not_loaded",
+                translation_placeholders={"device": device_name},
+            )
         if not coordinator.last_update_success:
-            raise ServiceValidationError(f"Device {device_name} is not available")
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="device_unavailable",
+                translation_placeholders={"device": device_name},
+            )
 
         now = dt_util.now()
         time = call.data.get(ATTR_TIME, now.time())

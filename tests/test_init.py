@@ -30,7 +30,7 @@ async def test_setup_creates_entities(
 
     assert device_entry.state is ConfigEntryState.LOADED
 
-    climate = hass.states.get("climate.living_room_climate")
+    climate = hass.states.get("climate.living_room")
     assert climate.state == "cool"
     assert climate.attributes["current_temperature"] == 23.5
     assert climate.attributes["temperature"] == 22.0
@@ -80,7 +80,12 @@ async def test_migrates_upstream_unique_ids(
     migrated = registry.async_get(legacy.entity_id)
     assert migrated.unique_id == entity_unique_id(device_entry.entry_id, "Climate")
     assert migrated.name == "Office AC"
-    assert registry.async_get("climate.living_room_climate_2") is None
+    climate_entities = [
+        entry.entity_id
+        for entry in er.async_entries_for_config_entry(registry, device_entry.entry_id)
+        if entry.domain == "climate"
+    ]
+    assert climate_entities == [legacy.entity_id]
     assert hass.states.get(legacy.entity_id).state == "cool"
 
 
@@ -135,3 +140,19 @@ async def test_existing_current_entity_is_not_overwritten(
 
     assert registry.async_get(current.entity_id).unique_id == current.unique_id
     assert registry.async_get(legacy.entity_id).unique_id == legacy.unique_id
+
+
+async def test_entity_names_are_translated(
+    hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
+) -> None:
+    hass.config.language = "de"
+    device_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(device_entry.entry_id)
+    await hass.async_block_till_done()
+
+    registry = er.async_get(hass)
+    light = registry.async_get_entity_id(
+        "switch", DOMAIN, entity_unique_id(device_entry.entry_id, "Device Light")
+    )
+    assert hass.states.get(light).name == "Living Room Gerätebeleuchtung"
+    assert hass.states.get("climate.living_room").name == "Living Room"

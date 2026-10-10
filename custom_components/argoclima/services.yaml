@@ -1,31 +1,24 @@
 set_time:
-  name: Set Time
-  description: Set the internal time of an Argoclima device.
   fields:
     device:
-      name: Device
-      description: The targeted device.
       required: true
       selector:
         device:
-          integration: "argoclima"
+          integration: argoclima
     time:
-      name: Time
-      description: Time to set the device to. Leave empty to use current local time.
       required: false
       selector:
         time:
     weekday:
-      name: Weekday
-      description: Weekday to set the device to. Leave empty to use current local weekday.
       required: false
       selector:
         select:
+          translation_key: weekday
           options:
-            - Monday
-            - Tuesday
-            - Wednesday
-            - Thursday
-            - Friday
-            - Saturday
-            - Sunday
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday

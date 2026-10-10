@@ -74,5 +74,101 @@
         "description": "If you need help with the configuration have a look here: {docs_url}"
       }
     }
+  },
+  "entity": {
+    "climate": {
+      "climate": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "lowest": "Lowest",
+              "low": "Low",
+              "medium": "Medium",
+              "high": "High",
+              "higher": "Higher",
+              "highest": "Highest"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "eco_mode_power_limit": {
+        "name": "Eco mode power limit"
+      }
+    },
+    "select": {
+      "display_unit": {
+        "name": "Display unit"
+      },
+      "active_timer": {
+        "name": "Active timer",
+        "state": {
+          "no_timer": "None",
+          "delay_on_off": "Delayed on/off",
+          "profile_1": "Profile 1",
+          "profile_2": "Profile 2",
+          "profile_3": "Profile 3"
+        }
+      }
+    },
+    "switch": {
+      "device_light": {
+        "name": "Device light"
+      },
+      "use_remote_temperature": {
+        "name": "Use remote temperature"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      },
+      "wifi_firmware": {
+        "name": "WiFi firmware"
+      }
+    }
+  },
+  "services": {
+    "set_time": {
+      "name": "Set time",
+      "description": "Sets the internal time and weekday of an Argoclima device.",
+      "fields": {
+        "device": {
+          "name": "Device",
+          "description": "The device to set the time of."
+        },
+        "time": {
+          "name": "Time",
+          "description": "Leave empty to use the current local time."
+        },
+        "weekday": {
+          "name": "Weekday",
+          "description": "Leave empty to use the current local weekday."
+        }
+      }
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_loaded": {
+      "message": "Device {device} is not loaded."
+    },
+    "device_unavailable": {
+      "message": "Device {device} is not available."
+    }
   }
 }

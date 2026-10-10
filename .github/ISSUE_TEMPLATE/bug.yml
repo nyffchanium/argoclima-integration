@@ -40,6 +40,11 @@ body:
         3.
   - type: textarea
     attributes:
+      label: Diagnostics
+      description: |
+        Settings → Devices & services → Argoclima → ⋮ → Download diagnostics, then drag the file here.
+  - type: textarea
+    attributes:
       label: Debug logs
       description: |
         Enable debug logging, reproduce the issue and paste the relevant log lines:
