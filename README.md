@@ -5,7 +5,7 @@
 [![CI][ci-badge]][ci]
 [![License][license-badge]](LICENSE)
 
-Unofficial Home Assistant integration for Argo (Argoclima) WiFi air conditioners. It talks to the device directly over the local network, using the same undocumented API as the Argo web app.
+Unofficial Home Assistant integration for Argo (Argoclima) WiFi air conditioners. It controls the device directly over your local network, no Argo account needed.
 
 > **Maintained fork** of [@nyffchanium](https://github.com/nyffchanium)'s [argoclima-integration][upstream], which is no longer maintained and stopped working with Home Assistant 2026.10. It includes the open pull requests of the original repository. Existing installations can [switch over](#switching-from-the-original-integration) without setting their devices up again.
 
@@ -15,77 +15,66 @@ Unofficial Home Assistant integration for Argo (Argoclima) WiFi air conditioners
 | ---------------------- | --------- |
 | Ulisse 13 DCI Eco WiFi | Supported |
 
-Other WiFi models likely use the same API. If you own one, please [open an issue][issues].
+Other Argo WiFi models probably work too. If you own one, please [open an issue][issues] and tell us whether it works.
 
-## Features
+## What you get in Home Assistant
 
-| Feature                        | Entity                     |
-| ------------------------------ | -------------------------- |
-| On / off, operation mode       | `climate`                  |
-| Current and target temperature | `climate`                  |
-| Fan speed                      | `climate` fan mode         |
-| Eco, turbo and night mode      | `climate` preset           |
-| Eco mode power limit           | `number`                   |
-| Display unit (°C / °F)         | `select`                   |
-| Active timer                   | `select`                   |
-| Device light                   | `switch`                   |
-| Use remote temperature         | `switch`                   |
+| Feature                        | Shown as                    |
+| ------------------------------ | --------------------------- |
+| On / off, mode, temperature    | Climate control             |
+| Fan speed                      | Climate control (fan mode)  |
+| Eco, turbo and night mode      | Climate control (preset)    |
+| Eco mode power limit           | Number                      |
+| Display unit (°C / °F)         | Selection                   |
+| Active timer                   | Selection                   |
+| Device light                   | Switch                      |
+| Use remote temperature         | Switch                      |
+| Connection and last contact    | Sensor                      |
 | Set time and weekday           | `argoclima.set_time` action |
-| Connection and last contact    | `binary_sensor`            |
-| Firmware versions              | device info                |
-| Firmware update check          | `update` (optional)        |
+| Firmware versions              | Device info                 |
+| Firmware update check          | Update (optional)           |
 
-Flap and filter mode, timer configuration and device reset are not implemented.
+Flap and filter mode, timer schedules and device reset are not available.
 
-## Installation
+## Getting started
 
-Requires Home Assistant 2025.10 or newer.
+Requires Home Assistant 2025.10 or newer and [HACS](https://hacs.xyz).
 
-### HACS
+### 1. Connect the device to your WiFi
 
-1. In HACS, open the menu (⋮) → **Custom repositories**.
-2. Add `https://github.com/Gadund/argoclima-integration` with type **Integration**.
-3. Search for **Argoclima**, download it and restart Home Assistant.
+Follow the instructions that came with the device. Once it's connected, it shows up in your router's list of devices.
 
-### Manual
+### 2. Give the device a fixed IP address
 
-Copy `custom_components/argoclima` from the [latest release][releases] into the `custom_components` folder of your Home Assistant configuration and restart Home Assistant.
+Home Assistant finds the device by its IP address, so the address must not change. In your router, look for **DHCP reservation**, **fixed IP** or **"always assign the same IP address"** (the name depends on the router) and set it up for the Argo device. Note the address, you'll need it in step 4.
 
-### Switching from the original integration
+### 3. Install the integration
+
+1. In Home Assistant, open **HACS**, then the menu (⋮) at the top right → **Custom repositories**.
+2. Enter `https://github.com/Gadund/argoclima-integration`, choose type **Integration** and click **Add**.
+3. Search for **Argoclima** in HACS, open it and click **Download**.
+4. Restart Home Assistant (**Settings → System → Restart**).
+
+Without HACS: copy the folder `custom_components/argoclima` from the [latest release][releases] into the `custom_components` folder of your Home Assistant configuration and restart.
+
+### 4. Add your device
+
+1. Go to **Settings → Devices & services → Add integration** and search for **Argoclima**.
+2. Choose **Set up device manually**.
+3. Give the device a name (e.g. "Living room") and enter its IP address from step 2.
+
+That's it. The device and its controls now appear in Home Assistant. Home Assistant checks the device's state every 15 seconds; commands you send take effect right away. To change the IP address later, open the device's integration entry and click **Configure**.
+
+## Switching from the original integration
 
 Your devices and entities are kept, including entity ids, history, names, areas and automations.
 
-1. In HACS, remove the original Argoclima integration. This only removes its files; your devices stay configured.
-2. Install this repository as described above and restart Home Assistant.
+1. In HACS, remove the original Argoclima integration. This only removes its files; your devices stay set up.
+2. Install this integration as described in [step 3](#3-install-the-integration) and restart Home Assistant.
 
-Existing entities are migrated automatically on startup. If you end up with duplicated entities ending in `_2`, please [open an issue][issues] with the [debug log](#troubleshooting).
+Existing entities are taken over automatically. If you end up with duplicated entities ending in `_2`, please [open an issue][issues].
 
-## Configuration
-
-There are two ways to connect your devices. The dummy server is recommended.
-
-### With the dummy server (recommended)
-
-By default, the device stays connected to Argo's cloud server (`31.14.128.210`), and it only works reliably while that server answers. When the server is overloaded, the device keeps dropping its WiFi connection. The built-in dummy server takes the place of Argo's server inside Home Assistant:
-
-- The device no longer depends on Argo's server, which avoids these connection drops. It keeps working without internet access and if Argo ever shuts its servers down.
-- Devices report their state by themselves about every 12 seconds, so changes made on the device or the remote show up faster than with polling (every 15 seconds), and Home Assistant doesn't need to poll them.
-- Devices are discovered automatically; adding several devices needs no extra steps.
-- IP address changes are picked up automatically.
-
-All traffic stays in your local network. The official Argo web app no longer works while the dummy server is in use.
-
-1. Go to **Settings → Devices & services → Add integration → Argoclima**, choose **Set up Argoclima Dummy Server** and pick a port (default `8239`).
-2. On your router, redirect (DNAT) the devices' traffic for `31.14.128.210:80` to `<Home Assistant IP>:<port>`. If the devices and Home Assistant are in the same subnet, an additional hairpin NAT rule and the dummy server's **NAT gateway** option are needed. See the **[DNAT guide](docs/dnat.md)** for step-by-step instructions for OPNsense, pfSense, UniFi, FortiGate, MikroTik, OpenWrt and Linux.
-3. Each device shows up as a discovered device as soon as it reports to the dummy server. Confirm it and give it a name.
-
-### Without the dummy server
-
-Assign the device a static IP address in your router first; the integration addresses the device by IP and polls it every 15 seconds.
-
-Go to **Settings → Devices & services → Add integration → Argoclima**, choose **Set up device manually**, select the device type, give it a name and enter its IP address. The IP address can be changed later in the integration options.
-
-### Using the remote's temperature sensor
+## Using the remote's temperature sensor
 
 The device can use the temperature measured by the remote instead of its own sensor, which is often more accurate as the remote is usually closer to where you are.
 
@@ -96,6 +85,25 @@ The remote sends the temperature by **infrared**, the same way as its commands: 
 3. Turn on **Use Remote Temperature** in Home Assistant. Enabling remote temperature mode on the remote itself (hold the fan button for 2 seconds; the user icon appears) may also be required.
 
 Each transmission also includes the remote's own settings, which can overwrite changes made in Home Assistant. If that's a problem, keep the remote's settings in line with what you set in Home Assistant, or use the device's own sensor.
+
+## Advanced: dummy server
+
+**Optional.** The integration works without it. Consider it if your device keeps losing its connection, or if you want it to work without Argo's cloud.
+
+Argo devices stay connected to Argo's server on the internet all the time. When that server is overloaded, the device keeps dropping its WiFi connection, and if Argo ever shuts it down, the device can no longer be controlled over WiFi. The device also sends your Argo login and your WiFi password to that server, unencrypted.
+
+The dummy server built into this integration takes the place of Argo's server inside Home Assistant. Your router redirects the device's traffic for Argo's server to Home Assistant instead, so nothing leaves your network anymore:
+
+- No more connection drops caused by Argo's server, and no dependency on the internet.
+- Your Argo login and WiFi password stay at home.
+- The device reports its state on its own about every 12 seconds, and devices are found automatically.
+- The official Argo web app no longer works while the dummy server is in use.
+
+**You need a router that can redirect traffic** (called DNAT or "destination NAT"), e.g. UniFi, OPNsense, pfSense, FortiGate, MikroTik or OpenWrt. Most routers from internet providers, including the AVM FRITZ!Box, can't do this.
+
+1. Go to **Settings → Devices & services → Add integration → Argoclima** and choose **Set up Argoclima Dummy Server**. Keep the suggested port `8239`.
+2. Set up the redirect on your router. The **[router guide](docs/dnat.md)** explains it step by step for each router.
+3. Within a few minutes, your Argo devices show up under **Discovered** in **Settings → Devices & services**. Confirm them and give them a name. Devices you already added manually switch over automatically.
 
 ## Firmware updates
 
@@ -138,7 +146,7 @@ logger:
 Unplug the device for about a minute and try again.
 
 **The connection drops every few seconds.**
-This happens when Argo's server is overloaded: the device resets its WiFi connection when its requests to the server time out. Use the [dummy server](#with-the-dummy-server-recommended).
+This happens when Argo's server is overloaded: the device resets its WiFi connection when its requests to the server time out. The [dummy server](#advanced-dummy-server) fixes this.
 
 **The temperature is wrong while "Use Remote Temperature" is on.**
 The remote only sends the temperature by infrared while it points at the device. If it's out of sight, covered or turned off, the device doesn't get new values and the temperature can be outdated. See [Using the remote's temperature sensor](#using-the-remotes-temperature-sensor).

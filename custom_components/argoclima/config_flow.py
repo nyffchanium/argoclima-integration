@@ -74,7 +74,7 @@ class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         return self.async_show_menu(
             step_id="user",
-            menu_options=["server", "device"],
+            menu_options=["device", "server"],
         )
 
     async def async_step_server(

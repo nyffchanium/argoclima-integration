@@ -16,10 +16,10 @@
     "step": {
       "user": {
         "menu_options": {
-          "server": "Set up Argoclima Dummy Server (recommended)",
-          "device": "Set up device manually"
+          "device": "Set up device manually",
+          "server": "Set up Argoclima Dummy Server (advanced)"
         },
-        "description": "Set up the built-in dummy server or add a device manually.",
+        "description": "Add your Argo device. The dummy server is optional and needs a router that can redirect traffic, see the documentation.",
         "title": "Argoclima"
       },
       "server": {
