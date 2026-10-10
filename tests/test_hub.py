@@ -179,5 +179,6 @@ async def test_diagnostics_redact_device_addresses(
 
     assert HOST not in str(diagnostics)
     assert CPU_ID not in str(diagnostics)
+    assert TITLE not in str(diagnostics)
     assert diagnostics["dummy_server"]["running"] is False
     assert len(diagnostics["devices"]) == 1

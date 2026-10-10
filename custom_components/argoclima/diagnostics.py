@@ -7,12 +7,14 @@ from homeassistant.core import HomeAssistant
 from .const import CONF_CPU_ID
 from .const import CONF_DEVICES
 from .const import CONF_HOST
+from .const import CONF_NAME
 from .const import CONF_NAT_GATEWAY
 from .const import DOMAIN
 from .runtime import ArgoHubRuntime
 from .runtime import runtime_devices_for_entry
 
-TO_REDACT = {CONF_HOST, CONF_CPU_ID, CONF_NAT_GATEWAY, "unique_id"}
+# Names are user-chosen and often contain room or person names.
+TO_REDACT = {CONF_HOST, CONF_CPU_ID, CONF_NAT_GATEWAY, CONF_NAME, "title", "unique_id"}
 
 
 async def async_get_config_entry_diagnostics(

@@ -6,6 +6,7 @@ from pytest_homeassistant_custom_component.components.diagnostics import (
 from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 
 from .conftest import HOST
+from .conftest import TITLE
 
 
 async def test_diagnostics(
@@ -23,6 +24,7 @@ async def test_diagnostics(
     )
 
     assert HOST not in str(diagnostics)
+    assert TITLE not in str(diagnostics)
     assert diagnostics["entry"]["data"]["host"] == "**REDACTED**"
     assert diagnostics["dummy_server"] is None
     [device] = diagnostics["devices"]
