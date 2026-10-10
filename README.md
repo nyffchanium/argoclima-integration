@@ -88,13 +88,13 @@ Each transmission also includes the remote's own settings, which can overwrite c
 
 ## Advanced: dummy server
 
-**Optional.** The integration works without it. Consider it if your device keeps losing its connection, or if you want it to work without Argo's cloud.
+**Optional.** The integration works fine without it. It's worth setting up if your device often loses its connection, or if you want it to work without the manufacturer's cloud.
 
-Argo devices stay connected to Argo's server on the internet all the time. When that server is overloaded, the device keeps dropping its WiFi connection, and if Argo ever shuts it down, the device can no longer be controlled over WiFi. The device also sends your Argo login and your WiFi password to that server, unencrypted.
+Argo devices are permanently connected to the manufacturer's cloud on the internet. When the cloud is overloaded, the device keeps dropping its WiFi connection, and if Argo ever shuts it down, the device can no longer be controlled over WiFi. The device also sends your Argo login and your WiFi password to the cloud, unencrypted.
 
-The dummy server built into this integration takes the place of Argo's server inside Home Assistant. Your router redirects the device's traffic for Argo's server to Home Assistant instead, so nothing leaves your network anymore:
+The dummy server built into this integration takes the place of the cloud inside Home Assistant. Your router sends the device's traffic for the cloud to Home Assistant instead, so nothing leaves your network anymore:
 
-- No more connection drops caused by Argo's server, and no dependency on the internet.
+- No more connection drops caused by the cloud, and no dependency on the internet.
 - Your Argo login and WiFi password stay at home.
 - The device reports its state on its own about every 12 seconds, and devices are found automatically.
 - The official Argo web app no longer works while the dummy server is in use.
