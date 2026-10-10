@@ -4,7 +4,7 @@ labels: bug
 body:
   - type: markdown
     attributes:
-      value: Please search the [existing issues](https://github.com/Gadund/argoclima-integration/issues) first.
+      value: Please search the [existing issues](https://github.com/nyffchanium/argoclima-integration/issues) first.
   - type: input
     attributes:
       label: Integration version

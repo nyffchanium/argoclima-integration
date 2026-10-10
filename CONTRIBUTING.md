@@ -4,7 +4,7 @@ Bug reports, device support and pull requests are welcome. Router guides for the
 
 ## Reporting issues
 
-Use the [issue templates](https://github.com/Gadund/argoclima-integration/issues/new/choose) and include debug logs:
+Use the [issue templates](https://github.com/nyffchanium/argoclima-integration/issues/new/choose) and include debug logs:
 
 ```yaml
 logger:

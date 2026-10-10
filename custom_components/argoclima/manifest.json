@@ -2,14 +2,15 @@
   "domain": "argoclima",
   "name": "Argoclima",
   "codeowners": [
+    "@nyffchanium",
     "@Gadund"
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/Gadund/argoclima-integration",
+  "documentation": "https://github.com/nyffchanium/argoclima-integration",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/Gadund/argoclima-integration/issues",
+  "issue_tracker": "https://github.com/nyffchanium/argoclima-integration/issues",
   "requirements": [],
   "version": "1.2.0"
 }

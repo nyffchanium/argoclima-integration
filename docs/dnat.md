@@ -255,5 +255,5 @@ iptables -t nat -L UBIOS_POSTROUTING_USER_HOOK -n -v
 Is your router missing, or is a guide wrong or outdated? Please help:
 
 - **Edit this page** with the pencil icon on GitHub and open a pull request. Use the same structure and example addresses as the other guides.
-- Or [open an issue](https://github.com/Gadund/argoclima-integration/issues/new/choose) with the steps or screenshots that worked for you, and the router model and firmware version.
+- Or [open an issue](https://github.com/nyffchanium/argoclima-integration/issues/new/choose) with the steps or screenshots that worked for you, and the router model and firmware version.
 - If a guide worked for you as is, a short note in an issue helps too.

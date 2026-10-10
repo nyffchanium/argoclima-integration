@@ -1,6 +1,6 @@
 DOMAIN = "argoclima"
 MANUFACTURER = "Argoclima S.p.A."
-DOCUMENTATION_URL = "https://github.com/Gadund/argoclima-integration"
+DOCUMENTATION_URL = "https://github.com/nyffchanium/argoclima-integration"
 
 CONF_DEVICE_TYPE = "device"
 CONF_NAME = "name"
