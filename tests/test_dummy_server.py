@@ -70,6 +70,12 @@ def test_falls_back_to_host_based_id_without_cpu_id() -> None:
     assert push_data.cpu_id == f"host:{HOST}"
 
 
+def test_reads_wifi_firmware() -> None:
+    push_data = _push_data_from_params({**PARAMS, "FW_UI": "_svn.00003"}, HUB_ID, HOST)
+
+    assert push_data.wifi_firmware == "00003"
+
+
 def test_peer_host() -> None:
     assert _peer_host(FakeWriter((HOST, 54321))) == HOST
     assert _peer_host(FakeWriter(None)) is None

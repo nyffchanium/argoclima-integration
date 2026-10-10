@@ -22,7 +22,7 @@ def test_parse_response() -> None:
     assert data.fan is ArgoFanSpeed.AUTO
     assert data.light is True
     assert data.eco_limit == 75
-    assert data.firmware_version == 41
+    assert data.firmware_version == 1416
     assert data.unit is ArgoUnit.CELSIUS
 
 

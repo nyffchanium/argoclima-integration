@@ -27,7 +27,7 @@ DEFAULT_RESPONSE_VALUES = {
     4: 0,  # fan: auto
     11: 1,  # device light
     22: 75,  # eco limit
-    23: 41,  # firmware version
+    23: 1416,  # firmware version
     24: 0,  # unit: celsius
 }
 

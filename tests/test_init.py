@@ -46,7 +46,7 @@ async def test_setup_creates_entities(
         dr.async_get(hass), device_entry.entry_id
     )
     assert device.identifiers == {(DOMAIN, device_entry.entry_id)}
-    assert device.sw_version == "41"
+    assert device.sw_version == "01416"
 
 
 async def test_unload(

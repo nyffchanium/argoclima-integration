@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
@@ -113,3 +114,51 @@ async def test_push_through_nat_gateway(hass: HomeAssistant) -> None:
     assert body.startswith("{|1|0|")
     [flow] = hass.config_entries.flow.async_progress_by_handler(DOMAIN)
     assert flow["context"]["unique_id"] == CPU_ID
+
+
+async def test_push_shows_firmware_versions(
+    hass: HomeAssistant, hub: MockConfigEntry
+) -> None:
+    hub.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(hub.entry_id)
+    await hass.async_block_till_done()
+
+    await async_handle_push_data(
+        hass,
+        ArgoPushData(
+            cpu_id=CPU_ID,
+            host=HOST,
+            hmi=device_response(),
+            hub_id=dummy_server_hub_id(hub),
+            wifi_firmware="00003",
+        ),
+    )
+    await hass.async_block_till_done()
+
+    [device] = dr.async_entries_for_config_entry(dr.async_get(hass), hub.entry_id)
+    assert device.sw_version == "01416 (WiFi 00003)"
+
+
+async def test_unconfirmed_change_is_resent_on_push(
+    hass: HomeAssistant,
+    hub: MockConfigEntry,
+    sent_requests: list[str],
+    mock_device: None,
+) -> None:
+    hub.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(hub.entry_id)
+    await hass.async_block_till_done()
+    push = ArgoPushData(
+        cpu_id=CPU_ID, host=HOST, hmi=device_response(), hub_id=dummy_server_hub_id(hub)
+    )
+    await async_handle_push_data(hass, push)
+    await hass.async_block_till_done()
+
+    coordinator = hass.data[DOMAIN][hub.entry_id].devices["device-key"].coordinator
+    coordinator.data.light = False
+    sent_requests.clear()
+
+    await async_handle_push_data(hass, push)
+    await hass.async_block_till_done()
+
+    assert sent_requests and sent_requests[-1].split(",")[11] == "0"

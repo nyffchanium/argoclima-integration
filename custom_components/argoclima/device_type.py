@@ -80,6 +80,7 @@ class ArgoDeviceType:
             platforms.append(Platform.SELECT)
         if self.device_lights or self.remote_temperature:
             platforms.append(Platform.SWITCH)
+        platforms.append(Platform.UPDATE)
         return platforms
 
     def __str__(self) -> str:

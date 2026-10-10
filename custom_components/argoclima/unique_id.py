@@ -12,6 +12,8 @@ ENTITY_NAMES = (
     "Eco Mode Power Limit",
     "Display Unit",
     "Active Timer",
+    "Firmware",
+    "WiFi Firmware",
 )
 
 

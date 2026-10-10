@@ -71,6 +71,7 @@ class ArgoPushData:
     hmi: str | None
     hub_id: str | None
     device_type: str = ARGO_DEVICE_ULISSE_ECO
+    wifi_firmware: str | None = None
 
 
 class ArgoDummyServer:
@@ -249,20 +250,7 @@ async def async_handle_push_data(hass: HomeAssistant, push_data: ArgoPushData) -
             entry.entry_id,
             push_data.host,
         )
-        coordinator.async_update_host(push_data.host)
-        coordinator.async_set_push_updates_enabled(True)
-        data = _data_from_hmi(push_data, coordinator.data)
-        if data is not None:
-            coordinator.async_set_updated_data(data)
-            _LOGGER.debug(
-                "Argoclima push data applied to coordinator for entry %s",
-                entry.entry_id,
-            )
-        else:
-            _LOGGER.debug(
-                "Argoclima push for entry %s did not include valid HMI state",
-                entry.entry_id,
-            )
+        _async_apply_push(hass, coordinator, push_data)
     else:
         _LOGGER.debug(
             "Argoclima push matched entry %s, but entry is not loaded",
@@ -362,12 +350,31 @@ def _async_handle_hub_child_push(hass: HomeAssistant, push_data: ArgoPushData) -
         return True
 
     device.data = device_data
-    device.coordinator.async_update_host(push_data.host)
-    device.coordinator.async_set_push_updates_enabled(True)
-    data = _data_from_hmi(push_data, device.coordinator.data)
-    if data is not None:
-        device.coordinator.async_set_updated_data(data)
+    _async_apply_push(hass, device.coordinator, push_data)
     return True
+
+
+def _async_apply_push(
+    hass: HomeAssistant,
+    coordinator: ArgoDataUpdateCoordinator,
+    push_data: ArgoPushData,
+) -> None:
+    coordinator.async_update_host(push_data.host)
+    coordinator.async_set_push_updates_enabled(True)
+    data = _data_from_hmi(push_data, coordinator.data)
+    if data is None:
+        _LOGGER.debug(
+            "Argoclima push for CPU_ID %s did not include valid HMI state",
+            push_data.cpu_id,
+        )
+        return
+
+    if push_data.wifi_firmware is not None:
+        data.wifi_firmware_version = push_data.wifi_firmware
+    coordinator.async_set_updated_data(data)
+    if data.is_update_pending():
+        # Pushes don't carry our changes, so resend what the device hasn't applied yet.
+        hass.async_create_task(coordinator.async_request_refresh())
 
 
 async def _async_start_discovery_flow(
@@ -437,9 +444,11 @@ def _data_from_hmi(
         return None
 
     if current_data is not None and current_data.is_update_pending():
-        current_data.parse_response_parameter_string(push_data.hmi)
+        current_data.parse_response_parameter_string(push_data.hmi, is_response=False)
         return current_data
 
+    if current_data is not None:
+        data.wifi_firmware_version = current_data.wifi_firmware_version
     return data
 
 
@@ -607,7 +616,15 @@ def _push_data_from_params(
         host=host,
         hmi=hmi if hmi else None,
         hub_id=hub_id,
+        wifi_firmware=_firmware_version(params.get("FW_UI")),
     )
+
+
+def _firmware_version(value: str | None) -> str | None:
+    """Return the version of a firmware string like "_svn.00003"."""
+    if not value:
+        return None
+    return value.rsplit(".", 1)[-1].strip() or None
 
 
 def _valid_host(value: str | None) -> str | None:

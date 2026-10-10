@@ -181,6 +181,7 @@ class ArgoData:
         )
         self._unit = ArgoDataValue(26, 24)
         self._firmware_version = ArgoDataValue(None, 23, ValueType.READ_ONLY)
+        self.wifi_firmware_version: str | None = None
         self._values: list[ArgoDataValue] = [
             self._target_temp,
             self._temp,
@@ -216,7 +217,15 @@ class ArgoData:
             values.append(str(out))
         return ",".join(values)
 
-    def parse_response_parameter_string(self, query: str) -> None:
+    def parse_response_parameter_string(
+        self, query: str, *, is_response: bool = True
+    ) -> None:
+        """Apply a device state string.
+
+        Only answers to our own requests count as attempts to apply pending
+        changes; state the device reports on its own (is_response=False) just
+        confirms them when they match.
+        """
         values = query.split(",")
 
         if len(values) != RESPONSE_VALUE_COUNT:
@@ -234,10 +243,10 @@ class ArgoData:
 
                 val.update(value)
 
-                if val.pending_change:
+                if val.pending_change and is_response:
                     val.notify_unsuccessful_change()
 
-            elif val.pending_change:
+            elif val.pending_change and is_response:
                 val.assume_change_successful()
 
     def is_update_pending(self) -> bool:
