@@ -12,6 +12,21 @@ The remote sends the temperature by **infrared**, the same way as its commands: 
 
 Each transmission also includes the remote's own settings, which can overwrite changes made in Home Assistant. If that's a problem, keep the remote's settings in line with what you set in Home Assistant, or use the device's own sensor.
 
+## Anti-mold
+
+After cooling or dehumidifying, the inside of the device is wet. Turned off right away, the moisture stays inside and can cause mold and odors. With **Anti-mold** enabled, turning the device off in Home Assistant after cooling or dehumidifying switches it to fan mode first and turns it off after the configured time.
+
+Each device has these settings, all off or at their defaults until you change them:
+
+| Entity                         | Default | Description                                                              |
+| ------------------------------ | ------- | ------------------------------------------------------------------------ |
+| Anti-mold                      | off     | Dry the device before turning it off                                     |
+| Anti-mold after remote off     | off     | Also dry when the device was turned off with the remote or its timer; this turns it back on for drying |
+| Anti-mold duration             | 15 min  | How long the fan keeps running                                           |
+| Anti-mold fan speed            | medium  | Fan speed while drying                                                   |
+
+**Anti-mold drying** shows whether the device is drying right now. Turning the device off again while drying turns it off immediately; any other change cancels drying. If Home Assistant restarts while drying, drying continues for the remaining time.
+
 ## Firmware updates
 
 The device info shows the firmware of the device and, with the dummy server, of its WiFi module.

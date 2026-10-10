@@ -48,14 +48,22 @@ def sent_requests() -> list[str]:
 
 
 @pytest.fixture
-def mock_device(sent_requests: list[str]) -> Generator[None]:
-    """Answer device requests like an idle Ulisse and record what was sent."""
+def device_state() -> dict[int, int]:
+    """Response values that differ from DEFAULT_RESPONSE_VALUES."""
+    return {}
+
+
+@pytest.fixture
+def mock_device(
+    sent_requests: list[str], device_state: dict[int, int]
+) -> Generator[None]:
+    """Answer device requests like a cooling Ulisse and record what was sent."""
 
     async def sync(self: ArgoApiClient, data: ArgoData | None) -> ArgoData:
         if data is None:
             data = ArgoData(self._type)
         sent_requests.append(data.to_parameter_string())
-        data.parse_response_parameter_string(device_response())
+        data.parse_response_parameter_string(device_response(device_state))
         return data
 
     with patch.object(ArgoApiClient, "async_sync_data", sync):

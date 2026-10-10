@@ -6,7 +6,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
+from .entity import ArgoAntiMoldEntity
 from .entity import ArgoEntity
 from .runtime import ArgoRuntimeDevice
 from .runtime import runtime_devices_for_entry
@@ -21,6 +23,9 @@ async def async_setup_entry(
             entities.append(ArgoDeviceLightSwitch(device))
         if device.type.remote_temperature:
             entities.append(ArgoRemoteTemperatureSwitch(device))
+        if device.type.anti_mold:
+            entities.append(ArgoAntiMoldSwitch(device))
+            entities.append(ArgoAntiMoldAfterRemoteOffSwitch(device))
     async_add_entities(entities)
 
 
@@ -67,3 +72,52 @@ class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         self.coordinator.data.remote_temperature = False
         await self._async_send_changes()
+
+
+class ArgoAntiMoldSwitch(ArgoAntiMoldEntity, SwitchEntity, RestoreEntity):
+    _attr_icon = "mdi:air-filter"
+
+    def __init__(self, device: ArgoRuntimeDevice) -> None:
+        super().__init__("Anti Mold", device)
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (state := await self.async_get_last_state()) is not None:
+            self._anti_mold.enabled = state.state == "on"
+
+    @property
+    def is_on(self) -> bool:
+        return self._anti_mold.enabled
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._anti_mold.enabled = True
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._anti_mold.enabled = False
+        self._anti_mold.async_cancel()
+        self.async_write_ha_state()
+
+
+class ArgoAntiMoldAfterRemoteOffSwitch(ArgoAntiMoldEntity, SwitchEntity, RestoreEntity):
+    _attr_icon = "mdi:remote"
+
+    def __init__(self, device: ArgoRuntimeDevice) -> None:
+        super().__init__("Anti Mold After Remote Off", device)
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (state := await self.async_get_last_state()) is not None:
+            self._anti_mold.after_remote_off = state.state == "on"
+
+    @property
+    def is_on(self) -> bool:
+        return self._anti_mold.after_remote_off
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._anti_mold.after_remote_off = True
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._anti_mold.after_remote_off = False
+        self.async_write_ha_state()

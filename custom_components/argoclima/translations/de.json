@@ -96,6 +96,9 @@
     "number": {
       "eco_mode_power_limit": {
         "name": "Eco-Leistungsgrenze"
+      },
+      "anti_mold_duration": {
+        "name": "Anti-Schimmel Nachlaufzeit"
       }
     },
     "select": {
@@ -111,6 +114,17 @@
           "profile_2": "Profil 2",
           "profile_3": "Profil 3"
         }
+      },
+      "anti_mold_fan_speed": {
+        "name": "Anti-Schimmel Lüfterstufe",
+        "state": {
+          "lowest": "Sehr niedrig",
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch",
+          "higher": "Sehr hoch",
+          "highest": "Maximal"
+        }
       }
     },
     "switch": {
@@ -119,6 +133,12 @@
       },
       "use_remote_temperature": {
         "name": "Temperatur der Fernbedienung verwenden"
+      },
+      "anti_mold": {
+        "name": "Anti-Schimmel"
+      },
+      "anti_mold_after_remote_off": {
+        "name": "Anti-Schimmel auch bei Fernbedienung"
       }
     },
     "update": {
@@ -135,6 +155,14 @@
         "state_attributes": {
           "last_seen": {
             "name": "Zuletzt gesehen"
+          }
+        }
+      },
+      "anti_mold_drying": {
+        "name": "Anti-Schimmel Trocknung",
+        "state_attributes": {
+          "until": {
+            "name": "Bis"
           }
         }
       }

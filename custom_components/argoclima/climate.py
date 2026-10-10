@@ -10,6 +10,7 @@ from homeassistant.components.climate.const import PRESET_SLEEP
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
+from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .entity import ArgoEntity
@@ -101,24 +102,44 @@ class ArgoClimate(ArgoEntity, ClimateEntity):
             return None
         return fan.to_ha_string()
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(self.coordinator.anti_mold.async_shutdown)
+        self.coordinator.anti_mold.async_handle_device_update()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self.coordinator.anti_mold.async_handle_device_update()
+        super()._handle_coordinator_update()
+
     async def async_turn_on(self) -> None:
+        self.coordinator.anti_mold.async_cancel()
         self.coordinator.data.operating = True
         await self._async_send_changes()
 
     async def async_turn_off(self) -> None:
+        anti_mold = self.coordinator.anti_mold
+        if anti_mold.should_dry():
+            await anti_mold.async_start()
+            self.async_write_ha_state()
+            return
+        # Turning off again while drying stops right away.
+        anti_mold.async_cancel()
         self.coordinator.data.operating = False
         await self._async_send_changes()
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        data = self.coordinator.data
         if hvac_mode == HVACMode.OFF:
-            data.operating = False
-        else:
-            data.operating = True
-            data.mode = ArgoOperationMode.from_hvac_mode(hvac_mode)
+            await self.async_turn_off()
+            return
+        self.coordinator.anti_mold.async_cancel()
+        data = self.coordinator.data
+        data.operating = True
+        data.mode = ArgoOperationMode.from_hvac_mode(hvac_mode)
         await self._async_send_changes()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
+        self.coordinator.anti_mold.async_cancel()
         data = self.coordinator.data
         data.eco = preset_mode == PRESET_ECO
         data.turbo = preset_mode == PRESET_BOOST
@@ -126,10 +147,12 @@ class ArgoClimate(ArgoEntity, ClimateEntity):
         await self._async_send_changes()
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
+        self.coordinator.anti_mold.async_cancel()
         self.coordinator.data.fan = ArgoFanSpeed.from_ha_string(fan_mode)
         await self._async_send_changes()
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
+            self.coordinator.anti_mold.async_cancel()
             self.coordinator.data.target_temp = temperature
             await self._async_send_changes()
