@@ -1,8 +1,10 @@
 # Redirecting Argo traffic to the dummy server (DNAT)
 
-The Argo devices have the address of Argo's cloud server (`31.14.128.210`, port `80`) built in; it can't be changed on the device. To use the [dummy server](../README.md#with-the-dummy-server-recommended), your router has to redirect this traffic to Home Assistant. This is called destination NAT (DNAT) or, on some routers, port forwarding.
+The Argo devices have the addresses of Argo's cloud servers built in: `31.14.128.210` and, as a fallback, `95.254.67.59`, both on port `80`. They can't be changed on the device. To use the [dummy server](../README.md#with-the-dummy-server-recommended), your router has to redirect this traffic to Home Assistant. This is called destination NAT (DNAT) or, on some routers, port forwarding.
 
-> **Help wanted:** these guides are written from the vendors' documentation and haven't all been tested with Argo devices. If you use one of them, tell us whether it worked. If your router is missing or a guide is outdated, please [contribute](#contributing).
+Redirect both addresses: a device that can't reach the first one switches to the fallback.
+
+> **Help wanted:** the UniFi guide has been tested with a UniFi Dream Machine. The other guides are written from the vendors' documentation. If you use one of them, tell us whether it worked. If your router is missing or a guide is outdated, please [contribute](#contributing).
 
 ## Before you start
 
@@ -35,11 +37,11 @@ Every guide below creates the same rule:
 | Incoming interface     | The network/VLAN of your Argo devices                    |
 | Protocol               | TCP                                                      |
 | Source                 | Your Argo devices' IP addresses                          |
-| Destination            | `31.14.128.210`, port `80`                               |
+| Destination            | `31.14.128.210` and `95.254.67.59`, port `80`            |
 | Redirect to            | Your Home Assistant IP, dummy server port (default `8239`) |
 | Source NAT/masquerade  | Off                                                      |
 
-If your firewall blocks traffic between the two networks, also allow TCP from the Argo devices to Home Assistant on the dummy server port. Many routers create this rule for you.
+**Firewall:** allow TCP from the Argo devices to Home Assistant on the dummy server port. Redirected traffic passes the router's firewall like routed traffic, even if the devices and Home Assistant are in the same subnet. Some routers create this rule for you; UniFi doesn't.
 
 The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.168.10.20` for Home Assistant and port `8239`. In the same-subnet case, Home Assistant would be `192.168.30.20` and the router `192.168.30.1`.
 
@@ -50,7 +52,7 @@ The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.
 1. **Firewall → NAT → Destination NAT** (called **Port Forward** before 25.7) → **Add**.
 2. Interface: the interface of the Argo network. Protocol: TCP.
 3. Source: an alias with your Argo devices (**Firewall → Aliases**, type Host(s)).
-4. Destination: Single host or network `31.14.128.210/32`, port range from/to `HTTP`.
+4. Destination: an alias with `31.14.128.210` and `95.254.67.59`, port range from/to `HTTP`.
 5. Redirect target IP: `192.168.10.20`, redirect target port: `8239`.
 6. Filter rule association: **Add associated filter rule** (or **Pass**).
 7. Save and **Apply changes**.
@@ -60,33 +62,37 @@ The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.
 1. **Firewall → NAT → Port Forward** → **Add**.
 2. Interface: the interface of the Argo network. Protocol: TCP.
 3. Source: your Argo devices (an alias under **Firewall → Aliases**).
-4. Destination: Single host `31.14.128.210`, port range `HTTP`.
+4. Destination: an alias with `31.14.128.210` and `95.254.67.59`, port range `HTTP`.
 5. Redirect target IP: `192.168.10.20`, redirect target port: `8239`.
 6. Filter rule association: **Add associated filter rule**.
 7. Save and **Apply Changes**.
 
 ### Ubiquiti UniFi
 
-Requires a UniFi gateway and a recent UniFi Network version with custom NAT rules. The menu location differs between versions.
+Tested with a UniFi Dream Machine. Requires UniFi Network 9.3 or newer.
 
-1. **Settings → Policy Table → Create New Policy → NAT** (older versions: **Settings → Routing → NAT**).
-2. Type: **Destination NAT**. Interface: the network of your Argo devices. Protocol: TCP.
-3. Source: your Argo devices' IP addresses.
-4. Destination: `31.14.128.210`, port `80`.
-5. Translated IP address: `192.168.10.20`, translated port: `8239`.
-6. Make sure no firewall policy blocks the Argo network from reaching Home Assistant on port `8239`.
+1. Optional, but makes the rules easier to read: create objects for your Argo devices, for the two Argo server addresses and for port `80`.
+2. **Settings → Policy Engine → NAT → Create New**:
+   - Type: **Destination NAT**
+   - Interface: the network of your Argo devices
+   - Protocol: TCP
+   - Source: your Argo devices
+   - Destination: `31.14.128.210` and `95.254.67.59`, port `80`
+   - Translated IP address: `192.168.10.20`, translated port: `8239`
+3. **Settings → Policy Engine → Firewall**: create an **Allow** policy from your Argo devices to `192.168.10.20`, TCP port `8239`. UniFi's firewall drops the redirected traffic otherwise, also within the same network.
+4. Same subnet only: add the [hairpin NAT rule](#same-subnet-hairpin-nat).
 
 ### Fortinet FortiGate
 
 1. **Policy & Objects → Virtual IPs → Create New → Virtual IP**:
    - Interface: the interface of the Argo network
-   - External IP address: `31.14.128.210`
+   - External IP address: `31.14.128.210` (create a second virtual IP for `95.254.67.59` and add both to a VIP group)
    - Mapped IP address: `192.168.10.20`
    - Port forwarding: enabled, protocol TCP, external port `80`, mapped port `8239`
 2. **Policy & Objects → Firewall Policy → Create New**:
    - Incoming interface: the Argo network; outgoing interface: the Home Assistant network
    - Source: an address group with your Argo devices
-   - Destination: the virtual IP from step 1
+   - Destination: the virtual IP (group) from step 1
    - Service: HTTP, action: ACCEPT, **NAT: disabled**
 3. Move the policy above any policy that sends this traffic to the internet.
 
@@ -96,8 +102,10 @@ Requires a UniFi gateway and a recent UniFi Network version with custom NAT rule
 /ip firewall address-list
 add list=argo address=192.168.30.90
 add list=argo address=192.168.30.91
+add list=argo-servers address=31.14.128.210
+add list=argo-servers address=95.254.67.59
 /ip firewall nat
-add chain=dstnat src-address-list=argo dst-address=31.14.128.210 protocol=tcp dst-port=80 \
+add chain=dstnat src-address-list=argo dst-address-list=argo-servers protocol=tcp dst-port=80 \
     action=dst-nat to-addresses=192.168.10.20 to-ports=8239 comment="Argo dummy server"
 ```
 
@@ -121,7 +129,7 @@ config redirect
 	option proto 'tcp'
 ```
 
-Add one section per device, or use an IP set.
+Add one section per device and server address, or use IP sets.
 
 ### Linux (nftables)
 
@@ -129,7 +137,7 @@ Add one section per device, or use an IP set.
 table ip argo {
 	chain prerouting {
 		type nat hook prerouting priority dstnat;
-		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr 31.14.128.210 tcp dport 80 dnat to 192.168.10.20:8239
+		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr { 31.14.128.210, 95.254.67.59 } tcp dport 80 dnat to 192.168.10.20:8239
 	}
 }
 ```
@@ -156,7 +164,7 @@ Then, in Home Assistant, open the dummy server's options (**Settings → Devices
 
 **pfSense:** **Firewall → NAT → Outbound**. Set the mode to **Hybrid Outbound NAT**, add a mapping with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8239`, translation: **Interface Address**.
 
-**Ubiquiti UniFi:** create a second NAT policy of type **Source NAT** (or **Masquerade**) with source: your Argo devices, destination `192.168.30.20` port `8239`, translated IP: the gateway's address in this network.
+**Ubiquiti UniFi:** **Settings → Policy Engine → NAT → Create New**, type **Masquerade**, interface: the network of your Argo devices, protocol TCP, source: your Argo devices, destination `192.168.30.20` port `8239`. The firewall policy from the guide above is required here as well.
 
 **Fortinet FortiGate:** use the Argo network as both incoming and outgoing interface in the firewall policy and **enable NAT** (outgoing interface address).
 
@@ -206,9 +214,24 @@ Within a few minutes, the log should show `Argoclima UI_FLG push received for CP
 
 | Log message                                             | Cause                                                                    |
 | ------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Nothing at all                                          | The rule doesn't match or a firewall blocks the traffic.                 |
+| Nothing at all                                          | The rule doesn't match, the firewall drops the redirected traffic, or (same subnet) the hairpin rule is missing. |
 | `claimed IP … did not match connection source …`        | The traffic is source-NATed. If that's your hairpin rule, set the NAT gateway option to the address shown as connection source. |
 | `Failed to start Argoclima dummy server on port …`      | The port is already used by something else; choose another one.         |
+
+### Checking the rules on the router
+
+On Linux-based routers such as UniFi gateways or OpenWrt, the packet counters show where the traffic stops. On a UniFi gateway, via SSH:
+
+```
+iptables -t nat -L UBIOS_PREROUTING_USER_HOOK -n -v
+iptables -t nat -L UBIOS_POSTROUTING_USER_HOOK -n -v
+```
+
+| Counters                                    | Meaning                                                              |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| DNAT stays at 0                             | The DNAT rule doesn't match: check interface, source and destination. |
+| DNAT rises, masquerade stays at 0           | The firewall drops the redirected traffic: add the allow rule.       |
+| Both rise, still nothing in the log         | Check the NAT gateway option in Home Assistant.                      |
 
 ## Contributing
 
