@@ -66,6 +66,9 @@ That's it. The device and its controls now appear in Home Assistant. Home Assist
 
 Update the integration in HACS as usual and restart Home Assistant. Your devices and entities are kept, including entity ids, history, names, areas and automations. If you end up with duplicated entities ending in `_2`, please [open an issue][issues].
 
+> [!IMPORTANT]
+> **Using the separate dummy server (Docker)?** It keeps working, and the integration then polls your devices as before. It's no longer updated, though: the dummy server is now built into the integration. See [Coming from the separate dummy server](#coming-from-the-separate-dummy-server-docker) to switch.
+
 If you installed the fork `Gadund/argoclima-integration` as a custom repository in the meantime: in HACS, remove the custom repository (⋮ → **Custom repositories**), then download **Argoclima** again from the regular HACS list and restart. Your devices stay set up.
 
 ## Using the remote's temperature sensor
@@ -98,6 +101,14 @@ The dummy server built into this integration takes the place of the cloud inside
 1. Go to **Settings → Devices & services → Add integration → Argoclima** and choose **Set up Argoclima Dummy Server**. Keep the suggested port `8239`.
 2. Set up the redirect on your router. The **[router guide](docs/dnat.md)** explains it step by step for each router.
 3. Within a few minutes, your Argo devices show up under **Discovered** in **Settings → Devices & services**. Confirm them and give them a name. Devices you already added manually switch over automatically.
+
+### Coming from the separate dummy server (Docker)
+
+Earlier versions needed a separate dummy server running in Docker. It keeps working with this version: the integration then simply polls your devices as before. The Docker image is no longer updated, though. To switch to the built-in dummy server:
+
+1. Set up the built-in dummy server as described above.
+2. On your router, change the redirect so it points to Home Assistant and the dummy server port (`8239`) instead of the Docker container.
+3. Once your devices show up under the dummy server in Home Assistant, stop and remove the Docker container.
 
 ## Firmware updates
 
