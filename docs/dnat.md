@@ -82,6 +82,14 @@ Tested with a UniFi Dream Machine. Requires UniFi Network 9.3 or newer.
 3. **Settings → Policy Engine → Firewall**: create an **Allow** policy from your Argo devices to `192.168.10.20`, TCP port `8239`. UniFi's firewall drops the redirected traffic otherwise, also within the same network.
 4. Same subnet only: add the [hairpin NAT rule](#same-subnet-hairpin-nat).
 
+UniFi's traffic and flow views keep listing the device's connections to Argo's servers, partly with "Internet" as destination. They show the original destination before the redirect. To confirm nothing leaves your network, capture on the WAN interface via SSH; it should show no packets:
+
+```
+timeout 60 tcpdump -ni eth9 host 31.14.128.210 or host 95.254.67.59
+```
+
+Replace `eth9` with your WAN interface (`ip route | grep default`).
+
 ### Fortinet FortiGate
 
 1. **Policy & Objects → Virtual IPs → Create New → Virtual IP**:
