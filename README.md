@@ -87,13 +87,15 @@ Go to **Settings → Devices & services → Add integration → Argoclima**, cho
 
 ### Using the remote's temperature sensor
 
-The temperature sensor in the remote can be used instead of the one in the device:
+The device can use the temperature measured by the remote instead of its own sensor, which is often more accurate as the remote is usually closer to where you are.
 
-1. Cover the remote's IR diode so it doesn't overwrite the device's settings.
+The remote sends the temperature by **infrared**, the same way as its commands: only when it points at the device with a clear line of sight. It sends roughly every 6 minutes and whenever the displayed value changes.
+
+1. Place the remote where it can "see" the device, e.g. on a shelf facing it.
 2. Turn the remote on (grid lines and fan icon are visible).
 3. Turn on **Use Remote Temperature** in Home Assistant. Enabling remote temperature mode on the remote itself (hold the fan button for 2 seconds; the user icon appears) may also be required.
 
-The remote sends the temperature roughly every 6 minutes and whenever the displayed value changes.
+Each transmission also includes the remote's own settings, which can overwrite changes made in Home Assistant. If that's a problem, keep the remote's settings in line with what you set in Home Assistant, or use the device's own sensor.
 
 ## Firmware updates
 
@@ -137,6 +139,9 @@ Unplug the device for about a minute and try again.
 
 **The connection drops every few seconds.**
 This happens when Argo's server is overloaded: the device resets its WiFi connection when its requests to the server time out. Use the [dummy server](#with-the-dummy-server-recommended).
+
+**The temperature is wrong while "Use Remote Temperature" is on.**
+The remote only sends the temperature by infrared while it points at the device. If it's out of sight, covered or turned off, the device doesn't get new values and the temperature can be outdated. See [Using the remote's temperature sensor](#using-the-remotes-temperature-sensor).
 
 ## Contributing
 

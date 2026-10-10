@@ -15,7 +15,7 @@ Redirect both addresses: a device that can't reach the first one switches to the
 | Setup                                                   | Rules                                                                 |
 | ------------------------------------------------------- | --------------------------------------------------------------------- |
 | Different subnets (e.g. devices in their own VLAN)      | DNAT rule                                                             |
-| Same subnet (e.g. both in `192.168.30.0/24`)            | DNAT rule, [hairpin NAT rule](#same-subnet-hairpin-nat) and the NAT gateway option |
+| Same subnet (e.g. both in the same VLAN)                | DNAT rule, [hairpin NAT rule](#same-subnet-hairpin-nat) and the NAT gateway option |
 
 <details>
 <summary>Why does the same subnet need more?</summary>
@@ -43,7 +43,14 @@ Every guide below creates the same rule:
 
 **Firewall:** allow TCP from the Argo devices to Home Assistant on the dummy server port. Redirected traffic passes the router's firewall like routed traffic, even if the devices and Home Assistant are in the same subnet. Some routers create this rule for you; UniFi doesn't.
 
-The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.168.10.20` for Home Assistant and port `8239`. In the same-subnet case, Home Assistant would be `192.168.30.20` and the router `192.168.30.1`.
+Replace the placeholders in the examples:
+
+| Placeholder            | Meaning                                                        |
+| ---------------------- | -------------------------------------------------------------- |
+| `<home-assistant-ip>`  | IP address of Home Assistant                                   |
+| `<argo-device-ip>`     | IP address of an Argo device (add one entry per device)        |
+| `<router-ip>`          | IP address of your router in the Argo devices' network         |
+| `8239`                 | Dummy server port, if you changed it                           |
 
 ## Router guides
 
@@ -53,7 +60,7 @@ The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.
 2. Interface: the interface of the Argo network. Protocol: TCP.
 3. Source: an alias with your Argo devices (**Firewall → Aliases**, type Host(s)).
 4. Destination: an alias with `31.14.128.210` and `95.254.67.59`, port range from/to `HTTP`.
-5. Redirect target IP: `192.168.10.20`, redirect target port: `8239`.
+5. Redirect target IP: `<home-assistant-ip>`, redirect target port: `8239`.
 6. Filter rule association: **Add associated filter rule** (or **Pass**).
 7. Save and **Apply changes**.
 
@@ -63,7 +70,7 @@ The examples use `192.168.30.90` and `192.168.30.91` for the Argo devices, `192.
 2. Interface: the interface of the Argo network. Protocol: TCP.
 3. Source: your Argo devices (an alias under **Firewall → Aliases**).
 4. Destination: an alias with `31.14.128.210` and `95.254.67.59`, port range `HTTP`.
-5. Redirect target IP: `192.168.10.20`, redirect target port: `8239`.
+5. Redirect target IP: `<home-assistant-ip>`, redirect target port: `8239`.
 6. Filter rule association: **Add associated filter rule**.
 7. Save and **Apply Changes**.
 
@@ -78,8 +85,8 @@ Tested with a UniFi Dream Machine. Requires UniFi Network 9.3 or newer.
    - Protocol: TCP
    - Source: your Argo devices
    - Destination: `31.14.128.210` and `95.254.67.59`, port `80`
-   - Translated IP address: `192.168.10.20`, translated port: `8239`
-3. **Settings → Policy Engine → Firewall**: create an **Allow** policy from your Argo devices to `192.168.10.20`, TCP port `8239`. UniFi's firewall drops the redirected traffic otherwise, also within the same network.
+   - Translated IP address: `<home-assistant-ip>`, translated port: `8239`
+3. **Settings → Policy Engine → Firewall**: create an **Allow** policy from your Argo devices to `<home-assistant-ip>`, TCP port `8239`. UniFi's firewall drops the redirected traffic otherwise, also within the same network.
 4. Same subnet only: add the [hairpin NAT rule](#same-subnet-hairpin-nat).
 
 UniFi's traffic and flow views keep listing the device's connections to Argo's servers, partly with "Internet" as destination. They show the original destination before the redirect. To confirm nothing leaves your network, capture on the WAN interface via SSH; it should show no packets:
@@ -95,7 +102,7 @@ Replace `eth9` with your WAN interface (`ip route | grep default`).
 1. **Policy & Objects → Virtual IPs → Create New → Virtual IP**:
    - Interface: the interface of the Argo network
    - External IP address: `31.14.128.210` (create a second virtual IP for `95.254.67.59` and add both to a VIP group)
-   - Mapped IP address: `192.168.10.20`
+   - Mapped IP address: `<home-assistant-ip>`
    - Port forwarding: enabled, protocol TCP, external port `80`, mapped port `8239`
 2. **Policy & Objects → Firewall Policy → Create New**:
    - Incoming interface: the Argo network; outgoing interface: the Home Assistant network
@@ -108,13 +115,13 @@ Replace `eth9` with your WAN interface (`ip route | grep default`).
 
 ```
 /ip firewall address-list
-add list=argo address=192.168.30.90
-add list=argo address=192.168.30.91
+add list=argo address=<argo-device-ip-1>
+add list=argo address=<argo-device-ip-2>
 add list=argo-servers address=31.14.128.210
 add list=argo-servers address=95.254.67.59
 /ip firewall nat
 add chain=dstnat src-address-list=argo dst-address-list=argo-servers protocol=tcp dst-port=80 \
-    action=dst-nat to-addresses=192.168.10.20 to-ports=8239 comment="Argo dummy server"
+    action=dst-nat to-addresses=<home-assistant-ip> to-ports=8239 comment="Argo dummy server"
 ```
 
 Make sure no `srcnat`/masquerade rule applies to this traffic; a typical masquerade rule limited to `out-interface=WAN` doesn't.
@@ -128,11 +135,11 @@ config redirect
 	option name 'Argo dummy server'
 	option target 'DNAT'
 	option src 'iot'
-	option src_ip '192.168.30.90'
+	option src_ip '<argo-device-ip>'
 	option src_dip '31.14.128.210'
 	option src_dport '80'
 	option dest 'lan'
-	option dest_ip '192.168.10.20'
+	option dest_ip '<home-assistant-ip>'
 	option dest_port '8239'
 	option proto 'tcp'
 ```
@@ -145,7 +152,7 @@ Add one section per device and server address, or use IP sets.
 table ip argo {
 	chain prerouting {
 		type nat hook prerouting priority dstnat;
-		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr { 31.14.128.210, 95.254.67.59 } tcp dport 80 dnat to 192.168.10.20:8239
+		ip saddr { <argo-device-ip-1>, <argo-device-ip-2> } ip daddr { 31.14.128.210, 95.254.67.59 } tcp dport 80 dnat to <home-assistant-ip>:8239
 	}
 }
 ```
@@ -166,13 +173,13 @@ Only needed if the Argo devices and Home Assistant are in the same subnet. Add t
 
 Limit the rule to your Argo devices: the dummy server trusts every report that comes from the router.
 
-Then, in Home Assistant, open the dummy server's options (**Settings → Devices & services → Argoclima → Argoclima Dummy Server → Configure**) and enter the router's IP address in this subnet (e.g. `192.168.30.1`) as **NAT gateway**.
+Then, in Home Assistant, open the dummy server's options (**Settings → Devices & services → Argoclima → Argoclima Dummy Server → Configure**) and enter the router's IP address in this subnet (`<router-ip>`) as **NAT gateway**.
 
-**OPNsense:** **Firewall → NAT → Source NAT** (called **Outbound** before 25.7). Set the mode to **Hybrid**, add a rule with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8239`, translation: **Interface address**.
+**OPNsense:** **Firewall → NAT → Source NAT** (called **Outbound** before 25.7). Set the mode to **Hybrid**, add a rule with interface: the Argo network, protocol TCP, source: your Argo alias, destination `<home-assistant-ip>/32` port `8239`, translation: **Interface address**.
 
-**pfSense:** **Firewall → NAT → Outbound**. Set the mode to **Hybrid Outbound NAT**, add a mapping with interface: the Argo network, protocol TCP, source: your Argo alias, destination `192.168.30.20/32` port `8239`, translation: **Interface Address**.
+**pfSense:** **Firewall → NAT → Outbound**. Set the mode to **Hybrid Outbound NAT**, add a mapping with interface: the Argo network, protocol TCP, source: your Argo alias, destination `<home-assistant-ip>/32` port `8239`, translation: **Interface Address**.
 
-**Ubiquiti UniFi:** **Settings → Policy Engine → NAT → Create New**, type **Masquerade**, interface: the network of your Argo devices, protocol TCP, source: your Argo devices, destination `192.168.30.20` port `8239`. The firewall policy from the guide above is required here as well.
+**Ubiquiti UniFi:** **Settings → Policy Engine → NAT → Create New**, type **Masquerade**, interface: the network of your Argo devices, protocol TCP, source: your Argo devices, destination `<home-assistant-ip>` port `8239`. The firewall policy from the guide above is required here as well.
 
 **Fortinet FortiGate:** use the Argo network as both incoming and outgoing interface in the firewall policy and **enable NAT** (outgoing interface address).
 
@@ -180,7 +187,7 @@ Then, in Home Assistant, open the dummy server's options (**Settings → Devices
 
 ```
 /ip firewall nat
-add chain=srcnat src-address-list=argo dst-address=192.168.30.20 protocol=tcp dst-port=8239 \
+add chain=srcnat src-address-list=argo dst-address=<home-assistant-ip> protocol=tcp dst-port=8239 \
     action=masquerade comment="Argo dummy server hairpin"
 ```
 
@@ -190,8 +197,8 @@ add chain=srcnat src-address-list=argo dst-address=192.168.30.20 protocol=tcp ds
 config nat
 	option name 'Argo dummy server hairpin'
 	option src 'lan'
-	option src_ip '192.168.30.90'
-	option dest_ip '192.168.30.20'
+	option src_ip '<argo-device-ip>'
+	option dest_ip '<home-assistant-ip>'
 	option dest_port '8239'
 	option proto 'tcp'
 	option target 'MASQUERADE'
@@ -203,7 +210,7 @@ config nat
 table ip argo {
 	chain postrouting {
 		type nat hook postrouting priority srcnat;
-		ip saddr { 192.168.30.90, 192.168.30.91 } ip daddr 192.168.30.20 tcp dport 8239 masquerade
+		ip saddr { <argo-device-ip-1>, <argo-device-ip-2> } ip daddr <home-assistant-ip> tcp dport 8239 masquerade
 	}
 }
 ```
