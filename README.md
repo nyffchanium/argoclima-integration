@@ -67,7 +67,7 @@ There are two ways to connect your devices. The dummy server is recommended.
 By default, the device stays connected to Argo's cloud server (`31.14.128.210`), and it only works reliably while that server answers. When the server is overloaded, the device keeps dropping its WiFi connection. The built-in dummy server takes the place of Argo's server inside Home Assistant:
 
 - The device no longer depends on Argo's server, which avoids these connection drops.
-- Devices report their state by themselves, so Home Assistant doesn't need to poll them.
+- Devices report their state by themselves about every 12 seconds, so changes made on the device or the remote show up faster than with polling (every 20 seconds), and Home Assistant doesn't need to poll them.
 - Devices are discovered automatically; adding several devices needs no extra steps.
 - IP address changes are picked up automatically.
 
