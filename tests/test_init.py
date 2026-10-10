@@ -9,6 +9,7 @@ from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.argoclima.const import CONF_CPU_ID
+from custom_components.argoclima.const import CONF_HOST
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.unique_id import entity_unique_id
 
@@ -156,3 +157,65 @@ async def test_entity_names_are_translated(
     )
     assert hass.states.get(light).name == "Living Room Gerätebeleuchtung"
     assert hass.states.get("climate.living_room").name == "Living Room"
+
+
+async def test_host_from_upstream_options_is_applied(
+    hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
+) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title=TITLE,
+        data=dict(device_entry.data),
+        options={**device_entry.data, CONF_HOST: "192.168.1.60"},
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.data[CONF_HOST] == "192.168.1.60"
+    assert entry.options == {}
+    assert entry.state is ConfigEntryState.LOADED
+
+
+UPSTREAM_ENTITIES = {
+    "Climate": ("climate", "living_room_climate"),
+    "Device Light": ("switch", "living_room_device_light"),
+    "Use Remote Temperature": ("switch", "living_room_use_remote_temperature"),
+    "Eco Mode Power Limit": ("number", "living_room_eco_mode_power_limit"),
+    "Display Unit": ("select", "living_room_display_unit"),
+    "Active Timer": ("select", "living_room_active_timer"),
+}
+
+
+async def test_update_from_upstream_keeps_all_entities(
+    hass: HomeAssistant, mock_device: None
+) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title=TITLE,
+        data={"device": "Ulisse 13 DCI Eco WiFi", "host": "192.168.1.50"},
+    )
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    for name, (domain, object_id) in UPSTREAM_ENTITIES.items():
+        registry.async_get_or_create(
+            domain,
+            DOMAIN,
+            upstream_unique_id(entry.entry_id, TITLE, name),
+            config_entry=entry,
+            suggested_object_id=object_id,
+        )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    for name, (domain, object_id) in UPSTREAM_ENTITIES.items():
+        entity = registry.async_get(f"{domain}.{object_id}")
+        assert entity.unique_id == entity_unique_id(entry.entry_id, name)
+        assert hass.states.get(entity.entity_id).state != "unavailable"
+    duplicates = [
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if e.entity_id.endswith("_2")
+    ]
+    assert duplicates == []

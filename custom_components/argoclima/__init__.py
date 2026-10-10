@@ -53,6 +53,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if role != ENTRY_ROLE_DEVICE:
         raise ConfigEntryNotReady(f"Unsupported Argoclima entry role: {role}")
 
+    _async_migrate_host_from_options(hass, entry)
+
     device_type = ArgoDeviceType.from_name(entry.data.get(CONF_DEVICE_TYPE))
     if device_type is None:
         raise ConfigEntryNotReady("Unsupported Argoclima device type")
@@ -151,6 +153,22 @@ async def async_remove_config_entry_device(
     )
 
     return True
+
+
+def _async_migrate_host_from_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Apply a host changed in the options of versions up to 1.1.4.
+
+    Their options flow stored the new host in the entry options, but setup
+    only ever read it from the entry data.
+    """
+    host = entry.options.get(CONF_HOST)
+    if host is None:
+        return
+    if host != entry.data.get(CONF_HOST):
+        _LOGGER.info("Using host %s set in the options of an earlier version", host)
+    hass.config_entries.async_update_entry(
+        entry, data={**entry.data, CONF_HOST: host}, options={}
+    )
 
 
 def _async_migrate_legacy_unique_ids(hass: HomeAssistant, entry: ConfigEntry) -> None:
