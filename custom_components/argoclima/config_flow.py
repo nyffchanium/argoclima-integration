@@ -93,7 +93,6 @@ class ArgoOptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize HACS options flow."""
         super().__init__()
         self._errors = {}
-        self.config_entry = config_entry
         self.data = dict(config_entry.data)
 
     async def async_step_init(self, user_input: dict[str, Any] = None) -> FlowResult:
