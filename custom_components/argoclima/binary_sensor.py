@@ -10,8 +10,10 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
+from .entity import ArgoAntiMoldEntity
 from .entity import ArgoEntity
 from .runtime import ArgoRuntimeDevice
 from .runtime import runtime_devices_for_entry
@@ -23,10 +25,12 @@ CONNECTION_CHECK_INTERVAL = timedelta(seconds=15)
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    async_add_entities(
-        ArgoConnectionSensor(device)
-        for device in runtime_devices_for_entry(hass, entry)
-    )
+    entities: list[BinarySensorEntity] = []
+    for device in runtime_devices_for_entry(hass, entry):
+        entities.append(ArgoConnectionSensor(device))
+        if device.type.anti_mold:
+            entities.append(ArgoAntiMoldDryingSensor(device))
+    async_add_entities(entities)
 
 
 class ArgoConnectionSensor(ArgoEntity, BinarySensorEntity):
@@ -71,3 +75,36 @@ class ArgoConnectionSensor(ArgoEntity, BinarySensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         last_seen = self.coordinator.last_seen
         return {"last_seen": last_seen.isoformat() if last_seen else None}
+
+
+class ArgoAntiMoldDryingSensor(ArgoAntiMoldEntity, BinarySensorEntity, RestoreEntity):
+    """Whether the device is drying after cooling."""
+
+    _attr_icon = "mdi:fan-clock"
+
+    def __init__(self, device: ArgoRuntimeDevice) -> None:
+        super().__init__("Anti Mold Drying", device)
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            self._anti_mold.async_add_listener(self.async_write_ha_state)
+        )
+        state = await self.async_get_last_state()
+        if (
+            state is not None
+            and state.state == "on"
+            and not self._anti_mold.active
+            and (until := dt_util.parse_datetime(state.attributes.get("until", "")))
+        ):
+            self._anti_mold.async_resume(until)
+
+    @property
+    def is_on(self) -> bool:
+        return self._anti_mold.active
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        until = self._anti_mold.until
+        return {"until": until.isoformat() if until else None}

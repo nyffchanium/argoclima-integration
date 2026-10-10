@@ -96,6 +96,9 @@
     "number": {
       "eco_mode_power_limit": {
         "name": "Eco mode power limit"
+      },
+      "anti_mold_duration": {
+        "name": "Anti-mold duration"
       }
     },
     "select": {
@@ -111,6 +114,17 @@
           "profile_2": "Profile 2",
           "profile_3": "Profile 3"
         }
+      },
+      "anti_mold_fan_speed": {
+        "name": "Anti-mold fan speed",
+        "state": {
+          "lowest": "Lowest",
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High",
+          "higher": "Higher",
+          "highest": "Highest"
+        }
       }
     },
     "switch": {
@@ -119,6 +133,12 @@
       },
       "use_remote_temperature": {
         "name": "Use remote temperature"
+      },
+      "anti_mold": {
+        "name": "Anti-mold"
+      },
+      "anti_mold_after_remote_off": {
+        "name": "Anti-mold after remote off"
       }
     },
     "update": {
@@ -135,6 +155,14 @@
         "state_attributes": {
           "last_seen": {
             "name": "Last seen"
+          }
+        }
+      },
+      "anti_mold_drying": {
+        "name": "Anti-mold drying",
+        "state_attributes": {
+          "until": {
+            "name": "Until"
           }
         }
       }

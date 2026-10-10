@@ -79,3 +79,15 @@ class ArgoEntity(CoordinatorEntity[ArgoDataUpdateCoordinator]):
             manufacturer=MANUFACTURER,
             sw_version=firmware_label(self.coordinator.data),
         )
+
+
+class ArgoAntiMoldEntity(ArgoEntity):
+    """Anti-mold setting, stored in Home Assistant rather than on the device."""
+
+    def __init__(self, entity_name: str, device: ArgoRuntimeDevice) -> None:
+        super().__init__(entity_name, device, None, EntityCategory.CONFIG)
+        self._anti_mold = device.coordinator.anti_mold
+
+    @property
+    def available(self) -> bool:
+        return True

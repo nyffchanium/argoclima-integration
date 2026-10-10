@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 
+from .anti_mold import AntiMoldController
 from .api import ArgoApiClient
 from .const import DOMAIN
 from .data import ArgoData
@@ -45,6 +46,7 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
         self.platforms = []
         self.data = ArgoData(device_type)
         self.last_seen: datetime | None = None
+        self.anti_mold = AntiMoldController(hass, self)
         self._consecutive_update_failures = 0
 
     @property

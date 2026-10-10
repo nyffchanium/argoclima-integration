@@ -42,6 +42,13 @@ class ArgoDeviceType:
         return bool(self.timers)
 
     @property
+    def anti_mold(self) -> bool:
+        return ArgoOperationMode.FAN in self.operation_modes and any(
+            mode in self.operation_modes
+            for mode in (ArgoOperationMode.COOL, ArgoOperationMode.DRY)
+        )
+
+    @property
     def preset(self) -> bool:
         return self.eco_mode or self.turbo_mode or self.night_mode
 
