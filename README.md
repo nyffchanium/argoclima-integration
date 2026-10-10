@@ -7,7 +7,10 @@
 
 Unofficial Home Assistant integration for Argo (Argoclima) WiFi air conditioners. It controls the device directly over your local network, no Argo account needed.
 
-> **Maintained fork** of [@nyffchanium](https://github.com/nyffchanium)'s [argoclima-integration][upstream], which is no longer maintained and stopped working with Home Assistant 2026.10. It includes the open pull requests of the original repository. Existing installations can [switch over](#switching-from-the-original-integration) without setting their devices up again.
+> [!IMPORTANT]
+> **Please wait before switching to this repository.** The original author has offered to bring these changes into the [original repository][upstream]. Updates will then arrive through HACS as usual, without switching repositories. If you still use the original integration, please wait for the update there; it should be available soon.
+>
+> If you already switched to this repository, everything keeps working, and switching back will be easy.
 
 ## Supported devices
 
@@ -66,6 +69,8 @@ Without HACS: copy the folder `custom_components/argoclima` from the [latest rel
 That's it. The device and its controls now appear in Home Assistant. Home Assistant checks the device's state every 15 seconds; commands you send take effect right away. To change the IP address later, open the device's integration entry and click **Configure**.
 
 ## Switching from the original integration
+
+**Please wait for now**, see the note at the top: the update will soon be available in the original repository.
 
 Your devices and entities are kept, including entity ids, history, names, areas and automations.
 
