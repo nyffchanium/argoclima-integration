@@ -2,7 +2,7 @@
 
 **In short:** your Argo device keeps trying to reach Argo's server on the internet. You tell your router: "when the Argo device wants to reach Argo's server, send it to Home Assistant instead." That's all this guide is about. It's a one-time setup on the router; nothing needs to change on the device.
 
-The Argo devices have the addresses of Argo's cloud servers built in: `31.14.128.210` and, as a fallback, `95.254.67.59`, both on port `80`. They can't be changed on the device. To use the [dummy server](../README.md#advanced-dummy-server), your router has to redirect this traffic to Home Assistant. This is called destination NAT (DNAT) or, on some routers, port forwarding.
+The Argo devices have the addresses of Argo's cloud servers built in: `31.14.128.210` and, as a fallback, `95.254.67.59`, both on port `80`. They can't be changed on the device. To use the [dummy server](dummy-server.md), your router has to redirect this traffic to Home Assistant. This is called destination NAT (DNAT) or, on some routers, port forwarding.
 
 Redirect both addresses: a device that can't reach the first one switches to the fallback.
 

@@ -34,7 +34,9 @@ class ArgoFirmwareUpdate(ArgoEntity, UpdateEntity):
         "Install updates with the official Argo web app. If you use the dummy "
         "server, disable its DNAT rule while updating."
     )
-    _attr_release_url = f"{DOCUMENTATION_URL}#firmware-updates"
+    _attr_release_url = (
+        f"{DOCUMENTATION_URL}/blob/master/docs/features.md#firmware-updates"
+    )
     _firmware: str
 
     async def async_added_to_hass(self) -> None:

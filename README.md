@@ -67,94 +67,16 @@ That's it. The device and its controls now appear in Home Assistant. Home Assist
 Update the integration in HACS as usual and restart Home Assistant. Your devices and entities are kept, including entity ids, history, names, areas and automations. If you end up with duplicated entities ending in `_2`, please [open an issue][issues].
 
 > [!IMPORTANT]
-> **Using the separate dummy server (Docker)?** It keeps working, and the integration then polls your devices as before. It's no longer updated, though: the dummy server is now built into the integration. See [Coming from the separate dummy server](#coming-from-the-separate-dummy-server-docker) to switch.
+> **Using the separate dummy server (Docker)?** It keeps working, and the integration then polls your devices as before. It's no longer updated, though: the dummy server is now built into the integration. See [Coming from the separate dummy server](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dummy-server.md#coming-from-the-separate-dummy-server-docker) to switch.
 
 If you installed the fork `Gadund/argoclima-integration` as a custom repository in the meantime: in HACS, remove the custom repository (⋮ → **Custom repositories**), then download **Argoclima** again from the regular HACS list and restart. Your devices stay set up.
 
-## Using the remote's temperature sensor
+## Documentation
 
-The device can use the temperature measured by the remote instead of its own sensor, which is often more accurate as the remote is usually closer to where you are.
-
-The remote sends the temperature by **infrared**, the same way as its commands: only when it points at the device with a clear line of sight. It sends roughly every 6 minutes and whenever the displayed value changes.
-
-1. Place the remote where it can "see" the device, e.g. on a shelf facing it.
-2. Turn the remote on (grid lines and fan icon are visible).
-3. Turn on **Use Remote Temperature** in Home Assistant. Enabling remote temperature mode on the remote itself (hold the fan button for 2 seconds; the user icon appears) may also be required.
-
-Each transmission also includes the remote's own settings, which can overwrite changes made in Home Assistant. If that's a problem, keep the remote's settings in line with what you set in Home Assistant, or use the device's own sensor.
-
-## Advanced: dummy server
-
-**Optional.** The integration works fine without it. It's worth setting up if your device often loses its connection, or if you want it to work without the manufacturer's cloud.
-
-Argo devices are permanently connected to the manufacturer's cloud on the internet. When the cloud is overloaded, the device keeps dropping its WiFi connection, and if Argo ever shuts it down, the device can no longer be controlled over WiFi. The device also sends your Argo login and your WiFi password to the cloud, unencrypted.
-
-The dummy server built into this integration takes the place of the cloud inside Home Assistant. Your router sends the device's traffic for the cloud to Home Assistant instead, so nothing leaves your network anymore:
-
-- No more connection drops caused by the cloud, and no dependency on the internet.
-- Your Argo login and WiFi password stay at home.
-- The device reports its state on its own about every 12 seconds, and devices are found automatically.
-- The official Argo web app no longer works while the dummy server is in use.
-
-**You need a router that can redirect traffic** (called DNAT or "destination NAT"), e.g. UniFi, OPNsense, pfSense, FortiGate, MikroTik or OpenWrt. Most routers from internet providers, including the AVM FRITZ!Box, can't do this.
-
-1. Go to **Settings → Devices & services → Add integration → Argoclima** and choose **Set up Argoclima Dummy Server**. Keep the suggested port `8239`.
-2. Set up the redirect on your router. The **[router guide](docs/dnat.md)** explains it step by step for each router.
-3. Within a few minutes, your Argo devices show up under **Discovered** in **Settings → Devices & services**. Confirm them and give them a name. Devices you already added manually switch over automatically.
-
-### Coming from the separate dummy server (Docker)
-
-Earlier versions needed a separate dummy server running in Docker. It keeps working with this version: the integration then simply polls your devices as before. The Docker image is no longer updated, though. To switch to the built-in dummy server:
-
-1. Set up the built-in dummy server as described above.
-2. On your router, change the redirect so it points to Home Assistant and the dummy server port (`8239`) instead of the Docker container.
-3. Once your devices show up under the dummy server in Home Assistant, stop and remove the Docker container.
-
-## Firmware updates
-
-The device info shows the firmware of the device and, with the dummy server, of its WiFi module.
-
-To be notified about new firmware, enable the **Firmware** (and **WiFi Firmware**) update entities of a device; they are disabled by default. Home Assistant then checks the latest versions on Argo's server once a day. The check doesn't send any credentials or device information.
-
-Updates can't be installed from Home Assistant. Install them with the official Argo web app; if you use the dummy server, disable the DNAT rule while updating and enable it again afterwards. Argo publishes updates very rarely: as of October 2026, the latest versions are `01416` for the device and `00003` for the WiFi module.
-
-## Limitations
-
-- The device only processes the most recent request; a running request is cancelled by a new one. Avoid using the official web app at the same time.
-- Changes are re-sent until the device confirms them, up to three times.
-- Write-only settings (time, weekday) can't be confirmed and are sent once.
-- Eco, turbo and night mode can be combined on the remote but are exposed as mutually exclusive presets.
-
-## Security
-
-The Argo device API and its cloud protocol have no authentication or encryption: anyone in your local network can control the device directly, with or without this integration. Keep your Argo devices in a trusted network.
-
-- Never expose the dummy server port to the internet, and limit the DNAT rule to your Argo devices.
-- The dummy server only accepts a device report if the IP address it claims matches the address it connects from, or if it comes from the configured NAT gateway. Limit your router's NAT rules to the Argo devices.
-- The cloud credentials the device sends along are never stored and are removed from logs.
-
-To report a vulnerability, see [SECURITY.md](SECURITY.md).
-
-## Troubleshooting
-
-When reporting a problem, attach the diagnostics: **Settings → Devices & services → Argoclima → ⋮ → Download diagnostics**. IP addresses, device ids and names are removed from the file.
-
-To get debug logs, add this to `configuration.yaml` and restart:
-
-```yaml
-logger:
-  logs:
-    custom_components.argoclima: debug
-```
-
-**The device can't be added or is unavailable although the IP is correct.**
-Unplug the device for about a minute and try again.
-
-**The connection drops every few seconds.**
-This happens when Argo's server is overloaded: the device resets its WiFi connection when its requests to the server time out. The [dummy server](#advanced-dummy-server) fixes this.
-
-**The temperature is wrong while "Use Remote Temperature" is on.**
-The remote only sends the temperature by infrared while it points at the device. If it's out of sight, covered or turned off, the device doesn't get new values and the temperature can be outdated. See [Using the remote's temperature sensor](#using-the-remotes-temperature-sensor).
+- **[Dummy server (advanced)](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dummy-server.md)**: run the device without the manufacturer's cloud, with the [router guide](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dnat.md)
+- **[Features in detail](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/features.md)**: remote temperature sensor, firmware updates, device clock, limitations
+- **[Troubleshooting](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/troubleshooting.md)**: common problems, diagnostics and debug logs
+- **[Security](https://github.com/nyffchanium/argoclima-integration/blob/master/SECURITY.md)**: security model and how to report vulnerabilities
 
 ## Contributing
 
