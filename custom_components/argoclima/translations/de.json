@@ -128,6 +128,16 @@
       "wifi_firmware": {
         "name": "WLAN-Firmware"
       }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Verbindung",
+        "state_attributes": {
+          "last_seen": {
+            "name": "Zuletzt gesehen"
+          }
+        }
+      }
     }
   },
   "services": {

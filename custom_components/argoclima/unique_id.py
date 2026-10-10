@@ -14,6 +14,7 @@ ENTITY_NAMES = (
     "Active Timer",
     "Firmware",
     "WiFi Firmware",
+    "Connection",
 )
 
 

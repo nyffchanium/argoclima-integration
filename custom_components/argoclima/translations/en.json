@@ -128,6 +128,16 @@
       "wifi_firmware": {
         "name": "WiFi firmware"
       }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Connection",
+        "state_attributes": {
+          "last_seen": {
+            "name": "Last seen"
+          }
+        }
+      }
     }
   },
   "services": {

@@ -15,7 +15,14 @@ CPU_ID = "A1B2C3D4E5F6"
 
 def test_entity_names_match_platforms() -> None:
     found = set()
-    for platform in ("climate", "switch", "number", "select", "update"):
+    for platform in (
+        "climate",
+        "switch",
+        "number",
+        "select",
+        "update",
+        "binary_sensor",
+    ):
         source = (COMPONENT / f"{platform}.py").read_text()
         found.update(re.findall(r'super\(\).__init__\(\s*"([^"]+)"', source))
     assert found == set(ENTITY_NAMES)

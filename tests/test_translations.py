@@ -23,7 +23,7 @@ def test_languages_have_the_same_keys() -> None:
 
 def test_entities_have_translated_names() -> None:
     en = json.loads((TRANSLATIONS / "en.json").read_text())
-    for platform in ("switch", "number", "select", "update"):
+    for platform in ("switch", "number", "select", "update", "binary_sensor"):
         source = (COMPONENT / f"{platform}.py").read_text()
         for name in re.findall(r'super\(\).__init__\(\s*"([^"]+)"', source):
             key = name.lower().replace(" ", "_")

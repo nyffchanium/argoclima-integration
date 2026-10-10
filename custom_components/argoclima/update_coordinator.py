@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from datetime import timedelta
 
 import aiohttp
@@ -6,6 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import ArgoApiClient
 from .const import DOMAIN
@@ -42,6 +44,7 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
         self._api = client
         self.platforms = []
         self.data = ArgoData(device_type)
+        self.last_seen: datetime | None = None
         self._consecutive_update_failures = 0
 
     @property
@@ -86,4 +89,5 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
             ) from err
 
         self._consecutive_update_failures = 0
+        self.last_seen = dt_util.utcnow()
         return data

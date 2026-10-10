@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from .const import ARGO_DEVICE_ULISSE_ECO
 from .const import CONF_CPU_ID
@@ -379,6 +380,7 @@ def _async_apply_push(
 
     if push_data.wifi_firmware is not None:
         data.wifi_firmware_version = push_data.wifi_firmware
+    coordinator.last_seen = dt_util.utcnow()
     coordinator.async_set_updated_data(data)
     if data.is_update_pending():
         # Pushes don't carry our changes, so resend what the device hasn't applied yet.
