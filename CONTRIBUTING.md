@@ -40,4 +40,4 @@ Optionally, install the [pre-commit](https://pre-commit.com/) hooks with `pre-co
 2. Add or update tests for your change.
 3. Update the README if behavior or setup changes.
 
-Contributions are licensed under the [MIT License](LICENSE).
+Contributions are licensed under the [MIT License](LICENSE). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
