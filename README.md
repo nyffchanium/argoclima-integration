@@ -67,7 +67,7 @@ There are two ways to connect your devices. The dummy server is recommended.
 By default, the device stays connected to Argo's cloud server (`31.14.128.210`), and it only works reliably while that server answers. When the server is overloaded, the device keeps dropping its WiFi connection. The built-in dummy server takes the place of Argo's server inside Home Assistant:
 
 - The device no longer depends on Argo's server, which avoids these connection drops.
-- Devices report their state by themselves about every 12 seconds, so changes made on the device or the remote show up faster than with polling (every 20 seconds), and Home Assistant doesn't need to poll them.
+- Devices report their state by themselves about every 12 seconds, so changes made on the device or the remote show up faster than with polling (every 15 seconds), and Home Assistant doesn't need to poll them.
 - Devices are discovered automatically; adding several devices needs no extra steps.
 - IP address changes are picked up automatically.
 
@@ -79,7 +79,7 @@ All traffic stays in your local network. The official Argo web app no longer wor
 
 ### Without the dummy server
 
-Assign the device a static IP address in your router first; the integration addresses the device by IP and polls it every 20 seconds.
+Assign the device a static IP address in your router first; the integration addresses the device by IP and polls it every 15 seconds.
 
 Go to **Settings → Devices & services → Add integration → Argoclima**, choose **Set up device manually**, select the device type, give it a name and enter its IP address. The IP address can be changed later in the integration options.
 
