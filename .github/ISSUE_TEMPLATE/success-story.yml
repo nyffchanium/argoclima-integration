@@ -1,0 +1,45 @@
+name: "Success Story"
+description: "Share a working setup or successful integration"
+title: "[Success Story]: "
+labels: ["success-story"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your successful setup!
+        Your feedback helps other users and the maintainers.
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.10.1"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device / Model
+      placeholder: "e.g. Ulisse"
+    validations:
+      required: true
+
+  - type: textarea
+    id: setup
+    attributes:
+      label: Setup and configuration
+      description: |
+        Describe your setup, network configuration,
+        router, VLANs, NAT, or other relevant details.
+      placeholder: "Describe what works and how you configured it..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Feedback
+      description: What works well? What problems did this integration solve?
+    validations:
+      required: false
