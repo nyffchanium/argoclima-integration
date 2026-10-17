@@ -219,3 +219,16 @@ async def test_update_from_upstream_keeps_all_entities(
         if e.entity_id.endswith("_2")
     ]
     assert duplicates == []
+
+
+async def test_temperature_sensor(
+    hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
+) -> None:
+    device_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(device_entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.living_room_temperature")
+    assert state.state == "23.5"
+    assert state.attributes["unit_of_measurement"] == "°C"
+    assert state.attributes["state_class"] == "measurement"

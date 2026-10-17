@@ -22,6 +22,7 @@ def test_entity_names_match_platforms() -> None:
         "select",
         "update",
         "binary_sensor",
+        "sensor",
     ):
         source = (COMPONENT / f"{platform}.py").read_text()
         found.update(re.findall(r'super\(\).__init__\(\s*"([^"]+)"', source))

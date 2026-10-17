@@ -166,6 +166,11 @@
           }
         }
       }
+    },
+    "sensor": {
+      "temperature": {
+        "name": "Temperatur"
+      }
     }
   },
   "services": {
