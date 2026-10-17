@@ -99,6 +99,9 @@
       },
       "anti_mold_duration": {
         "name": "Anti-Schimmel Nachlaufzeit"
+      },
+      "delay_timer_duration": {
+        "name": "Dauer Verzögerungs-Timer"
       }
     },
     "select": {

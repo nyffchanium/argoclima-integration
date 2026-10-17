@@ -377,8 +377,8 @@ class ArgoData:
     def set_time(self, hours: int, minutes: int):
         self._time.request_value(hours * 60 + minutes)
 
-    def set_delaytimer_duration(self, hours: int, minutes: int):
-        self._delaytimer_duration.request_value(hours * 60 + minutes)
+    def set_delay_timer_minutes(self, minutes: int):
+        self._delaytimer_duration.request_value(minutes)
 
     def set_timer_on(self, hours: int, minutes: int):
         self._timer_on.request_value(hours * 60 + minutes)
