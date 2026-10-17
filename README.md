@@ -20,15 +20,17 @@ Other Argo WiFi models probably work too. If you own one, please [open an issue]
 | Feature                        | Shown as                    |
 | ------------------------------ | --------------------------- |
 | On / off, mode, temperature    | Climate control             |
+| Room temperature               | Sensor                      |
 | Fan speed                      | Climate control (fan mode)  |
 | Eco, turbo and night mode      | Climate control (preset)    |
 | Eco mode power limit           | Number                      |
 | Display unit (°C / °F)         | Selection                   |
 | Active timer                   | Selection                   |
+| Delay timer duration           | Number                      |
 | Device light                   | Switch                      |
 | Use remote temperature         | Switch                      |
 | Connection and last contact    | Sensor                      |
-| Set time and weekday           | `argoclima.set_time` action |
+| Device clock                   | Set automatically           |
 | Anti-mold drying after cooling | Switches and settings       |
 | Firmware versions              | Device info                 |
 | Firmware update check          | Update (optional)           |
@@ -75,7 +77,7 @@ If you installed the fork `Gadund/argoclima-integration` as a custom repository 
 ## Documentation
 
 - **[Dummy server (advanced)](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dummy-server.md)**: run the device without the manufacturer's cloud, with the [router guide](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dnat.md)
-- **[Features in detail](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/features.md)**: remote temperature sensor, anti-mold, firmware updates, device clock, limitations
+- **[Features in detail](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/features.md)**: remote temperature sensor, anti-mold, delay timer, firmware updates, device clock, limitations
 - **[Troubleshooting](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/troubleshooting.md)**: common problems, diagnostics and debug logs
 - **[Security](https://github.com/nyffchanium/argoclima-integration/blob/master/SECURITY.md)**: security model and how to report vulnerabilities
 

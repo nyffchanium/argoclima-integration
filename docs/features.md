@@ -35,11 +35,15 @@ To be notified about new firmware, enable the **Firmware** (and **WiFi Firmware*
 
 Updates can't be installed from Home Assistant. Install them with the official Argo web app; if you use the [dummy server](dummy-server.md), disable the router rule while updating and enable it again afterwards. Argo publishes updates very rarely: as of October 2026, the latest versions are `01416` for the device and `00003` for the WiFi module.
 
-## Setting the device clock
+## Delay timer
 
-The device has its own clock, used for its timers. The **Argoclima: Set time** action sets it; without a time and weekday, it uses the current local time of Home Assistant.
+With **Active timer** set to **Delayed on/off**, the device turns itself on or off after the time set in **Delay timer duration** (10 minutes to almost 20 hours, in steps of 10 minutes; default 60 minutes). The duration is sent to the device when you activate the delay timer, or right away if it's already active.
 
-To keep the clock right, create an automation that runs once a day (e.g. at 03:00) with the action **Argoclima: Set time** and select your device.
+## Device clock
+
+The device has its own clock, used for its timers. The integration keeps it in sync automatically: once the device is first reachable, once a day, and after the device was unavailable, e.g. after a power cut.
+
+To set a specific time or weekday, use the **Argoclima: Set time** action.
 
 ## Limitations
 

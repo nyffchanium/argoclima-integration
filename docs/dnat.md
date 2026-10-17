@@ -6,7 +6,7 @@ The Argo devices have the addresses of Argo's cloud servers built in: `31.14.128
 
 Redirect both addresses: a device that can't reach the first one switches to the fallback.
 
-> **Help wanted:** the UniFi guide has been tested with a UniFi Dream Machine. The other guides are written from the vendors' documentation. If you use one of them, tell us whether it worked. If your router is missing or a guide is outdated, please [contribute](#contributing).
+> **Help wanted:** the UniFi guide has been tested with a UniFi Dream Machine, the pfSense guide by a user with a separate IoT VLAN. The other guides are written from the vendors' documentation. If you use one of them, tell us whether it worked. If your router is missing or a guide is outdated, please [contribute](#contributing).
 
 ## Before you start
 
