@@ -81,6 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _async_migrate_legacy_unique_ids(hass, entry)
     coordinator.platforms.extend(device_type.platforms)
     await hass.config_entries.async_forward_entry_setups(entry, device_type.platforms)
+    entry.async_on_unload(coordinator.async_start_clock_sync())
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     return True
 
@@ -263,6 +264,7 @@ def _async_setup_hub_devices(
             type=device_type,
             coordinator=coordinator,
         )
+        entry.async_on_unload(coordinator.async_start_clock_sync())
         runtime.platforms.update(device_type.platforms)
 
 
