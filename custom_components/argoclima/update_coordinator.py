@@ -3,8 +3,11 @@ from datetime import datetime
 from datetime import timedelta
 
 import aiohttp
+from homeassistant.core import CALLBACK_TYPE
 from homeassistant.core import HomeAssistant
+from homeassistant.core import callback
 from homeassistant.helpers.debounce import Debouncer
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
@@ -16,11 +19,13 @@ from .const import DOMAIN
 from .data import ArgoData
 from .data import InvalidResponseFormatError
 from .device_type import ArgoDeviceType
+from .types import ArgoWeekday
 
 _LOGGER = logging.getLogger(__package__)
 
 MAX_CONSECUTIVE_UPDATE_FAILURES = 3
 REQUEST_REFRESH_COOLDOWN = 1
+CLOCK_SYNC_INTERVAL = timedelta(days=1)
 
 
 class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
@@ -50,6 +55,7 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
         self.anti_mold = AntiMoldController(hass, self)
         # The device can't report the delay timer duration, so it's kept here.
         self.delay_timer_minutes = DELAY_TIMER_DEFAULT_MINUTES
+        self._clock_synced = False
         self._consecutive_update_failures = 0
 
     @property
@@ -67,6 +73,42 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
             self._async_unsub_refresh()
         elif not was_polling and self._listeners:
             self._schedule_refresh()
+
+    def async_set_clock(self, when: datetime) -> None:
+        self.data.set_current_weekday(ArgoWeekday.from_datetime(when))
+        self.data.set_time(when.hour, when.minute)
+
+    @callback
+    def async_start_clock_sync(self) -> CALLBACK_TYPE:
+        """Set the device clock once data arrives, daily and after reconnecting."""
+        self._clock_synced = False
+        remove_listener = self.async_add_listener(self._async_check_clock_sync)
+        remove_timer = async_track_time_interval(
+            self.hass, self._async_clock_sync_due, CLOCK_SYNC_INTERVAL
+        )
+
+        @callback
+        def stop() -> None:
+            remove_listener()
+            remove_timer()
+
+        return stop
+
+    @callback
+    def _async_clock_sync_due(self, _now: datetime) -> None:
+        self._clock_synced = False
+        self._async_check_clock_sync()
+
+    @callback
+    def _async_check_clock_sync(self) -> None:
+        if not self.last_update_success:
+            self._clock_synced = False
+            return
+        if self._clock_synced or self.data.operating is None:
+            return
+        self._clock_synced = True
+        self.async_set_clock(dt_util.now())
+        self.hass.async_create_task(self.async_request_refresh())
 
     async def _async_update(self) -> ArgoData:
         try:

@@ -37,3 +37,4 @@ known-first-party = ["custom_components.argoclima"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+markers = ["clock_sync: run with the automatic clock sync enabled"]

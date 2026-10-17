@@ -13,6 +13,7 @@ from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
 from custom_components.argoclima.data import RESPONSE_VALUE_COUNT
 from custom_components.argoclima.data import ArgoData
+from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -40,6 +41,18 @@ def device_response(overrides: dict[int, int] | None = None) -> str:
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     return
+
+
+@pytest.fixture(autouse=True)
+def no_clock_sync(request: pytest.FixtureRequest) -> Generator[None]:
+    """Keep the automatic clock sync out of tests that don't test it."""
+    if request.node.get_closest_marker("clock_sync"):
+        yield
+        return
+    with patch.object(
+        ArgoDataUpdateCoordinator, "async_start_clock_sync", return_value=lambda: None
+    ):
+        yield
 
 
 @pytest.fixture
