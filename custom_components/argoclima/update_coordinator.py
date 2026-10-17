@@ -11,6 +11,7 @@ from homeassistant.util import dt as dt_util
 
 from .anti_mold import AntiMoldController
 from .api import ArgoApiClient
+from .const import DELAY_TIMER_DEFAULT_MINUTES
 from .const import DOMAIN
 from .data import ArgoData
 from .data import InvalidResponseFormatError
@@ -47,6 +48,8 @@ class ArgoDataUpdateCoordinator(DataUpdateCoordinator[ArgoData]):
         self.data = ArgoData(device_type)
         self.last_seen: datetime | None = None
         self.anti_mold = AntiMoldController(hass, self)
+        # The device can't report the delay timer duration, so it's kept here.
+        self.delay_timer_minutes = DELAY_TIMER_DEFAULT_MINUTES
         self._consecutive_update_failures = 0
 
     @property

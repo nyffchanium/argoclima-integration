@@ -10,10 +10,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .const import DELAY_TIMER_MAX_MINUTES
+from .const import DELAY_TIMER_MIN_MINUTES
+from .const import DELAY_TIMER_STEP_MINUTES
 from .entity import ArgoAntiMoldEntity
 from .entity import ArgoEntity
+from .entity import ArgoSettingEntity
 from .runtime import ArgoRuntimeDevice
 from .runtime import runtime_devices_for_entry
+from .types import ArgoTimerType
 
 
 async def async_setup_entry(
@@ -25,6 +30,8 @@ async def async_setup_entry(
             entities.append(ArgoEcoLimitNumber(device))
         if device.type.anti_mold:
             entities.append(ArgoAntiMoldDurationNumber(device))
+        if ArgoTimerType.DELAY_ON_OFF in device.type.timers:
+            entities.append(ArgoDelayTimerNumber(device))
     async_add_entities(entities)
 
 
@@ -73,3 +80,37 @@ class ArgoAntiMoldDurationNumber(ArgoAntiMoldEntity, RestoreNumber):
     async def async_set_native_value(self, value: float) -> None:
         self._anti_mold.duration = timedelta(minutes=value)
         self.async_write_ha_state()
+
+
+class ArgoDelayTimerNumber(ArgoSettingEntity, RestoreNumber):
+    """Duration of the delay timer, sent when the delay timer is activated."""
+
+    _attr_icon = "mdi:timer-sand"
+    _attr_mode = NumberMode.BOX
+    _attr_native_min_value = DELAY_TIMER_MIN_MINUTES
+    _attr_native_max_value = DELAY_TIMER_MAX_MINUTES
+    _attr_native_step = DELAY_TIMER_STEP_MINUTES
+    _attr_native_unit_of_measurement = UnitOfTime.MINUTES
+
+    def __init__(self, device: ArgoRuntimeDevice) -> None:
+        super().__init__("Delay Timer Duration", device)
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (data := await self.async_get_last_number_data()) is not None and (
+            data.native_value is not None
+        ):
+            self.coordinator.delay_timer_minutes = int(data.native_value)
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.delay_timer_minutes
+
+    async def async_set_native_value(self, value: float) -> None:
+        self.coordinator.delay_timer_minutes = int(value)
+        data = self.coordinator.data
+        if data.timer is ArgoTimerType.DELAY_ON_OFF:
+            data.set_delay_timer_minutes(int(value))
+            await self._async_send_changes()
+        else:
+            self.async_write_ha_state()

@@ -99,6 +99,9 @@
       },
       "anti_mold_duration": {
         "name": "Anti-mold duration"
+      },
+      "delay_timer_duration": {
+        "name": "Delay timer duration"
       }
     },
     "select": {

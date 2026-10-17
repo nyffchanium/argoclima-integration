@@ -55,7 +55,11 @@ class ArgoTimerSelect(ArgoEntity, SelectEntity):
         return str(timer) if timer is not None else None
 
     async def async_select_option(self, option: str) -> None:
-        self.coordinator.data.timer = ArgoTimerType[option.upper()]
+        timer = ArgoTimerType[option.upper()]
+        data = self.coordinator.data
+        data.timer = timer
+        if timer is ArgoTimerType.DELAY_ON_OFF:
+            data.set_delay_timer_minutes(self.coordinator.delay_timer_minutes)
         await self._async_send_changes()
 
 
