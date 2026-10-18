@@ -7,6 +7,7 @@ from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
 
 from .conftest import HOST
 from .conftest import TITLE
+from .helpers import setup_integration
 
 
 async def test_diagnostics(
@@ -15,9 +16,7 @@ async def test_diagnostics(
     mock_device: None,
     device_entry: MockConfigEntry,
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     diagnostics = await get_diagnostics_for_config_entry(
         hass, hass_client, device_entry

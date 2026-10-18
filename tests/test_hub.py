@@ -30,6 +30,7 @@ from custom_components.argoclima.runtime import dummy_server_hub_id
 from .conftest import HOST
 from .conftest import TITLE
 from .conftest import device_response
+from .helpers import setup_integration
 
 CPU_ID = "A1B2C3D4E5F6"
 
@@ -66,9 +67,7 @@ def hub() -> MockConfigEntry:
 async def test_push_updates_hub_device(
     hass: HomeAssistant, hub: MockConfigEntry
 ) -> None:
-    hub.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(hub.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, hub)
     assert hub.state is ConfigEntryState.LOADED
 
     await async_handle_push_data(
@@ -88,9 +87,7 @@ async def test_push_updates_hub_device(
 
 
 async def test_unload_hub(hass: HomeAssistant, hub: MockConfigEntry) -> None:
-    hub.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(hub.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, hub)
 
     assert await hass.config_entries.async_unload(hub.entry_id)
     assert hub.state is ConfigEntryState.NOT_LOADED
@@ -105,9 +102,7 @@ async def test_push_through_nat_gateway(hass: HomeAssistant) -> None:
             CONF_NAT_GATEWAY: "192.168.1.1",
         },
     )
-    hub.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(hub.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, hub)
 
     server = hass.data[DOMAIN][hub.entry_id].server
     body = await server._async_response_body(
@@ -123,9 +118,7 @@ async def test_push_through_nat_gateway(hass: HomeAssistant) -> None:
 async def test_push_shows_firmware_versions(
     hass: HomeAssistant, hub: MockConfigEntry
 ) -> None:
-    hub.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(hub.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, hub)
 
     await async_handle_push_data(
         hass,
@@ -149,9 +142,7 @@ async def test_unconfirmed_change_is_resent_on_push(
     sent_requests: list[str],
     mock_device: None,
 ) -> None:
-    hub.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(hub.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, hub)
     push = ArgoPushData(
         cpu_id=CPU_ID, host=HOST, hmi=device_response(), hub_id=dummy_server_hub_id(hub)
     )
@@ -171,9 +162,7 @@ async def test_unconfirmed_change_is_resent_on_push(
 async def test_diagnostics_redact_device_addresses(
     hass: HomeAssistant, hub: MockConfigEntry, hass_client: ClientSessionGenerator
 ) -> None:
-    hub.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(hub.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, hub)
 
     diagnostics = await get_diagnostics_for_config_entry(hass, hass_client, hub)
 

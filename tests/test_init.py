@@ -14,6 +14,7 @@ from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.unique_id import entity_unique_id
 
 from .conftest import TITLE
+from .helpers import setup_integration
 
 
 def upstream_unique_id(entry_id: str, title: str, entity_name: str) -> str:
@@ -25,9 +26,7 @@ def upstream_unique_id(entry_id: str, title: str, entity_name: str) -> str:
 async def test_setup_creates_entities(
     hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     assert device_entry.state is ConfigEntryState.LOADED
 
@@ -53,9 +52,7 @@ async def test_setup_creates_entities(
 async def test_unload(
     hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     assert await hass.config_entries.async_unload(device_entry.entry_id)
     assert device_entry.state is ConfigEntryState.NOT_LOADED
@@ -147,9 +144,7 @@ async def test_entity_names_are_translated(
     hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
 ) -> None:
     hass.config.language = "de"
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     registry = er.async_get(hass)
     light = registry.async_get_entity_id(
@@ -168,9 +163,7 @@ async def test_host_from_upstream_options_is_applied(
         data=dict(device_entry.data),
         options={**device_entry.data, CONF_HOST: "192.168.1.60"},
     )
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, entry)
 
     assert entry.data[CONF_HOST] == "192.168.1.60"
     assert entry.options == {}
@@ -224,9 +217,7 @@ async def test_update_from_upstream_keeps_all_entities(
 async def test_temperature_sensor(
     hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     state = hass.states.get("sensor.living_room_temperature")
     assert state.state == "23.5"

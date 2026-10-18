@@ -11,6 +11,8 @@ from pytest_homeassistant_custom_component.common import async_fire_time_changed
 from custom_components.argoclima.api import ArgoApiClient
 from custom_components.argoclima.binary_sensor import ArgoConnectionSensor
 
+from .helpers import setup_integration
+
 ENTITY_ID = "binary_sensor.living_room_connection"
 
 
@@ -21,9 +23,7 @@ async def test_connection_state(
     freezer: FrozenDateTimeFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     first = hass.states.get(ENTITY_ID)
     assert first.state == STATE_ON
