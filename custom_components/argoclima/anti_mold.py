@@ -34,6 +34,7 @@ class AntiMoldController:
         self.after_remote_off = False
         self.duration = DEFAULT_DURATION
         self.fan_speed = DEFAULT_FAN_SPEED
+        self.modes = set(DRYING_MODES)
         self.until: datetime | None = None
         self._cancel_timer: CALLBACK_TYPE | None = None
         self._last_state: tuple[bool | None, ArgoOperationMode | None] | None = None
@@ -54,7 +55,7 @@ class AntiMoldController:
             self.enabled
             and not self.active
             and bool(data.operating)
-            and data.mode in DRYING_MODES
+            and data.mode in self.modes
         )
 
     async def async_start(self) -> None:
@@ -97,7 +98,7 @@ class AntiMoldController:
             and not self.active
             and previous is not None
             and previous[0]
-            and previous[1] in DRYING_MODES
+            and previous[1] in self.modes
             and data.operating is False
             and not data.is_update_pending()
         ):

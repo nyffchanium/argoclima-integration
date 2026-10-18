@@ -22,6 +22,9 @@ ENTITY_NAMES = (
     "Anti Mold Duration",
     "Anti Mold Fan Speed",
     "Anti Mold Drying",
+    "Anti Mold After Cooling",
+    "Anti Mold After Dehumidifying",
+    "Anti Mold After Auto",
 )
 
 

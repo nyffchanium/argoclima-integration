@@ -136,6 +136,15 @@
       },
       "anti_mold_after_remote_off": {
         "name": "Antimuffa dopo spegnimento da telecomando"
+      },
+      "anti_mold_after_cooling": {
+        "name": "Antimuffa dopo raffreddamento"
+      },
+      "anti_mold_after_dehumidifying": {
+        "name": "Antimuffa dopo deumidificazione"
+      },
+      "anti_mold_after_auto": {
+        "name": "Antimuffa dopo modalità auto"
       }
     },
     "update": {

@@ -136,6 +136,15 @@
       },
       "anti_mold_after_remote_off": {
         "name": "Anti-moisissure après arrêt par télécommande"
+      },
+      "anti_mold_after_cooling": {
+        "name": "Anti-moisissure après refroidissement"
+      },
+      "anti_mold_after_dehumidifying": {
+        "name": "Anti-moisissure après déshumidification"
+      },
+      "anti_mold_after_auto": {
+        "name": "Anti-moisissure après mode auto"
       }
     },
     "update": {
