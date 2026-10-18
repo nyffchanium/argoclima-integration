@@ -35,6 +35,7 @@ async def test_setup_creates_entities(
     assert climate.attributes["current_temperature"] == 23.5
     assert climate.attributes["temperature"] == 22.0
     assert climate.attributes["fan_mode"] == "auto"
+    assert climate.attributes["target_temp_step"] == 1
     assert climate.attributes["preset_mode"] == "none"
 
     assert hass.states.get("switch.living_room_device_light").state == STATE_ON
