@@ -611,7 +611,7 @@ def _push_data_from_params(
         _LOGGER.warning(
             "Argoclima UI_FLG push ignored; claimed IP %s did not match "
             "connection source %s. If Home Assistant and the device share a "
-            "subnet, set the NAT gateway in the dummy server options",
+            "subnet, reconfigure the dummy server and set the NAT gateway",
             host,
             peer_ip,
         )

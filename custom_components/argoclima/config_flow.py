@@ -9,9 +9,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.config_entries import OptionsFlow
 from homeassistant.core import HomeAssistant
-from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import ArgoApiClient
@@ -62,11 +60,6 @@ class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._errors: dict[str, str] = {}
         self._discovery_info: dict[str, Any] = {}
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> ArgoOptionsFlowHandler:
-        return ArgoOptionsFlowHandler()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -188,6 +181,80 @@ class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return self._show_discovery_form(user_input)
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Change the host, device type or hub of a configured device."""
+        entry = self._get_reconfigure_entry()
+        if async_entry_role(entry) == ENTRY_ROLE_HUB:
+            return await self.async_step_reconfigure_server(user_input)
+
+        self._errors = {}
+        if user_input is not None:
+            device_type = ArgoDeviceType.from_name(user_input[CONF_DEVICE_TYPE])
+            if device_type is None:
+                self._errors["base"] = "invalid_device_type"
+            elif await async_test_host(self.hass, device_type, user_input[CONF_HOST]):
+                data = {
+                    **entry.data,
+                    CONF_DEVICE_TYPE: user_input[CONF_DEVICE_TYPE],
+                    CONF_HOST: user_input[CONF_HOST],
+                }
+                if hub_id := _selected_hub_id(user_input):
+                    data[CONF_HUB_ID] = hub_id
+                else:
+                    data.pop(CONF_HUB_ID, None)
+                self.hass.config_entries.async_update_entry(entry, data=data)
+                return self.async_abort(reason="reconfigure_successful")
+            else:
+                self._errors["base"] = "host"
+
+        values = user_input or entry.data
+        schema = {
+            vol.Required(
+                CONF_DEVICE_TYPE,
+                default=values.get(CONF_DEVICE_TYPE, ARGO_DEVICE_ULISSE_ECO),
+            ): vol.In(ARGO_DEVICES),
+            vol.Required(CONF_HOST, default=values.get(CONF_HOST)): str,
+        }
+        if hub_options := _hub_options(self.hass):
+            schema[
+                vol.Optional(CONF_HUB_ID, default=values.get(CONF_HUB_ID) or NO_HUB_ID)
+            ] = vol.In(hub_options)
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(schema),
+            errors=self._errors,
+            description_placeholders={"docs_url": DOCUMENTATION_URL},
+        )
+
+    async def async_step_reconfigure_server(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Change the port or NAT gateway of the dummy server."""
+        entry = self._get_reconfigure_entry()
+        self._errors = {}
+        if user_input is not None:
+            self._errors = await _async_validate_server_input(
+                self.hass, user_input, entry
+            )
+            if not self._errors:
+                port = user_input[CONF_PORT]
+                self.hass.config_entries.async_update_entry(
+                    entry,
+                    data=_server_data(dict(entry.data), user_input),
+                    title=_server_title(port),
+                    unique_id=dummy_server_unique_id(port),
+                )
+                return self.async_abort(reason="reconfigure_successful")
+
+        return self.async_show_form(
+            step_id="reconfigure_server",
+            data_schema=_server_schema(user_input or entry.data),
+            errors=self._errors,
+        )
+
     def _async_add_device_to_hub(
         self, hub_id: str, device_data: dict[str, Any]
     ) -> ConfigFlowResult:
@@ -267,106 +334,6 @@ class ArgoFlowHandler(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_HOST, default=default(CONF_HOST)): str,
                 }
             ),
-            errors=self._errors,
-        )
-
-
-class ArgoOptionsFlowHandler(OptionsFlow):
-    def __init__(self) -> None:
-        self._errors: dict[str, str] = {}
-        self.data: dict[str, Any] = {}
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        self.data = dict(self.config_entry.data)
-        return await self.async_step_user(user_input)
-
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Handle a flow initialized by the user."""
-        if async_entry_role(self.config_entry) == ENTRY_ROLE_HUB:
-            return await self.async_step_server(user_input)
-
-        if user_input is not None:
-            device_type = ArgoDeviceType.from_name(self.data.get(CONF_DEVICE_TYPE))
-            host_ok = await async_test_host(
-                self.hass, device_type, user_input[CONF_HOST]
-            )
-            if host_ok:
-                self.data.update({CONF_HOST: user_input[CONF_HOST]})
-                if hub_id := _selected_hub_id(user_input):
-                    self.data[CONF_HUB_ID] = hub_id
-                else:
-                    self.data.pop(CONF_HUB_ID, None)
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry,
-                    data=self.data,
-                )
-                return self.async_create_entry(title="", data={})
-            self._errors["base"] = "host"
-
-        return self._async_show_option_form(user_input)
-
-    def _async_show_option_form(self, user_input: dict[str, Any]) -> ConfigFlowResult:
-        def default(key: str):
-            if user_input is not None and (
-                user_input.get(key) is not None and len(user_input[key]) > 0
-            ):
-                return user_input[key]
-            return self.data.get(key)
-
-        schema = {
-            vol.Required(CONF_HOST, default=default(CONF_HOST)): str,
-        }
-        hub_options = _hub_options(self.hass)
-        if hub_options:
-            schema[
-                vol.Optional(
-                    CONF_HUB_ID,
-                    default=default(CONF_HUB_ID) or NO_HUB_ID,
-                )
-            ] = vol.In(hub_options)
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(schema),
-            errors=self._errors,
-            description_placeholders={"docs_url": DOCUMENTATION_URL},
-        )
-
-    async def async_step_server(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Handle server options."""
-        self._errors = {}
-
-        if user_input is not None:
-            port = user_input[CONF_PORT]
-            self._errors = await _async_validate_server_input(
-                self.hass, user_input, self.config_entry
-            )
-            if self._errors:
-                return self._show_server_form(user_input)
-
-            self.data = _server_data(
-                {**self.data, CONF_ROLE: ENTRY_ROLE_HUB}, user_input
-            )
-            self.hass.config_entries.async_update_entry(
-                self.config_entry,
-                data=self.data,
-                title=_server_title(port),
-                unique_id=dummy_server_unique_id(port),
-            )
-            return self.async_create_entry(title="", data={})
-
-        return self._show_server_form(self.data)
-
-    def _show_server_form(self, user_input: dict[str, Any]) -> ConfigFlowResult:
-        return self.async_show_form(
-            step_id="server",
-            data_schema=_server_schema(user_input),
             errors=self._errors,
         )
 
