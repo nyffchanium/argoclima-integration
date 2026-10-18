@@ -1,0 +1,214 @@
+{
+  "config": {
+    "abort": {
+      "device_added": "Appareil ajouté au hub du serveur factice.",
+      "hub_not_found": "Le hub du serveur factice de cet appareil est introuvable.",
+      "already_in_progress": "Une détection est déjà en cours pour cet appareil.",
+      "missing_cpu_id": "L'appareil n'a pas transmis de CPU ID.",
+      "reconfigure_successful": "Paramètres mis à jour."
+    },
+    "error": {
+      "host": "Impossible de joindre l'hôte ou l'hôte n'est pas un appareil pris en charge.",
+      "invalid_device_type": "Type d'appareil non pris en charge.",
+      "port_in_use": "Un serveur factice est déjà configuré sur ce port.",
+      "invalid_ip": "Adresse IP invalide.",
+      "port_unavailable": "Le port est déjà utilisé par une autre application."
+    },
+    "step": {
+      "user": {
+        "menu_options": {
+          "device": "Configurer l'appareil manuellement",
+          "server": "Configurer le serveur factice Argoclima (avancé)"
+        },
+        "description": "Ajoutez votre appareil Argo. Le serveur factice est facultatif et nécessite un routeur capable de rediriger le trafic, voir la documentation.",
+        "title": "Argoclima"
+      },
+      "server": {
+        "data": {
+          "port": "Port du serveur",
+          "nat_gateway": "Passerelle NAT (facultatif)"
+        },
+        "description": "Le serveur écoute sur ce port sur toutes les interfaces IPv4. Configurez un DNAT sur votre routeur pour rediriger le trafic cloud des appareils vers ce port. Uniquement si Home Assistant et les appareils sont dans le même sous-réseau : saisissez l'adresse IP de votre routeur, qui doit alors aussi appliquer un NAT source (hairpin NAT) à ce trafic.",
+        "title": "Serveur factice Argoclima"
+      },
+      "device": {
+        "data": {
+          "device": "Type d'appareil",
+          "hub_id": "Hub du serveur factice",
+          "host": "IP ou nom d'hôte de l'appareil",
+          "name": "Donnez un nom à l'appareil"
+        },
+        "description": "Si vous avez besoin d'aide pour la configuration, consultez : {docs_url}",
+        "title": "Argoclima"
+      },
+      "discovery_confirm": {
+        "data": {
+          "device": "Type d'appareil",
+          "host": "Adresse IP de l'appareil",
+          "name": "Donnez un nom à l'appareil"
+        },
+        "description": "Un appareil s'est annoncé via le serveur factice Argoclima.",
+        "title": "Appareil Argoclima détecté"
+      },
+      "reconfigure": {
+        "data": {
+          "device": "Type d'appareil",
+          "hub_id": "Hub du serveur factice",
+          "host": "IP ou nom d'hôte de l'appareil"
+        },
+        "description": "Si vous avez besoin d'aide pour la configuration, consultez : {docs_url}",
+        "title": "Argoclima"
+      },
+      "reconfigure_server": {
+        "data": {
+          "port": "Port du serveur",
+          "nat_gateway": "Passerelle NAT (facultatif)"
+        },
+        "description": "Changer le port redémarre le serveur.",
+        "title": "Serveur factice Argoclima"
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "climate": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "lowest": "Minimale",
+              "low": "Basse",
+              "medium": "Moyenne",
+              "high": "Haute",
+              "higher": "Plus haute",
+              "highest": "Maximale"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "eco_mode_power_limit": {
+        "name": "Limite de puissance du mode Éco"
+      },
+      "anti_mold_duration": {
+        "name": "Durée anti-moisissure"
+      },
+      "delay_timer_duration": {
+        "name": "Durée de la minuterie différée"
+      }
+    },
+    "select": {
+      "display_unit": {
+        "name": "Unité d'affichage"
+      },
+      "active_timer": {
+        "name": "Minuterie active",
+        "state": {
+          "no_timer": "Aucune",
+          "delay_on_off": "Marche/arrêt différé",
+          "profile_1": "Profil 1",
+          "profile_2": "Profil 2",
+          "profile_3": "Profil 3"
+        }
+      },
+      "anti_mold_fan_speed": {
+        "name": "Vitesse du ventilateur anti-moisissure",
+        "state": {
+          "lowest": "Minimale",
+          "low": "Basse",
+          "medium": "Moyenne",
+          "high": "Haute",
+          "higher": "Plus haute",
+          "highest": "Maximale"
+        }
+      }
+    },
+    "switch": {
+      "device_light": {
+        "name": "Voyant de l'appareil"
+      },
+      "use_remote_temperature": {
+        "name": "Utiliser la température de la télécommande"
+      },
+      "anti_mold": {
+        "name": "Anti-moisissure"
+      },
+      "anti_mold_after_remote_off": {
+        "name": "Anti-moisissure après arrêt par télécommande"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Micrologiciel"
+      },
+      "wifi_firmware": {
+        "name": "Micrologiciel WiFi"
+      }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Connexion",
+        "state_attributes": {
+          "last_seen": {
+            "name": "Dernier contact"
+          }
+        }
+      },
+      "anti_mold_drying": {
+        "name": "Séchage anti-moisissure",
+        "state_attributes": {
+          "until": {
+            "name": "Jusqu'à"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "temperature": {
+        "name": "Température"
+      }
+    }
+  },
+  "services": {
+    "set_time": {
+      "name": "Régler l'heure",
+      "description": "Règle l'heure interne et le jour de la semaine d'un appareil Argoclima.",
+      "fields": {
+        "device": {
+          "name": "Appareil",
+          "description": "L'appareil dont l'heure doit être réglée."
+        },
+        "time": {
+          "name": "Heure",
+          "description": "Laisser vide pour utiliser l'heure locale actuelle."
+        },
+        "weekday": {
+          "name": "Jour de la semaine",
+          "description": "Laisser vide pour utiliser le jour de la semaine actuel."
+        }
+      }
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche"
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_loaded": {
+      "message": "L'appareil {device} n'est pas chargé."
+    },
+    "device_unavailable": {
+      "message": "L'appareil {device} n'est pas disponible."
+    }
+  }
+}
