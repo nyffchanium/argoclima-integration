@@ -17,7 +17,7 @@ from .types import ArgoOperationMode
 if TYPE_CHECKING:
     from .update_coordinator import ArgoDataUpdateCoordinator
 
-DRYING_MODES = (ArgoOperationMode.COOL, ArgoOperationMode.DRY)
+DRYING_MODES = (ArgoOperationMode.COOL, ArgoOperationMode.DRY, ArgoOperationMode.AUTO)
 DEFAULT_DURATION = timedelta(minutes=15)
 DEFAULT_FAN_SPEED = ArgoFanSpeed.MEDIUM
 

@@ -50,6 +50,7 @@ async def test_turns_off_normally_when_disabled(
     assert hass.states.get(DRYING).state == STATE_OFF
 
 
+@pytest.mark.parametrize("device_state", [{MODE: 1}, {MODE: 2}, {MODE: 5}])
 async def test_dries_after_cooling(
     hass: HomeAssistant,
     mock_device: None,
@@ -109,8 +110,8 @@ async def test_other_command_cancels_drying(
     assert hass.states.get(DRYING).state == STATE_OFF
 
 
-@pytest.mark.parametrize("device_state", [{MODE: 5}])
-async def test_no_drying_after_auto_mode(
+@pytest.mark.parametrize("device_state", [{MODE: 4}])
+async def test_no_drying_after_fan_mode(
     hass: HomeAssistant,
     mock_device: None,
     device_entry: MockConfigEntry,
