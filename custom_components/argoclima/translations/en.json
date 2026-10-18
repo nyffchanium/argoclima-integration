@@ -4,7 +4,8 @@
       "device_added": "Device added to the dummy server hub.",
       "hub_not_found": "The dummy server hub for this device could not be found.",
       "already_in_progress": "A discovery for this device is already in progress.",
-      "missing_cpu_id": "The device did not report a CPU ID."
+      "missing_cpu_id": "The device did not report a CPU ID.",
+      "reconfigure_successful": "Settings updated."
     },
     "error": {
       "host": "Could not reach host or host is not a supported device.",
@@ -48,30 +49,23 @@
         },
         "description": "A device announced itself through the Argoclima Dummy Server.",
         "title": "Argoclima device discovered"
-      }
-    }
-  },
-  "options": {
-    "error": {
-      "host": "Could not reach host or host is not a supported device.",
-      "port_in_use": "A dummy server is already configured on this port.",
-      "invalid_ip": "Invalid IP address.",
-      "port_unavailable": "The port is already used by another application."
-    },
-    "step": {
-      "server": {
+      },
+      "reconfigure": {
+        "data": {
+          "device": "Device type",
+          "hub_id": "Dummy server hub",
+          "host": "IP or hostname of the device"
+        },
+        "description": "If you need help with the configuration have a look here: {docs_url}",
+        "title": "Argoclima"
+      },
+      "reconfigure_server": {
         "data": {
           "port": "Server port",
           "nat_gateway": "NAT gateway (optional)"
         },
-        "description": "Changing the port reloads the listener."
-      },
-      "user": {
-        "data": {
-          "hub_id": "Dummy server hub",
-          "host": "IP or hostname of the device"
-        },
-        "description": "If you need help with the configuration have a look here: {docs_url}"
+        "description": "Changing the port reloads the listener.",
+        "title": "Argoclima Dummy Server"
       }
     }
   },

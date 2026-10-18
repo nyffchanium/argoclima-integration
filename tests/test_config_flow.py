@@ -3,7 +3,9 @@ from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
+from homeassistant.config_entries import SOURCE_RECONFIGURE
 from homeassistant.config_entries import SOURCE_USER
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
@@ -113,23 +115,51 @@ async def test_dummy_server_port_in_use(hass: HomeAssistant) -> None:
     assert result["errors"] == {"base": "port_in_use"}
 
 
-async def test_change_host_in_options(hass: HomeAssistant) -> None:
+async def start_reconfigure(hass: HomeAssistant, entry: ConfigEntry) -> dict:
+    return await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id}
+    )
+
+
+async def add_device(hass: HomeAssistant) -> ConfigEntry:
     result = await start_flow(hass, "device")
     with mock_host_reachable(True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], DEVICE_INPUT
         )
-    entry = result["result"]
+    return result["result"]
 
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["step_id"] == "user"
+
+async def test_reconfigure_device(hass: HomeAssistant) -> None:
+    entry = await add_device(hass)
+
+    result = await start_reconfigure(hass, entry)
+    assert result["step_id"] == "reconfigure"
     with mock_host_reachable(True):
-        result = await hass.config_entries.options.async_configure(
-            result["flow_id"], {CONF_HOST: "192.168.1.51"}
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_DEVICE_TYPE: ARGO_DEVICE_ULISSE_ECO, CONF_HOST: "192.168.1.51"},
         )
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
     assert entry.data[CONF_HOST] == "192.168.1.51"
+    assert entry.data[CONF_ROLE] == ENTRY_ROLE_DEVICE
+
+
+async def test_reconfigure_device_unreachable(hass: HomeAssistant) -> None:
+    entry = await add_device(hass)
+
+    result = await start_reconfigure(hass, entry)
+    with mock_host_reachable(False):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_DEVICE_TYPE: ARGO_DEVICE_ULISSE_ECO, CONF_HOST: "192.168.1.51"},
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "host"}
+    assert entry.data[CONF_HOST] == HOST
 
 
 async def test_add_dummy_server_with_nat_gateway(hass: HomeAssistant) -> None:
@@ -147,21 +177,24 @@ async def test_add_dummy_server_with_nat_gateway(hass: HomeAssistant) -> None:
     assert result["data"][CONF_NAT_GATEWAY] == "192.168.1.1"
 
 
-async def test_change_nat_gateway_in_options(hass: HomeAssistant) -> None:
+async def test_reconfigure_dummy_server(hass: HomeAssistant) -> None:
     result = await start_flow(hass, "server")
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_PORT: 8081, CONF_NAT_GATEWAY: "192.168.1.1"}
     )
     entry = result["result"]
 
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["step_id"] == "server"
-    result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {CONF_PORT: 8081, CONF_NAT_GATEWAY: ""}
+    result = await start_reconfigure(hass, entry)
+    assert result["step_id"] == "reconfigure_server"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_PORT: 8082, CONF_NAT_GATEWAY: ""}
     )
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data[CONF_PORT] == 8082
     assert CONF_NAT_GATEWAY not in entry.data
+    assert entry.title.endswith("(8082)")
 
 
 async def test_dummy_server_port_used_by_other_application(hass: HomeAssistant) -> None:

@@ -4,7 +4,8 @@
       "device_added": "Gerät zum Dummy-Server-Hub hinzugefügt.",
       "hub_not_found": "Der Dummy-Server-Hub für dieses Gerät konnte nicht gefunden werden.",
       "already_in_progress": "Für dieses Gerät läuft bereits eine Einrichtung.",
-      "missing_cpu_id": "Das Gerät hat keine CPU-ID gemeldet."
+      "missing_cpu_id": "Das Gerät hat keine CPU-ID gemeldet.",
+      "reconfigure_successful": "Einstellungen aktualisiert."
     },
     "error": {
       "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
@@ -48,30 +49,23 @@
         },
         "description": "Ein Gerät hat sich über den Argoclima Dummy Server gemeldet.",
         "title": "Argoclima-Gerät entdeckt"
-      }
-    }
-  },
-  "options": {
-    "error": {
-      "host": "Host konnte nicht erreicht werden oder Host ist kein unterstütztes Gerät.",
-      "port_in_use": "Auf diesem Port ist bereits ein Dummy Server konfiguriert.",
-      "invalid_ip": "Ungültige IP-Adresse.",
-      "port_unavailable": "Der Port wird bereits von einer anderen Anwendung verwendet."
-    },
-    "step": {
-      "server": {
+      },
+      "reconfigure": {
+        "data": {
+          "device": "Gerätetyp",
+          "hub_id": "Dummy-Server-Hub",
+          "host": "IP oder Hostname des Geräts"
+        },
+        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: {docs_url}",
+        "title": "Argoclima"
+      },
+      "reconfigure_server": {
         "data": {
           "port": "Server-Port",
           "nat_gateway": "NAT-Gateway (optional)"
         },
-        "description": "Eine Änderung des Ports lädt den Listener neu."
-      },
-      "user": {
-        "data": {
-          "hub_id": "Dummy-Server-Hub",
-          "host": "IP oder Hostname des Geräts"
-        },
-        "description": "Wenn du Hilfe bei der Konfiguration benötigst, schau hier: {docs_url}"
+        "description": "Eine Änderung des Ports lädt den Listener neu.",
+        "title": "Argoclima Dummy Server"
       }
     }
   },

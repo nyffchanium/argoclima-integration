@@ -175,7 +175,7 @@ Only needed if the Argo devices and Home Assistant are in the same subnet. Add t
 
 Limit the rule to your Argo devices: the dummy server trusts every report that comes from the router.
 
-Then, in Home Assistant, open the dummy server's options (**Settings → Devices & services → Argoclima → Argoclima Dummy Server → Configure**) and enter the router's IP address in this subnet (`<router-ip>`) as **NAT gateway**.
+Then, in Home Assistant, reconfigure the dummy server (**Settings → Devices & services → Argoclima → Argoclima Dummy Server → ⋮ → Reconfigure**) and enter the router's IP address in this subnet (`<router-ip>`) as **NAT gateway**.
 
 **OPNsense:** **Firewall → NAT → Source NAT** (called **Outbound** before 25.7). Set the mode to **Hybrid**, add a rule with interface: the Argo network, protocol TCP, source: your Argo alias, destination `<home-assistant-ip>/32` port `8239`, translation: **Interface address**.
 

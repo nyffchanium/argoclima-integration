@@ -63,7 +63,7 @@ Without HACS: copy the folder `custom_components/argoclima` from the [latest rel
 2. Choose **Set up device manually**.
 3. Give the device a name (e.g. "Living room") and enter its IP address from step 2.
 
-That's it. The device and its controls now appear in Home Assistant. Home Assistant checks the device's state every 15 seconds; commands you send take effect right away. To change the IP address later, open the device's integration entry and click **Configure**.
+That's it. The device and its controls now appear in Home Assistant. Home Assistant checks the device's state every 15 seconds; commands you send take effect right away. To change the IP address or device type later, open the device's integration entry and choose **⋮ → Reconfigure**.
 
 ## Updating from version 1.1.4 or earlier
 
