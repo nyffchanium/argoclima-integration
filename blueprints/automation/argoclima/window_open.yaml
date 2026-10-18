@@ -1,0 +1,85 @@
+blueprint:
+  name: Argoclima - Turn off while a window is open
+  description: >-
+    Turns the air conditioner off when a window or door has been open for a
+    while and restores its previous state once it is closed again.
+  domain: automation
+  source_url: https://github.com/nyffchanium/argoclima-integration/blob/master/blueprints/automation/argoclima/window_open.yaml
+  input:
+    climate:
+      name: Air conditioner
+      selector:
+        entity:
+          filter:
+            integration: argoclima
+            domain: climate
+    window:
+      name: Window or door sensor
+      selector:
+        entity:
+          filter:
+            domain: binary_sensor
+    open_delay:
+      name: Open for
+      description: How long the window has to be open before turning off.
+      default:
+        minutes: 1
+      selector:
+        duration:
+    close_delay:
+      name: Closed for
+      description: How long the window has to be closed before restoring.
+      default:
+        seconds: 30
+      selector:
+        duration:
+
+mode: queued
+
+variables:
+  climate_entity: !input climate
+  scene_id: "argoclima_window_{{ climate_entity.split('.')[1] }}"
+  scene_entity: "scene.{{ scene_id }}"
+
+triggers:
+  - trigger: state
+    entity_id: !input window
+    to: "on"
+    for: !input open_delay
+    id: opened
+  - trigger: state
+    entity_id: !input window
+    to: "off"
+    for: !input close_delay
+    id: closed
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: opened
+          - condition: not
+            conditions:
+              - condition: state
+                entity_id: !input climate
+                state: "off"
+        sequence:
+          - action: scene.create
+            data:
+              scene_id: "{{ scene_id }}"
+              snapshot_entities: !input climate
+          - action: climate.turn_off
+            target:
+              entity_id: !input climate
+      - conditions:
+          - condition: trigger
+            id: closed
+          - condition: template
+            value_template: "{{ expand(scene_entity) | count > 0 }}"
+        sequence:
+          - action: scene.turn_on
+            target:
+              entity_id: "{{ scene_entity }}"
+          - action: scene.delete
+            target:
+              entity_id: "{{ scene_entity }}"
