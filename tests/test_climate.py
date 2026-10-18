@@ -13,13 +13,10 @@ from homeassistant.const import SERVICE_TURN_OFF
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from .helpers import sent_value
+from .helpers import setup_integration
+
 ENTITY_ID = "climate.living_room"
-
-
-async def setup(hass: HomeAssistant, entry: MockConfigEntry) -> None:
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
 
 
 async def call(hass: HomeAssistant, service: str, data: dict) -> None:
@@ -29,17 +26,13 @@ async def call(hass: HomeAssistant, service: str, data: dict) -> None:
     await hass.async_block_till_done()
 
 
-def sent_value(sent_requests: list[str], index: int) -> str:
-    return sent_requests[-1].split(",")[index]
-
-
 async def test_set_temperature(
     hass: HomeAssistant,
     mock_device: None,
     device_entry: MockConfigEntry,
     sent_requests: list[str],
 ) -> None:
-    await setup(hass, device_entry)
+    await setup_integration(hass, device_entry)
 
     await call(hass, SERVICE_SET_TEMPERATURE, {ATTR_TEMPERATURE: 24.5})
 
@@ -52,7 +45,7 @@ async def test_set_hvac_mode(
     device_entry: MockConfigEntry,
     sent_requests: list[str],
 ) -> None:
-    await setup(hass, device_entry)
+    await setup_integration(hass, device_entry)
 
     await call(hass, SERVICE_SET_HVAC_MODE, {ATTR_HVAC_MODE: HVACMode.DRY})
 
@@ -65,7 +58,7 @@ async def test_turn_off(
     device_entry: MockConfigEntry,
     sent_requests: list[str],
 ) -> None:
-    await setup(hass, device_entry)
+    await setup_integration(hass, device_entry)
 
     await call(hass, SERVICE_TURN_OFF, {})
 
@@ -78,7 +71,7 @@ async def test_set_preset_mode(
     device_entry: MockConfigEntry,
     sent_requests: list[str],
 ) -> None:
-    await setup(hass, device_entry)
+    await setup_integration(hass, device_entry)
 
     await call(hass, SERVICE_SET_PRESET_MODE, {ATTR_PRESET_MODE: "eco"})
 
@@ -91,7 +84,7 @@ async def test_set_fan_mode(
     device_entry: MockConfigEntry,
     sent_requests: list[str],
 ) -> None:
-    await setup(hass, device_entry)
+    await setup_integration(hass, device_entry)
 
     await call(hass, SERVICE_SET_FAN_MODE, {ATTR_FAN_MODE: "highest"})
 

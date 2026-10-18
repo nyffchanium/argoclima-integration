@@ -11,6 +11,8 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
+from .helpers import setup_integration
+
 ENTITY_ID = "switch.living_room_device_light"
 
 
@@ -26,9 +28,7 @@ async def test_quick_toggle_ends_in_last_state(
     device_entry: MockConfigEntry,
     sent_requests: list[str],
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
     assert hass.states.get(ENTITY_ID).state == STATE_ON
 
     await toggle(hass, SERVICE_TURN_OFF)

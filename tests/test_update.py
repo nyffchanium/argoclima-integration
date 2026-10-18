@@ -8,6 +8,8 @@ from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClien
 from custom_components.argoclima.firmware import FIRMWARE_URL
 from custom_components.argoclima.unique_id import entity_unique_id
 
+from .helpers import setup_integration
+
 ENTITY_ID = "update.living_room_firmware"
 
 
@@ -41,9 +43,7 @@ async def test_disabled_by_default(
     device_entry: MockConfigEntry,
     aioclient_mock: AiohttpClientMocker,
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     entity = er.async_get(hass).async_get(ENTITY_ID)
     assert entity.disabled_by is er.RegistryEntryDisabler.INTEGRATION

@@ -26,6 +26,7 @@ from custom_components.argoclima.types import ArgoWeekday
 
 from .conftest import HOST
 from .conftest import device_response
+from .helpers import setup_integration
 
 WEEKDAY_INDEX, TIME_INDEX = 18, 20
 
@@ -63,9 +64,7 @@ async def test_clock_is_set_after_setup_and_daily(
     sent_requests: list[str],
     freezer: FrozenDateTimeFactory,
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
 
     await advance(hass, freezer, timedelta(seconds=15))
     await advance(hass, freezer, timedelta(seconds=2))
@@ -87,9 +86,7 @@ async def test_clock_is_set_after_reconnect(
     freezer: FrozenDateTimeFactory,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    device_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(device_entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, device_entry)
     await advance(hass, freezer, timedelta(seconds=17))
     online = ArgoApiClient.async_sync_data
 

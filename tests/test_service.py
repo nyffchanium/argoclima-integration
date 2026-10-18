@@ -9,11 +9,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.argoclima.const import DOMAIN
 from custom_components.argoclima.service import SERVICE_SET_TIME
 
+from .helpers import setup_integration
+
 
 async def setup_device(hass: HomeAssistant, entry: MockConfigEntry) -> str:
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_integration(hass, entry)
     [device] = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
     return device.id
 
