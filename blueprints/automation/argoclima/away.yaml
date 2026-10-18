@@ -1,0 +1,42 @@
+blueprint:
+  name: Argoclima - Turn off when everyone has left
+  description: >-
+    Turns the air conditioner off when nobody has been home for a while.
+  domain: automation
+  source_url: https://github.com/nyffchanium/argoclima-integration/blob/master/blueprints/automation/argoclima/away.yaml
+  input:
+    climate:
+      name: Air conditioner
+      selector:
+        entity:
+          filter:
+            integration: argoclima
+            domain: climate
+          multiple: true
+    zone:
+      name: Zone
+      default: zone.home
+      selector:
+        entity:
+          filter:
+            domain: zone
+    delay:
+      name: Away for
+      description: How long nobody has to be in the zone before turning off.
+      default:
+        minutes: 15
+      selector:
+        duration:
+
+mode: single
+
+triggers:
+  - trigger: numeric_state
+    entity_id: !input zone
+    below: 1
+    for: !input delay
+
+actions:
+  - action: climate.turn_off
+    target:
+      entity_id: !input climate
