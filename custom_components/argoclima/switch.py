@@ -8,10 +8,18 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
+from .anti_mold import DRYING_MODES
 from .entity import ArgoAntiMoldEntity
 from .entity import ArgoEntity
 from .runtime import ArgoRuntimeDevice
 from .runtime import runtime_devices_for_entry
+from .types import ArgoOperationMode
+
+ANTI_MOLD_MODE_NAMES = {
+    ArgoOperationMode.COOL: "Anti Mold After Cooling",
+    ArgoOperationMode.DRY: "Anti Mold After Dehumidifying",
+    ArgoOperationMode.AUTO: "Anti Mold After Auto",
+}
 
 
 async def async_setup_entry(
@@ -26,6 +34,11 @@ async def async_setup_entry(
         if device.type.anti_mold:
             entities.append(ArgoAntiMoldSwitch(device))
             entities.append(ArgoAntiMoldAfterRemoteOffSwitch(device))
+            entities.extend(
+                ArgoAntiMoldModeSwitch(device, mode)
+                for mode in DRYING_MODES
+                if mode in device.type.operation_modes
+            )
     async_add_entities(entities)
 
 
@@ -121,3 +134,36 @@ class ArgoAntiMoldAfterRemoteOffSwitch(ArgoAntiMoldEntity, SwitchEntity, Restore
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._anti_mold.after_remote_off = False
         self.async_write_ha_state()
+
+
+class ArgoAntiMoldModeSwitch(ArgoAntiMoldEntity, SwitchEntity, RestoreEntity):
+    """Whether to dry after the device ran in a mode."""
+
+    _attr_icon = "mdi:air-filter"
+
+    def __init__(self, device: ArgoRuntimeDevice, mode: ArgoOperationMode) -> None:
+        super().__init__(ANTI_MOLD_MODE_NAMES[mode], device)
+        self._mode = mode
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if (state := await self.async_get_last_state()) is not None:
+            self._set(state.state == "on")
+
+    @property
+    def is_on(self) -> bool:
+        return self._mode in self._anti_mold.modes
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._set(True)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._set(False)
+        self.async_write_ha_state()
+
+    def _set(self, on: bool) -> None:
+        if on:
+            self._anti_mold.modes.add(self._mode)
+        else:
+            self._anti_mold.modes.discard(self._mode)

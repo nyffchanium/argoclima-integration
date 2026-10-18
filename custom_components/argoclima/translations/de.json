@@ -136,6 +136,15 @@
       },
       "anti_mold_after_remote_off": {
         "name": "Anti-Schimmel auch bei Fernbedienung"
+      },
+      "anti_mold_after_cooling": {
+        "name": "Anti-Schimmel nach Kühlen"
+      },
+      "anti_mold_after_dehumidifying": {
+        "name": "Anti-Schimmel nach Entfeuchten"
+      },
+      "anti_mold_after_auto": {
+        "name": "Anti-Schimmel nach Auto"
       }
     },
     "update": {

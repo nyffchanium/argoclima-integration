@@ -14,13 +14,14 @@ Each transmission also includes the remote's own settings, which can overwrite c
 
 ## Anti-mold
 
-After cooling or dehumidifying, the inside of the device is wet. Turned off right away, the moisture stays inside and can cause mold and odors. With **Anti-mold** enabled, turning the device off in Home Assistant after cooling, dehumidifying or auto mode switches it to fan mode first and turns it off after the configured time.
+After cooling or dehumidifying, the inside of the device is wet. Turned off right away, the moisture stays inside and can cause mold and odors. With **Anti-mold** enabled, turning the device off in Home Assistant after cooling, dehumidifying or auto mode switches it to fan mode first and turns it off after the configured time. You can choose after which of these modes it dries.
 
 Each device has these settings, all off or at their defaults until you change them:
 
 | Entity                         | Default | Description                                                              |
 | ------------------------------ | ------- | ------------------------------------------------------------------------ |
 | Anti-mold                      | off     | Dry the device before turning it off                                     |
+| Anti-mold after cooling, after dehumidifying, after auto | on | Dry after the device ran in this mode |
 | Anti-mold after remote off     | off     | Also dry when the device was turned off with the remote or its timer; this turns it back on for drying |
 | Anti-mold duration             | 15 min  | How long the fan keeps running                                           |
 | Anti-mold fan speed            | medium  | Fan speed while drying                                                   |

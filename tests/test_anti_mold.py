@@ -24,6 +24,8 @@ CLIMATE = "climate.living_room"
 ENABLED = "switch.living_room_anti_mold"
 AFTER_REMOTE_OFF = "switch.living_room_anti_mold_after_remote_off"
 DRYING = "binary_sensor.living_room_anti_mold_drying"
+AFTER_COOLING = "switch.living_room_anti_mold_after_cooling"
+AFTER_AUTO = "switch.living_room_anti_mold_after_auto"
 
 OPERATING, MODE, FAN = 2, 3, 4
 
@@ -172,3 +174,40 @@ async def test_settings_and_drying_survive_restart(
     await advance(hass, freezer, 5.1)
     assert sent_value(sent_requests, OPERATING) == "0"
     assert hass.states.get(DRYING).state == STATE_OFF
+
+
+async def test_modes_are_enabled_by_default(
+    hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
+) -> None:
+    await setup_integration(hass, device_entry)
+
+    for mode in ("cooling", "dehumidifying", "auto"):
+        assert hass.states.get(f"switch.living_room_anti_mold_after_{mode}").state == (
+            STATE_ON
+        )
+
+
+async def test_no_drying_after_disabled_mode(
+    hass: HomeAssistant,
+    mock_device: None,
+    device_entry: MockConfigEntry,
+    sent_requests: list[str],
+) -> None:
+    await setup_integration(hass, device_entry)
+    await call(hass, "switch", SERVICE_TURN_ON, ENABLED)
+    await call(hass, "switch", SERVICE_TURN_OFF, AFTER_COOLING)
+
+    await call(hass, CLIMATE_DOMAIN, SERVICE_TURN_OFF, CLIMATE)
+
+    assert sent_value(sent_requests, OPERATING) == "0"
+    assert hass.states.get(DRYING).state == STATE_OFF
+
+
+async def test_disabled_mode_survives_restart(
+    hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
+) -> None:
+    mock_restore_cache(hass, [State(AFTER_AUTO, STATE_OFF)])
+    await setup_integration(hass, device_entry)
+
+    assert hass.states.get(AFTER_AUTO).state == STATE_OFF
+    assert hass.states.get(AFTER_COOLING).state == STATE_ON

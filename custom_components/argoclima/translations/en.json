@@ -136,6 +136,15 @@
       },
       "anti_mold_after_remote_off": {
         "name": "Anti-mold after remote off"
+      },
+      "anti_mold_after_cooling": {
+        "name": "Anti-mold after cooling"
+      },
+      "anti_mold_after_dehumidifying": {
+        "name": "Anti-mold after dehumidifying"
+      },
+      "anti_mold_after_auto": {
+        "name": "Anti-mold after auto"
       }
     },
     "update": {

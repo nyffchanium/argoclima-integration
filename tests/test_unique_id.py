@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+from custom_components.argoclima.switch import ANTI_MOLD_MODE_NAMES
 from custom_components.argoclima.unique_id import ENTITY_NAMES
 from custom_components.argoclima.unique_id import entity_unique_id
 from custom_components.argoclima.unique_id import legacy_unique_id_migrations
@@ -26,6 +27,7 @@ def test_entity_names_match_platforms() -> None:
     ):
         source = (COMPONENT / f"{platform}.py").read_text()
         found.update(re.findall(r'super\(\).__init__\(\s*"([^"]+)"', source))
+    found.update(ANTI_MOLD_MODE_NAMES.values())
     assert found == set(ENTITY_NAMES)
 
 

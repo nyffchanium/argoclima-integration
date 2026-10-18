@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from custom_components.argoclima.switch import ANTI_MOLD_MODE_NAMES
+
 COMPONENT = Path(__file__).parents[1] / "custom_components" / "argoclima"
 TRANSLATIONS = COMPONENT / "translations"
 
@@ -43,6 +45,9 @@ def test_entities_have_translated_names() -> None:
     en = json.loads((TRANSLATIONS / "en.json").read_text())
     for platform in ("switch", "number", "select", "update", "binary_sensor", "sensor"):
         source = (COMPONENT / f"{platform}.py").read_text()
-        for name in re.findall(r'super\(\).__init__\(\s*"([^"]+)"', source):
+        names = re.findall(r'super\(\).__init__\(\s*"([^"]+)"', source)
+        if platform == "switch":
+            names += ANTI_MOLD_MODE_NAMES.values()
+        for name in names:
             key = name.lower().replace(" ", "_")
             assert "name" in en["entity"][platform][key], key
