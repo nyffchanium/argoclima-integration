@@ -12,6 +12,10 @@ logger:
     custom_components.argoclima: debug
 ```
 
+## Translations
+
+The texts shown in Home Assistant are in [`custom_components/argoclima/translations`](custom_components/argoclima/translations), one file per language. To add a language, copy `en.json` to `<language code>.json` (for example `fr.json`), translate the values and open a pull request. Keep the keys and placeholders such as `{docs_url}` unchanged. Corrections to existing translations are welcome too.
+
 ## Development
 
 Requires Python 3.14.

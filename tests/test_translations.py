@@ -2,6 +2,8 @@ import json
 import re
 from pathlib import Path
 
+import pytest
+
 COMPONENT = Path(__file__).parents[1] / "custom_components" / "argoclima"
 TRANSLATIONS = COMPONENT / "translations"
 
@@ -14,11 +16,27 @@ def keys(data: dict, prefix: str = "") -> set[str]:
     return result
 
 
-def test_languages_have_the_same_keys() -> None:
-    en = json.loads((TRANSLATIONS / "en.json").read_text())
-    de = json.loads((TRANSLATIONS / "de.json").read_text())
+def placeholders(data: dict) -> dict[str, set[str]]:
+    result = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            result |= {f"{key}.{k}": v for k, v in placeholders(value).items()}
+        else:
+            result[key] = set(re.findall(r"{(\w+)}", value))
+    return result
 
-    assert keys(en) == keys(de)
+
+@pytest.mark.parametrize(
+    "path",
+    [p for p in sorted(TRANSLATIONS.glob("*.json")) if p.name != "en.json"],
+    ids=lambda p: p.stem,
+)
+def test_translation_matches_english(path: Path) -> None:
+    en = json.loads((TRANSLATIONS / "en.json").read_text())
+    translation = json.loads(path.read_text())
+
+    assert keys(translation) == keys(en)
+    assert placeholders(translation) == placeholders(en)
 
 
 def test_entities_have_translated_names() -> None:

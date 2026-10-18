@@ -83,7 +83,9 @@ If you installed the fork `Gadund/argoclima-integration` as a custom repository 
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Available in English, German and Italian. Translations into more languages are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md#translations).
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for bug reports and development.
 
 ## Credits
 

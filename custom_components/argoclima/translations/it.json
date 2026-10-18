@@ -1,0 +1,214 @@
+{
+  "config": {
+    "abort": {
+      "device_added": "Dispositivo aggiunto all'hub del server fittizio.",
+      "hub_not_found": "Impossibile trovare l'hub del server fittizio per questo dispositivo.",
+      "already_in_progress": "È già in corso un rilevamento per questo dispositivo.",
+      "missing_cpu_id": "Il dispositivo non ha comunicato un CPU ID.",
+      "reconfigure_successful": "Impostazioni aggiornate."
+    },
+    "error": {
+      "host": "Impossibile raggiungere l'host oppure l'host non è un dispositivo supportato.",
+      "invalid_device_type": "Tipo di dispositivo non supportato.",
+      "port_in_use": "Su questa porta è già configurato un server fittizio.",
+      "invalid_ip": "Indirizzo IP non valido.",
+      "port_unavailable": "La porta è già utilizzata da un'altra applicazione."
+    },
+    "step": {
+      "user": {
+        "menu_options": {
+          "device": "Configura il dispositivo manualmente",
+          "server": "Configura il server fittizio Argoclima (avanzato)"
+        },
+        "description": "Aggiungi il tuo dispositivo Argo. Il server fittizio è facoltativo e richiede un router in grado di reindirizzare il traffico, vedi la documentazione.",
+        "title": "Argoclima"
+      },
+      "server": {
+        "data": {
+          "port": "Porta del server",
+          "nat_gateway": "Gateway NAT (facoltativo)"
+        },
+        "description": "Il server resta in ascolto su questa porta su tutte le interfacce IPv4. Configura un DNAT sul router per inoltrare a questa porta il traffico cloud dei dispositivi. Solo se Home Assistant e i dispositivi si trovano nella stessa sottorete: inserisci l'indirizzo IP del router, che deve applicare anche un source NAT (hairpin NAT) a questo traffico.",
+        "title": "Server fittizio Argoclima"
+      },
+      "device": {
+        "data": {
+          "device": "Tipo di dispositivo",
+          "hub_id": "Hub del server fittizio",
+          "host": "IP o nome host del dispositivo",
+          "name": "Dai un nome al dispositivo"
+        },
+        "description": "Se hai bisogno di aiuto con la configurazione, consulta: {docs_url}",
+        "title": "Argoclima"
+      },
+      "discovery_confirm": {
+        "data": {
+          "device": "Tipo di dispositivo",
+          "host": "Indirizzo IP del dispositivo",
+          "name": "Dai un nome al dispositivo"
+        },
+        "description": "Un dispositivo si è annunciato tramite il server fittizio Argoclima.",
+        "title": "Dispositivo Argoclima rilevato"
+      },
+      "reconfigure": {
+        "data": {
+          "device": "Tipo di dispositivo",
+          "hub_id": "Hub del server fittizio",
+          "host": "IP o nome host del dispositivo"
+        },
+        "description": "Se hai bisogno di aiuto con la configurazione, consulta: {docs_url}",
+        "title": "Argoclima"
+      },
+      "reconfigure_server": {
+        "data": {
+          "port": "Porta del server",
+          "nat_gateway": "Gateway NAT (facoltativo)"
+        },
+        "description": "Modificando la porta il server viene riavviato.",
+        "title": "Server fittizio Argoclima"
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "climate": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "lowest": "Minima",
+              "low": "Bassa",
+              "medium": "Media",
+              "high": "Alta",
+              "higher": "Più alta",
+              "highest": "Massima"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "eco_mode_power_limit": {
+        "name": "Limite di potenza modalità Eco"
+      },
+      "anti_mold_duration": {
+        "name": "Durata antimuffa"
+      },
+      "delay_timer_duration": {
+        "name": "Durata timer ritardato"
+      }
+    },
+    "select": {
+      "display_unit": {
+        "name": "Unità del display"
+      },
+      "active_timer": {
+        "name": "Timer attivo",
+        "state": {
+          "no_timer": "Nessuno",
+          "delay_on_off": "Accensione/spegnimento ritardato",
+          "profile_1": "Profilo 1",
+          "profile_2": "Profilo 2",
+          "profile_3": "Profilo 3"
+        }
+      },
+      "anti_mold_fan_speed": {
+        "name": "Velocità ventola antimuffa",
+        "state": {
+          "lowest": "Minima",
+          "low": "Bassa",
+          "medium": "Media",
+          "high": "Alta",
+          "higher": "Più alta",
+          "highest": "Massima"
+        }
+      }
+    },
+    "switch": {
+      "device_light": {
+        "name": "Luce del dispositivo"
+      },
+      "use_remote_temperature": {
+        "name": "Usa temperatura del telecomando"
+      },
+      "anti_mold": {
+        "name": "Antimuffa"
+      },
+      "anti_mold_after_remote_off": {
+        "name": "Antimuffa dopo spegnimento da telecomando"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      },
+      "wifi_firmware": {
+        "name": "Firmware WiFi"
+      }
+    },
+    "binary_sensor": {
+      "connection": {
+        "name": "Connessione",
+        "state_attributes": {
+          "last_seen": {
+            "name": "Ultimo contatto"
+          }
+        }
+      },
+      "anti_mold_drying": {
+        "name": "Asciugatura antimuffa",
+        "state_attributes": {
+          "until": {
+            "name": "Fino a"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "temperature": {
+        "name": "Temperatura"
+      }
+    }
+  },
+  "services": {
+    "set_time": {
+      "name": "Imposta ora",
+      "description": "Imposta l'ora interna e il giorno della settimana di un dispositivo Argoclima.",
+      "fields": {
+        "device": {
+          "name": "Dispositivo",
+          "description": "Il dispositivo di cui impostare l'ora."
+        },
+        "time": {
+          "name": "Ora",
+          "description": "Lascia vuoto per usare l'ora locale attuale."
+        },
+        "weekday": {
+          "name": "Giorno della settimana",
+          "description": "Lascia vuoto per usare il giorno della settimana attuale."
+        }
+      }
+    }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "monday": "Lunedì",
+        "tuesday": "Martedì",
+        "wednesday": "Mercoledì",
+        "thursday": "Giovedì",
+        "friday": "Venerdì",
+        "saturday": "Sabato",
+        "sunday": "Domenica"
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_loaded": {
+      "message": "Il dispositivo {device} non è caricato."
+    },
+    "device_unavailable": {
+      "message": "Il dispositivo {device} non è disponibile."
+    }
+  }
+}
