@@ -1,0 +1,59 @@
+blueprint:
+  name: Argoclima - Remote out of sight
+  description: >-
+    Sends a notification when the air conditioner stops receiving the
+    temperature from its remote and falls back to its own sensor, e.g.
+    because the remote was moved or covered.
+  domain: automation
+  source_url: https://github.com/nyffchanium/argoclima-integration/blob/master/blueprints/automation/argoclima/remote_out_of_sight.yaml
+  input:
+    temperature_source:
+      name: Temperature source sensor
+      selector:
+        entity:
+          filter:
+            integration: argoclima
+            domain: sensor
+            device_class: enum
+    use_remote_temperature:
+      name: Use remote temperature switch
+      selector:
+        entity:
+          filter:
+            integration: argoclima
+            domain: switch
+    delay:
+      name: Device sensor for
+      description: How long the device has to use its own sensor before notifying.
+      default:
+        minutes: 1
+      selector:
+        duration:
+    notify:
+      name: Notification
+      description: What to do when the remote is out of sight.
+      default:
+        - action: persistent_notification.create
+          data:
+            title: Air conditioner
+            message: >-
+              The air conditioner no longer receives the temperature from its
+              remote. Check that the remote is on and points at the device.
+      selector:
+        action:
+
+mode: single
+
+triggers:
+  - trigger: state
+    entity_id: !input temperature_source
+    from: remote
+    to: device
+    for: !input delay
+
+conditions:
+  - condition: state
+    entity_id: !input use_remote_temperature
+    state: "on"
+
+actions: !input notify

@@ -79,7 +79,7 @@ If you installed the fork `Gadund/argoclima-integration` as a custom repository 
 
 - **[Dummy server (advanced)](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dummy-server.md)**: run the device without the manufacturer's cloud, with the [router guide](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dnat.md)
 - **[Features in detail](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/features.md)**: remote temperature sensor, anti-mold, delay timer, firmware updates, device clock, limitations
-- **[Blueprints](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/blueprints.md)**: ready-made automations for open windows and leaving home
+- **[Blueprints](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/blueprints.md)**: ready-made automations for open windows, leaving home and a remote out of sight
 - **[Troubleshooting](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/troubleshooting.md)**: common problems, diagnostics and debug logs
 - **[Security](https://github.com/nyffchanium/argoclima-integration/blob/master/SECURITY.md)**: security model and how to report vulnerabilities
 

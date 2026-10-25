@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from homeassistant.util.yaml import load_yaml
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import async_capture_events
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from .helpers import sent_value
@@ -129,3 +130,29 @@ async def test_window_open_while_off_does_not_turn_on(
     await advance(hass, freezer, timedelta(seconds=31))
 
     assert all(request.split(",")[OPERATING] != "1" for request in sent_requests)
+
+
+@pytest.mark.parametrize(("remote_switch", "notified"), [("on", 1), ("off", 0)])
+async def test_remote_out_of_sight(
+    hass: HomeAssistant,
+    freezer: FrozenDateTimeFactory,
+    use_blueprint,
+    remote_switch: str,
+    notified: int,
+) -> None:
+    events = async_capture_events(hass, "remote_out_of_sight_test")
+    hass.states.async_set("sensor.source", "remote")
+    hass.states.async_set("switch.use_remote", remote_switch)
+    await use_blueprint(
+        "remote_out_of_sight",
+        {
+            "temperature_source": "sensor.source",
+            "use_remote_temperature": "switch.use_remote",
+            "notify": [{"event": "remote_out_of_sight_test"}],
+        },
+    )
+
+    hass.states.async_set("sensor.source", "device")
+    await advance(hass, freezer, timedelta(minutes=1, seconds=1))
+
+    assert len(events) == notified

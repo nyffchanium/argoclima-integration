@@ -13,3 +13,9 @@ Turns the air conditioner off when a window or door has been open for a while (d
 [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://github.com/nyffchanium/argoclima-integration/blob/master/blueprints/automation/argoclima/away.yaml)
 
 Turns one or more air conditioners off when nobody has been in a zone (default: home) for a while (default 15 minutes).
+
+## Remote out of sight
+
+[![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://github.com/nyffchanium/argoclima-integration/blob/master/blueprints/automation/argoclima/remote_out_of_sight.yaml)
+
+Notifies you when the device stops receiving the temperature from its remote and falls back to its own sensor, i.e. when [Temperature source](features.md#using-the-remotes-temperature-sensor) changes to **Device** while **Use remote temperature** is on. The device itself already waits about 7 minutes before switching; the blueprint waits 1 more minute by default. By default, it creates a notification in Home Assistant.
