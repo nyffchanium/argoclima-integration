@@ -51,3 +51,13 @@ def test_entities_have_translated_names() -> None:
         for name in names:
             key = name.lower().replace(" ", "_")
             assert "name" in en["entity"][platform][key], key
+
+
+def test_icons_belong_to_translated_entities() -> None:
+    en = json.loads((TRANSLATIONS / "en.json").read_text())
+    icons = json.loads((COMPONENT / "icons.json").read_text())
+
+    for platform, entities in icons["entity"].items():
+        for key in entities:
+            assert key in en["entity"][platform], f"{platform}.{key}"
+    assert icons["services"].keys() <= en["services"].keys()

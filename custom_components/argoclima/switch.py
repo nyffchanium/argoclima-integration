@@ -43,8 +43,6 @@ async def async_setup_entry(
 
 
 class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
-    _attr_icon = "mdi:lightbulb"
-
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__(
             "Device Light", device, SwitchDeviceClass.SWITCH, EntityCategory.CONFIG
@@ -64,8 +62,6 @@ class ArgoDeviceLightSwitch(ArgoEntity, SwitchEntity):
 
 
 class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
-    _attr_icon = "mdi:remote"
-
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__(
             "Use Remote Temperature",
@@ -88,8 +84,6 @@ class ArgoRemoteTemperatureSwitch(ArgoEntity, SwitchEntity):
 
 
 class ArgoAntiMoldSwitch(ArgoAntiMoldEntity, SwitchEntity, RestoreEntity):
-    _attr_icon = "mdi:air-filter"
-
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__("Anti Mold", device)
 
@@ -113,8 +107,6 @@ class ArgoAntiMoldSwitch(ArgoAntiMoldEntity, SwitchEntity, RestoreEntity):
 
 
 class ArgoAntiMoldAfterRemoteOffSwitch(ArgoAntiMoldEntity, SwitchEntity, RestoreEntity):
-    _attr_icon = "mdi:remote"
-
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__("Anti Mold After Remote Off", device)
 
@@ -138,8 +130,6 @@ class ArgoAntiMoldAfterRemoteOffSwitch(ArgoAntiMoldEntity, SwitchEntity, Restore
 
 class ArgoAntiMoldModeSwitch(ArgoAntiMoldEntity, SwitchEntity, RestoreEntity):
     """Whether to dry after the device ran in a mode."""
-
-    _attr_icon = "mdi:air-filter"
 
     def __init__(self, device: ArgoRuntimeDevice, mode: ArgoOperationMode) -> None:
         super().__init__(ANTI_MOLD_MODE_NAMES[mode], device)

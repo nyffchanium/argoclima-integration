@@ -80,8 +80,6 @@ class ArgoConnectionSensor(ArgoEntity, BinarySensorEntity):
 class ArgoAntiMoldDryingSensor(ArgoAntiMoldEntity, BinarySensorEntity, RestoreEntity):
     """Whether the device is drying after cooling."""
 
-    _attr_icon = "mdi:fan-clock"
-
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__("Anti Mold Drying", device)
         self._attr_entity_category = EntityCategory.DIAGNOSTIC

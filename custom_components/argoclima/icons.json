@@ -1,0 +1,116 @@
+{
+  "entity": {
+    "climate": {
+      "climate": {
+        "state_attributes": {
+          "fan_mode": {
+            "default": "mdi:fan",
+            "state": {
+              "auto": "mdi:fan-auto",
+              "lowest": "mdi:fan-speed-1",
+              "low": "mdi:fan-speed-1",
+              "medium": "mdi:fan-speed-2",
+              "high": "mdi:fan-speed-2",
+              "higher": "mdi:fan-speed-3",
+              "highest": "mdi:fan-speed-3"
+            }
+          }
+        }
+      }
+    },
+    "binary_sensor": {
+      "anti_mold_drying": {
+        "default": "mdi:fan-clock",
+        "state": {
+          "off": "mdi:fan-off"
+        }
+      }
+    },
+    "number": {
+      "eco_mode_power_limit": {
+        "default": "mdi:leaf"
+      },
+      "anti_mold_duration": {
+        "default": "mdi:timer-outline"
+      },
+      "delay_timer_duration": {
+        "default": "mdi:timer-sand"
+      }
+    },
+    "select": {
+      "display_unit": {
+        "default": "mdi:thermometer"
+      },
+      "active_timer": {
+        "default": "mdi:timer-outline",
+        "state": {
+          "no_timer": "mdi:timer-off-outline",
+          "delay_on_off": "mdi:timer-sand",
+          "profile_1": "mdi:calendar-clock",
+          "profile_2": "mdi:calendar-clock",
+          "profile_3": "mdi:calendar-clock"
+        }
+      },
+      "anti_mold_fan_speed": {
+        "default": "mdi:fan",
+        "state": {
+          "lowest": "mdi:fan-speed-1",
+          "low": "mdi:fan-speed-1",
+          "medium": "mdi:fan-speed-2",
+          "high": "mdi:fan-speed-2",
+          "higher": "mdi:fan-speed-3",
+          "highest": "mdi:fan-speed-3"
+        }
+      }
+    },
+    "switch": {
+      "device_light": {
+        "default": "mdi:lightbulb",
+        "state": {
+          "off": "mdi:lightbulb-off"
+        }
+      },
+      "use_remote_temperature": {
+        "default": "mdi:remote",
+        "state": {
+          "off": "mdi:remote-off"
+        }
+      },
+      "anti_mold": {
+        "default": "mdi:fan-clock",
+        "state": {
+          "off": "mdi:fan-off"
+        }
+      },
+      "anti_mold_after_remote_off": {
+        "default": "mdi:remote",
+        "state": {
+          "off": "mdi:remote-off"
+        }
+      },
+      "anti_mold_after_cooling": {
+        "default": "mdi:snowflake",
+        "state": {
+          "off": "mdi:snowflake-off"
+        }
+      },
+      "anti_mold_after_dehumidifying": {
+        "default": "mdi:water-percent",
+        "state": {
+          "off": "mdi:water-off"
+        }
+      },
+      "anti_mold_after_auto": {
+        "default": "mdi:autorenew",
+        "state": {
+          "off": "mdi:autorenew-off"
+        }
+      }
+    }
+  },
+  "services": {
+    "set_time": {
+      "service": "mdi:clock-edit-outline"
+    }
+  }
+}
