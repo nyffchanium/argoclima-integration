@@ -33,8 +33,7 @@ async def async_setup_entry(
 
 class ArgoClimate(ArgoEntity, ClimateEntity):
     _attr_temperature_unit = ArgoUnit.CELSIUS.to_ha_unit()
-    # The device accepts tenths, but its display and remote use whole degrees.
-    _attr_target_temperature_step = 1
+    _attr_target_temperature_step = 0.5
 
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__("Climate", device)

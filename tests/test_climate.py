@@ -89,3 +89,17 @@ async def test_set_fan_mode(
     await call(hass, SERVICE_SET_FAN_MODE, {ATTR_FAN_MODE: "highest"})
 
     assert sent_value(sent_requests, 4) == "6"
+
+
+async def test_set_half_degrees(
+    hass: HomeAssistant,
+    mock_device: None,
+    device_entry: MockConfigEntry,
+    sent_requests: list[str],
+) -> None:
+    await setup_integration(hass, device_entry)
+
+    await call(hass, SERVICE_SET_TEMPERATURE, {ATTR_TEMPERATURE: 22.5})
+
+    assert sent_value(sent_requests, 0) == "225"
+    assert hass.states.get(ENTITY_ID).attributes["temperature"] == 22.5
