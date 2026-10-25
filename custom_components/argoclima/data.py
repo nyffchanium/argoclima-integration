@@ -144,8 +144,9 @@ class ArgoBooleanDataValue(ArgoDataValue):
         super().__init__(update_index, response_index, type=type)
 
     @property
-    def value(self) -> bool:
-        return super().value == 1
+    def value(self) -> bool | None:
+        value = super().value
+        return None if value is None else value == 1
 
     def request_value(self, value: int) -> None:
         return super().request_value(1 if value else 0)
@@ -297,7 +298,7 @@ class ArgoData:
         return self._temp.value / 10 if self._temp.value is not None else None
 
     @property
-    def operating(self) -> bool:
+    def operating(self) -> bool | None:
         return self._operating.value
 
     @operating.setter
@@ -321,7 +322,7 @@ class ArgoData:
         self._fan.request_value(value)
 
     @property
-    def remote_temperature(self) -> bool:
+    def remote_temperature(self) -> bool | None:
         return self._remote_temperature.value
 
     @remote_temperature.setter
@@ -329,7 +330,7 @@ class ArgoData:
         self._remote_temperature.request_value(value)
 
     @property
-    def eco(self) -> bool:
+    def eco(self) -> bool | None:
         return self._eco.value
 
     @eco.setter
@@ -337,7 +338,7 @@ class ArgoData:
         self._eco.request_value(value)
 
     @property
-    def turbo(self) -> bool:
+    def turbo(self) -> bool | None:
         return self._turbo.value
 
     @turbo.setter
@@ -345,7 +346,7 @@ class ArgoData:
         self._turbo.request_value(value)
 
     @property
-    def night(self) -> bool:
+    def night(self) -> bool | None:
         return self._night.value
 
     @night.setter
@@ -353,7 +354,7 @@ class ArgoData:
         self._night.request_value(value)
 
     @property
-    def light(self) -> bool:
+    def light(self) -> bool | None:
         return self._light.value
 
     @light.setter

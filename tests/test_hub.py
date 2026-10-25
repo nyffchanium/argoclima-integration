@@ -1,11 +1,15 @@
 from collections.abc import Generator
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
+from homeassistant.core import State
 from homeassistant.helpers import device_registry as dr
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import mock_restore_cache
 from pytest_homeassistant_custom_component.components.diagnostics import (
     get_diagnostics_for_config_entry,
 )
@@ -171,3 +175,41 @@ async def test_diagnostics_redact_device_addresses(
     assert TITLE not in str(diagnostics)
     assert diagnostics["dummy_server"]["running"] is False
     assert len(diagnostics["devices"]) == 1
+
+
+async def test_states_are_unknown_until_the_first_push(
+    hass: HomeAssistant, hub: MockConfigEntry
+) -> None:
+    await setup_integration(hass, hub)
+
+    assert hass.states.get("climate.living_room").state == "unknown"
+    assert hass.states.get("switch.living_room_device_light").state == "unknown"
+
+
+async def test_drying_continues_until_the_first_push(
+    hass: HomeAssistant, hub: MockConfigEntry
+) -> None:
+    drying = "binary_sensor.living_room_anti_mold_drying"
+    until = dt_util.utcnow() + timedelta(minutes=5)
+    mock_restore_cache(
+        hass,
+        [
+            State("switch.living_room_anti_mold", "on"),
+            State(drying, "on", {"until": until.isoformat()}),
+        ],
+    )
+    await setup_integration(hass, hub)
+    assert hass.states.get(drying).state == "on"
+
+    await async_handle_push_data(
+        hass,
+        ArgoPushData(
+            cpu_id=CPU_ID,
+            host=HOST,
+            hmi=device_response({2: 1, 3: 4}),
+            hub_id=dummy_server_hub_id(hub),
+        ),
+    )
+    await hass.async_block_till_done()
+
+    assert hass.states.get(drying).state == "on"

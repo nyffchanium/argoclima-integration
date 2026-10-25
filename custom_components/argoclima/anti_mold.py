@@ -70,6 +70,7 @@ class AntiMoldController:
     def async_resume(self, until: datetime) -> None:
         """Continue drying that was running before a restart."""
         self._schedule(max(until, dt_util.utcnow()))
+        self.async_handle_device_update()
 
     @callback
     def async_shutdown(self) -> None:
@@ -89,18 +90,28 @@ class AntiMoldController:
 
     @callback
     def async_handle_device_update(self) -> None:
-        """Start drying when the device was turned off outside Home Assistant."""
+        """Follow changes made on the device, e.g. with the remote.
+
+        Drying starts when the device was turned off outside Home Assistant
+        and stops when it was turned off or switched to another mode.
+        """
         data = self._coordinator.data
+        if data.operating is None:
+            return
         previous, self._last_state = self._last_state, (data.operating, data.mode)
+        if data.is_update_pending():
+            return
+        if self.active:
+            if not data.operating or data.mode is not ArgoOperationMode.FAN:
+                self.async_cancel()
+            return
         if (
             self.enabled
             and self.after_remote_off
-            and not self.active
             and previous is not None
             and previous[0]
             and previous[1] in self.modes
             and data.operating is False
-            and not data.is_update_pending()
         ):
             self._hass.async_create_task(self.async_start())
 

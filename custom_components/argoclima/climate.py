@@ -80,6 +80,8 @@ class ArgoClimate(ArgoEntity, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode | None:
         data = self.coordinator.data
+        if data.operating is None:
+            return None
         if not data.operating:
             return HVACMode.OFF
         return data.mode.to_hvac_mode() if data.mode is not None else None

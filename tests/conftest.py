@@ -32,6 +32,13 @@ DEFAULT_RESPONSE_VALUES = {
     24: 0,  # unit: celsius
 }
 
+# Update index -> response index of the values the device applies and reports.
+APPLIED_UPDATE_INDICES = {
+    **{index: index for index in (0, 2, 3, 4, 6, 8, 9, 10, 11, 12)},
+    25: 22,
+    26: 24,
+}
+
 
 def device_response(overrides: dict[int, int] | None = None) -> str:
     values = {**DEFAULT_RESPONSE_VALUES, **(overrides or {})}
@@ -70,12 +77,16 @@ def device_state() -> dict[int, int]:
 def mock_device(
     sent_requests: list[str], device_state: dict[int, int]
 ) -> Generator[None]:
-    """Answer device requests like a cooling Ulisse and record what was sent."""
+    """Answer requests like a cooling Ulisse that applies them, and record them."""
 
     async def sync(self: ArgoApiClient, data: ArgoData | None) -> ArgoData:
         if data is None:
             data = ArgoData(self._type)
-        sent_requests.append(data.to_parameter_string())
+        request = data.to_parameter_string()
+        sent_requests.append(request)
+        for index, value in enumerate(request.split(",")):
+            if value != "N" and index in APPLIED_UPDATE_INDICES:
+                device_state[APPLIED_UPDATE_INDICES[index]] = int(value)
         data.parse_response_parameter_string(device_response(device_state))
         return data
 
