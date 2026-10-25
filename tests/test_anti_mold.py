@@ -151,6 +151,7 @@ async def test_turned_off_with_remote(
     assert hass.states.get(DRYING).state == drying
 
 
+@pytest.mark.parametrize("device_state", [{MODE: 4}])
 async def test_settings_and_drying_survive_restart(
     hass: HomeAssistant,
     mock_device: None,
@@ -211,3 +212,50 @@ async def test_disabled_mode_survives_restart(
 
     assert hass.states.get(AFTER_AUTO).state == STATE_OFF
     assert hass.states.get(AFTER_COOLING).state == STATE_ON
+
+
+@pytest.mark.parametrize(("operating", "mode"), [(1, 1), (0, 4)])
+async def test_change_on_device_while_drying_cancels_drying(
+    hass: HomeAssistant,
+    mock_device: None,
+    device_entry: MockConfigEntry,
+    device_state: dict[int, int],
+    sent_requests: list[str],
+    freezer: FrozenDateTimeFactory,
+    operating: int,
+    mode: int,
+) -> None:
+    await setup_integration(hass, device_entry)
+    await call(hass, "switch", SERVICE_TURN_ON, ENABLED)
+    await call(hass, CLIMATE_DOMAIN, SERVICE_TURN_OFF, CLIMATE)
+    await advance(hass, freezer, 0.5)
+    assert hass.states.get(DRYING).state == STATE_ON
+
+    # Changed with the remote: back to cooling, or turned off.
+    device_state[OPERATING] = operating
+    device_state[MODE] = mode
+    await advance(hass, freezer, 0.5)
+    assert hass.states.get(DRYING).state == STATE_OFF
+
+    requests_before = len(sent_requests)
+    await advance(hass, freezer, 15)
+    assert all(
+        request.split(",")[OPERATING] == "N"
+        for request in sent_requests[requests_before:]
+    )
+
+
+async def test_drying_stops_if_device_changed_during_restart(
+    hass: HomeAssistant, mock_device: None, device_entry: MockConfigEntry
+) -> None:
+    until = dt_util.utcnow() + timedelta(minutes=5)
+    mock_restore_cache(
+        hass,
+        [
+            State(ENABLED, STATE_ON),
+            State(DRYING, STATE_ON, {"until": until.isoformat()}),
+        ],
+    )
+    await setup_integration(hass, device_entry)
+
+    assert hass.states.get(DRYING).state == STATE_OFF

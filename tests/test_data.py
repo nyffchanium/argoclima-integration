@@ -104,3 +104,11 @@ def test_rejects_out_of_range_value() -> None:
     data = ArgoData(ULISSE_ECO)
     with pytest.raises(ValueError):
         data.target_temp = 40
+
+
+def test_values_are_unknown_before_the_device_reported() -> None:
+    data = ArgoData(ULISSE_ECO)
+
+    assert data.operating is None
+    assert data.light is None
+    assert data.mode is None
