@@ -21,4 +21,4 @@ Unplug the device for about a minute and try again.
 This happens when Argo's server is overloaded: the device resets its WiFi connection when its requests to the server time out. The [dummy server](dummy-server.md) fixes this.
 
 **The temperature is wrong while "Use Remote Temperature" is on.**
-The remote only sends the temperature by infrared while it points at the device. If it's out of sight, covered or turned off, the device doesn't get new values and the temperature can be outdated. See [Using the remote's temperature sensor](features.md#using-the-remotes-temperature-sensor).
+Check **Temperature source**. The remote only sends the temperature by infrared while it is on and points at the device. If it's out of sight, covered or turned off, the device keeps its last value for about 7 minutes and then switches to its own sensor: **Temperature source** changes to **Device**. While the fan is stopped, that sensor measures the cold air at the heat exchanger and reads far too low, e.g. 16 °C in a 24 °C room. See [Using the remote's temperature sensor](features.md#using-the-remotes-temperature-sensor).
