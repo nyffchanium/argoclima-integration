@@ -92,7 +92,7 @@
         "name": "Limite di potenza modalità Eco"
       },
       "anti_mold_duration": {
-        "name": "Durata antimuffa"
+        "name": "Antimuffa durata"
       },
       "delay_timer_duration": {
         "name": "Durata timer ritardato"
@@ -113,7 +113,7 @@
         }
       },
       "anti_mold_fan_speed": {
-        "name": "Velocità ventola antimuffa",
+        "name": "Antimuffa velocità ventola",
         "state": {
           "lowest": "Minima",
           "low": "Bassa",
@@ -165,7 +165,7 @@
         }
       },
       "anti_mold_drying": {
-        "name": "Asciugatura antimuffa",
+        "name": "Antimuffa asciugatura",
         "state_attributes": {
           "until": {
             "name": "Fino a"
