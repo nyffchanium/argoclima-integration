@@ -92,7 +92,7 @@
         "name": "Limite de puissance du mode Éco"
       },
       "anti_mold_duration": {
-        "name": "Durée anti-moisissure"
+        "name": "Anti-moisissure durée"
       },
       "delay_timer_duration": {
         "name": "Durée de la minuterie différée"
@@ -113,7 +113,7 @@
         }
       },
       "anti_mold_fan_speed": {
-        "name": "Vitesse du ventilateur anti-moisissure",
+        "name": "Anti-moisissure vitesse du ventilateur",
         "state": {
           "lowest": "Minimale",
           "low": "Basse",
@@ -165,7 +165,7 @@
         }
       },
       "anti_mold_drying": {
-        "name": "Séchage anti-moisissure",
+        "name": "Anti-moisissure séchage",
         "state_attributes": {
           "until": {
             "name": "Jusqu'à"

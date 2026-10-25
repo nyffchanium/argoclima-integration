@@ -92,7 +92,7 @@
         "name": "Eco-Leistungsgrenze"
       },
       "anti_mold_duration": {
-        "name": "Anti-Schimmel Nachlaufzeit"
+        "name": "Anti-Schimmel Dauer"
       },
       "delay_timer_duration": {
         "name": "Dauer Verzögerungs-Timer"
