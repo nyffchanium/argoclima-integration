@@ -64,8 +64,6 @@ class ArgoTimerSelect(ArgoEntity, SelectEntity):
 
 
 class ArgoAntiMoldFanSpeedSelect(ArgoAntiMoldEntity, SelectEntity, RestoreEntity):
-    _attr_icon = "mdi:fan"
-
     def __init__(self, device: ArgoRuntimeDevice) -> None:
         super().__init__("Anti Mold Fan Speed", device)
         self._attr_options = [

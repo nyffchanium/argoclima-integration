@@ -36,7 +36,6 @@ async def async_setup_entry(
 
 
 class ArgoEcoLimitNumber(ArgoEntity, NumberEntity):
-    _attr_icon = "mdi:leaf"
     _attr_mode = NumberMode.BOX
     _attr_native_step = 1
     _attr_native_unit_of_measurement = PERCENTAGE
@@ -56,7 +55,6 @@ class ArgoEcoLimitNumber(ArgoEntity, NumberEntity):
 
 
 class ArgoAntiMoldDurationNumber(ArgoAntiMoldEntity, RestoreNumber):
-    _attr_icon = "mdi:timer-outline"
     _attr_mode = NumberMode.BOX
     _attr_native_min_value = 1
     _attr_native_max_value = 120
@@ -85,7 +83,6 @@ class ArgoAntiMoldDurationNumber(ArgoAntiMoldEntity, RestoreNumber):
 class ArgoDelayTimerNumber(ArgoSettingEntity, RestoreNumber):
     """Duration of the delay timer, sent when the delay timer is activated."""
 
-    _attr_icon = "mdi:timer-sand"
     _attr_mode = NumberMode.BOX
     _attr_native_min_value = DELAY_TIMER_MIN_MINUTES
     _attr_native_max_value = DELAY_TIMER_MAX_MINUTES
