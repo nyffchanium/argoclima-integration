@@ -10,7 +10,9 @@ The remote sends the temperature by **infrared**, the same way as its commands: 
 2. Turn the remote on (grid lines and fan icon are visible).
 3. Turn on **Use Remote Temperature** in Home Assistant. Enabling remote temperature mode on the remote itself (hold the fan button for 2 seconds; the user icon appears) may also be required.
 
-Each transmission also includes the remote's own settings, which can overwrite changes made in Home Assistant. If that's a problem, keep the remote's settings in line with what you set in Home Assistant, or use the device's own sensor.
+These automatic transmissions only contain the temperature, so the remote can stay on and in sight without undoing changes made in Home Assistant. Pressing a button on the remote, however, sends all of its settings, e.g. mode and target temperature, and also stops [anti-mold drying](#anti-mold).
+
+**Temperature source** shows where the temperature currently comes from. Without a transmission from the remote for about 7 minutes, the device keeps the last value of the remote and then falls back to its own sensor. That sensor sits close to the heat exchanger: while the fan runs, it roughly measures the room temperature, but when the fan stops, it measures the cold air at the heat exchanger and reads far too low.
 
 ## Anti-mold
 
