@@ -185,6 +185,9 @@ class ArgoData:
         )
         self._unit = ArgoDataValue(26, 24)
         self._firmware_version = ArgoDataValue(None, 23, ValueType.READ_ONLY)
+        self._remote_temperature_active = ArgoBooleanDataValue(
+            None, 13, ValueType.READ_ONLY
+        )
         self.wifi_firmware_version: str | None = None
         self._values: list[ArgoDataValue] = [
             self._target_temp,
@@ -207,6 +210,7 @@ class ArgoData:
             self._eco_limit,
             self._unit,
             self._firmware_version,
+            self._remote_temperature_active,
         ]
 
     def to_parameter_string(self) -> str:
@@ -273,6 +277,7 @@ class ArgoData:
             "night": self.night,
             "light": self.light,
             "remote_temperature": self.remote_temperature,
+            "remote_temperature_active": self.remote_temperature_active,
             "timer": name(self.timer),
             "eco_limit": self.eco_limit,
             "unit": name(self.unit),
@@ -328,6 +333,11 @@ class ArgoData:
     @remote_temperature.setter
     def remote_temperature(self, value: bool):
         self._remote_temperature.request_value(value)
+
+    @property
+    def remote_temperature_active(self) -> bool | None:
+        """Whether the current temperature comes from the remote."""
+        return self._remote_temperature_active.value
 
     @property
     def eco(self) -> bool | None:

@@ -16,6 +16,7 @@ ENTITY_NAMES = (
     "WiFi Firmware",
     "Connection",
     "Temperature",
+    "Temperature Source",
     "Delay Timer Duration",
     "Anti Mold",
     "Anti Mold After Remote Off",
