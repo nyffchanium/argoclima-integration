@@ -29,6 +29,7 @@ Other Argo WiFi models probably work too. If you own one, please [open an issue]
 | Delay timer duration           | Number                      |
 | Device light                   | Switch                      |
 | Use remote temperature         | Switch                      |
+| Temperature source             | Sensor                      |
 | Connection and last contact    | Sensor                      |
 | Device clock                   | Set automatically           |
 | Anti-mold drying after cooling | Switches and settings       |

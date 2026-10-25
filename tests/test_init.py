@@ -1,6 +1,7 @@
 import hashlib
 import uuid
 
+import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant
@@ -224,3 +225,18 @@ async def test_temperature_sensor(
     assert state.state == "23.5"
     assert state.attributes["unit_of_measurement"] == "°C"
     assert state.attributes["state_class"] == "measurement"
+
+
+@pytest.mark.parametrize(("active", "source"), [(1, "remote"), (0, "device")])
+async def test_temperature_source(
+    hass: HomeAssistant,
+    mock_device: None,
+    device_entry: MockConfigEntry,
+    device_state: dict[int, int],
+    active: int,
+    source: str,
+) -> None:
+    device_state[13] = active
+    await setup_integration(hass, device_entry)
+
+    assert hass.states.get("sensor.living_room_temperature_source").state == source

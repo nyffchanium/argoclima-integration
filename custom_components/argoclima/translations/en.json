@@ -176,6 +176,13 @@
     "sensor": {
       "temperature": {
         "name": "Temperature"
+      },
+      "temperature_source": {
+        "name": "Temperature source",
+        "state": {
+          "remote": "Remote",
+          "device": "Device"
+        }
       }
     }
   },
