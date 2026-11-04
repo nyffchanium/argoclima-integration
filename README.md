@@ -15,6 +15,8 @@ Unofficial Home Assistant integration for Argo (Argoclima) WiFi air conditioners
 
 Other Argo WiFi models probably work too. If you own one, please [open an issue][issues] and tell us whether it works.
 
+Argo devices controlled with the Smart Life app, such as the Dry Evo dehumidifiers, use the Tuya platform instead and are not supported. Try Home Assistant's [Tuya integration](https://www.home-assistant.io/integrations/tuya/) for them.
+
 ## What you get in Home Assistant
 
 | Feature                        | Shown as                    |
