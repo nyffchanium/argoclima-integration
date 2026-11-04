@@ -42,7 +42,7 @@ Flap and filter mode, timer schedules and device reset are not available.
 
 ## Getting started
 
-Requires Home Assistant 2025.10 or newer and [HACS](https://hacs.xyz).
+Requires Home Assistant 2025.10 or newer. From Home Assistant 2026.11, community integrations are installed from the built-in **Marketplace**; older versions use [HACS](https://hacs.xyz).
 
 ### 1. Connect the device to your WiFi
 
@@ -54,11 +54,11 @@ Home Assistant finds the device by its IP address, so the address must not chang
 
 ### 3. Install the integration
 
-1. In Home Assistant, open **HACS** and search for **Argoclima**.
-2. Open it and click **Download**.
+1. In Home Assistant, open **Settings → Marketplace** (on versions before 2026.11: **HACS**) and search for **Argoclima**.
+2. Open it and install it.
 3. Restart Home Assistant (**Settings → System → Restart**).
 
-Without HACS: copy the folder `custom_components/argoclima` from the [latest release][releases] into the `custom_components` folder of your Home Assistant configuration and restart.
+Without the Marketplace or HACS: copy the folder `custom_components/argoclima` from the [latest release][releases] into the `custom_components` folder of your Home Assistant configuration and restart.
 
 ### 4. Add your device
 
@@ -70,12 +70,12 @@ That's it. The device and its controls now appear in Home Assistant. Home Assist
 
 ## Updating from version 1.1.4 or earlier
 
-Update the integration in HACS as usual and restart Home Assistant. Your devices and entities are kept, including entity ids, history, names, areas and automations. If you end up with duplicated entities ending in `_2`, please [open an issue][issues].
+Update the integration in the Marketplace or HACS as usual and restart Home Assistant. Your devices and entities are kept, including entity ids, history, names, areas and automations. If you end up with duplicated entities ending in `_2`, please [open an issue][issues].
 
 > [!IMPORTANT]
 > **Using the separate dummy server (Docker)?** It keeps working, and the integration then polls your devices as before. It's no longer updated, though: the dummy server is now built into the integration. See [Coming from the separate dummy server](https://github.com/nyffchanium/argoclima-integration/blob/master/docs/dummy-server.md#coming-from-the-separate-dummy-server-docker) to switch.
 
-If you installed the fork `Gadund/argoclima-integration` as a custom repository in the meantime: in HACS, remove the custom repository (⋮ → **Custom repositories**), then download **Argoclima** again from the regular HACS list and restart. Your devices stay set up.
+If you installed the fork `Gadund/argoclima-integration` as a custom repository in the meantime: remove the custom repository in the Marketplace or HACS, then install **Argoclima** again from the regular list and restart. Your devices stay set up.
 
 ## Documentation
 
