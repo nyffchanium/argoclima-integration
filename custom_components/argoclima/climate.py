@@ -32,7 +32,7 @@ async def async_setup_entry(
 
 
 class ArgoClimate(ArgoEntity, ClimateEntity):
-    _attr_temperature_unit = ArgoUnit.CELSIUS.to_ha_unit()
+    _attr_native_temperature_unit = ArgoUnit.CELSIUS.to_ha_unit()
     _attr_target_temperature_step = 0.5
 
     def __init__(self, device: ArgoRuntimeDevice) -> None:
@@ -65,13 +65,13 @@ class ArgoClimate(ArgoEntity, ClimateEntity):
         ]
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         if not self._type.current_temperature:
             return None
         return self.coordinator.data.temp
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         if not self._type.target_temperature:
             return None
         return self.coordinator.data.target_temp

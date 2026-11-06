@@ -4,10 +4,8 @@ from homeassistant.components.select import ATTR_OPTION
 from homeassistant.components.select import SERVICE_SELECT_OPTION
 from homeassistant.core import HomeAssistant
 from homeassistant.core import State
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.common import (
-    mock_restore_cache_with_extra_data,
-)
+from pytest_homeassistant.common import MockConfigEntry
+from pytest_homeassistant.common import mock_restore_cache_with_extra_data
 
 from .helpers import call
 from .helpers import sent_value

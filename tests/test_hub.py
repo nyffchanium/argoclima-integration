@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from datetime import time
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -8,12 +9,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.core import State
 from homeassistant.helpers import device_registry as dr
 from homeassistant.util import dt as dt_util
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.common import mock_restore_cache
-from pytest_homeassistant_custom_component.components.diagnostics import (
-    get_diagnostics_for_config_entry,
-)
-from pytest_homeassistant_custom_component.typing import ClientSessionGenerator
+from pytest_homeassistant.common import MockConfigEntry
+from pytest_homeassistant.common import mock_restore_cache
+from pytest_homeassistant.components.diagnostics import get_diagnostics_for_config_entry
+from pytest_homeassistant.typing import ClientSessionGenerator
 
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
 from custom_components.argoclima.const import CONF_CPU_ID
@@ -30,6 +29,7 @@ from custom_components.argoclima.dummy_server import ArgoDummyServer
 from custom_components.argoclima.dummy_server import ArgoPushData
 from custom_components.argoclima.dummy_server import async_handle_push_data
 from custom_components.argoclima.runtime import dummy_server_hub_id
+from custom_components.argoclima.service import SERVICE_SET_TIME
 
 from .conftest import HOST
 from .conftest import TITLE
@@ -213,3 +213,35 @@ async def test_drying_continues_until_the_first_push(
     await hass.async_block_till_done()
 
     assert hass.states.get(drying).state == "on"
+
+
+async def test_set_time_on_hub_device(
+    hass: HomeAssistant,
+    hub: MockConfigEntry,
+    mock_device: None,
+    sent_requests: list[str],
+) -> None:
+    await setup_integration(hass, hub)
+    await async_handle_push_data(
+        hass,
+        ArgoPushData(
+            cpu_id=CPU_ID,
+            host=HOST,
+            hmi=device_response(),
+            hub_id=dummy_server_hub_id(hub),
+        ),
+    )
+    await hass.async_block_till_done()
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, "device-key"), hub.entry_id
+    )
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_SET_TIME,
+        {"device": device.id, "time": time(13, 37), "weekday": "Wednesday"},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    assert sent_requests[-1].split(",")[20] == str(13 * 60 + 37)

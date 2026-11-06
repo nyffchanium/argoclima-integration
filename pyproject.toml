@@ -37,4 +37,6 @@ known-first-party = ["custom_components.argoclima"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+# Let Home Assistant install its httpx alias before respx is imported.
+addopts = "-p no:respx"
 markers = ["clock_sync: run with the automatic clock sync enabled"]

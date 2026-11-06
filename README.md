@@ -42,7 +42,7 @@ Flap and filter mode, timer schedules and device reset are not available.
 
 ## Getting started
 
-Requires Home Assistant 2025.10 or newer. From Home Assistant 2026.11, community integrations are installed from the built-in **Marketplace**; older versions use [HACS](https://hacs.xyz).
+Requires Home Assistant 2026.11 or newer. On Home Assistant 2025.10 to 2026.10, [HACS](https://hacs.xyz) installs version 1.3.0.
 
 ### 1. Connect the device to your WiFi
 
