@@ -32,17 +32,16 @@ def _weekday(value: Any) -> ArgoWeekday:
 def _coordinator_for_device(
     hass: HomeAssistant, device: dr.DeviceEntry
 ) -> ArgoDataUpdateCoordinator | None:
-    identifiers = {
-        identifier for domain, identifier in device.identifiers if domain == DOMAIN
-    }
-    for entry_id in device.config_entries:
-        runtime = hass.data.get(DOMAIN, {}).get(entry_id)
-        if isinstance(runtime, ArgoDataUpdateCoordinator):
-            return runtime
-        if isinstance(runtime, ArgoHubRuntime):
-            for runtime_device in runtime.devices.values():
-                if runtime_device.device_id in identifiers:
-                    return runtime_device.coordinator
+    runtime = hass.data.get(DOMAIN, {}).get(device.config_entry_id)
+    if isinstance(runtime, ArgoDataUpdateCoordinator):
+        return runtime
+    if isinstance(runtime, ArgoHubRuntime):
+        identifiers = {
+            identifier for domain, identifier in device.identifiers if domain == DOMAIN
+        }
+        for runtime_device in runtime.devices.values():
+            if runtime_device.device_id in identifiers:
+                return runtime_device.coordinator
     return None
 
 
