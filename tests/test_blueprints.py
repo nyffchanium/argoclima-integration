@@ -9,9 +9,9 @@ from homeassistant.components.blueprint.models import Blueprint
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from homeassistant.util.yaml import load_yaml
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.common import async_capture_events
-from pytest_homeassistant_custom_component.common import async_fire_time_changed
+from pytest_homeassistant.common import MockConfigEntry
+from pytest_homeassistant.common import async_capture_events
+from pytest_homeassistant.common import async_fire_time_changed
 
 from .helpers import sent_value
 from .helpers import setup_integration

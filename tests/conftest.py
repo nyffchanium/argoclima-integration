@@ -2,7 +2,7 @@ from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.argoclima.api import ArgoApiClient
 from custom_components.argoclima.const import ARGO_DEVICE_ULISSE_ECO
@@ -14,8 +14,6 @@ from custom_components.argoclima.const import ENTRY_ROLE_DEVICE
 from custom_components.argoclima.data import RESPONSE_VALUE_COUNT
 from custom_components.argoclima.data import ArgoData
 from custom_components.argoclima.update_coordinator import ArgoDataUpdateCoordinator
-
-pytest_plugins = "pytest_homeassistant_custom_component"
 
 HOST = "192.168.1.50"
 TITLE = "Living Room"
@@ -43,11 +41,6 @@ APPLIED_UPDATE_INDICES = {
 def device_response(overrides: dict[int, int] | None = None) -> str:
     values = {**DEFAULT_RESPONSE_VALUES, **(overrides or {})}
     return ",".join(str(values.get(i, 0)) for i in range(RESPONSE_VALUE_COUNT))
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    return
 
 
 @pytest.fixture(autouse=True)

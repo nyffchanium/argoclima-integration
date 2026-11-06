@@ -8,8 +8,8 @@ from homeassistant.const import STATE_OFF
 from homeassistant.const import STATE_ON
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.common import async_fire_time_changed
+from pytest_homeassistant.common import MockConfigEntry
+from pytest_homeassistant.common import async_fire_time_changed
 
 from .helpers import setup_integration
 

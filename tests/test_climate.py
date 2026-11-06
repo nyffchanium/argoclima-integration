@@ -11,7 +11,7 @@ from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.const import SERVICE_TURN_OFF
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from .helpers import sent_value
 from .helpers import setup_integration
